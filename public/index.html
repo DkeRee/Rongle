@@ -3,10 +3,24 @@
 	<head>
 		<title>Rongle</title>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-		<link href = "style.css" rel = "stylesheet" type = "text/css">
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
 		<script src = "/socket.io/socket.io.js"></script>
+		<link href = "style.css" rel = "stylesheet" type = "text/css">
 	</head>
 	<body id = "body">
+		<div id = "big-ui-container">
+			<div id = "login-container">
+				<h1 id = "title">RONGLE</h1>
+				<form id = "form">
+					<input id = "username-submit" type = "text" placeholder = "Nickname" maxlength = "16" autocomplete = "off" autofocus>
+				</form>
+			</div>
+			<div id = "my-info">
+				<h1 class = "header">My Info</h1>
+				<h2 class = "info" id = "coords">Coords: N/A, N/A</h2>
+			</div>
+		</div>
 		<canvas id = "game"></canvas>
 		<script src = "client.js"></script>
 	</body>
