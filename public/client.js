@@ -26,8 +26,8 @@
 	const input = document.getElementById("username-submit");
 
 	form.addEventListener("submit", e => {
-		if (input !== ""){
-			e.preventDefault();
+		e.preventDefault();
+		if (input.value.length !== 0){
 			socket.emit("join", input.value);
 			input.value = "";
 		}
@@ -127,6 +127,25 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.translate(-player.coords.x + canvas.width/2, -player.coords.y + canvas.height/2);
 		});
+	});
+
+	const warningContainer = document.getElementById("warning-container");
+	const warningHeader = document.getElementById("warning-header");
+	const warning = document.getElementById("warning");
+
+	socket.on("kick", info => {
+		warningHeader.textContent = info.header;
+		warning.textContent = info.warning;
+		warningContainer.style.display = 'block';
+	});
+
+	socket.on("nickname-warning", info => {
+		warningHeader.textContent = info.header;
+		warning.textContent = info.warning;
+		warningContainer.style.display = 'block';
+		setTimeout(() => {
+			warningContainer.style.display = 'none';
+		}, 3000);
 	});
 
 	window.addEventListener("keydown", e => {

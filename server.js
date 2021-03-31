@@ -36,7 +36,7 @@ io.on('connection', socket => {
 		if (loggedIn == false && username !== "" && username.length <= 16 && checkUsername(username)){
 			players[socket.id] = {
 				id: socket.id,
-				username: username,
+				username: username.trim(),
 				coords: {
 					x: Math.floor(Math.random() * Math.floor(300)),
 					y: Math.floor(Math.random() * Math.floor(300))
@@ -45,6 +45,19 @@ io.on('connection', socket => {
 			};
 			socket.emit('joining');
 			loggedIn = true;
+		} else {
+			if (username.length > 16){
+				socket.emit("kick", {
+					header: "Uh Oh",
+					warning: "Looks like something went wrong. Please reload the page"
+				});
+				socket.disconnect();
+			} else {
+				socket.emit("nickname-warning", {
+					header: "Uh Oh",
+					warning: "Please enter a valid nickname!"
+				});
+			}
 		}
 	});
 
