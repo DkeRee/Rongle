@@ -183,12 +183,13 @@
 
 		if (messages.length > 30){
 			messages[0].remove();
+			messages.shift();
 		}
 	});
 
 	window.addEventListener("keypress", e => {
 		if (!$(chatbar).is(':focus')){
-			if (e.keyCode == 116 || e.which == 116){
+			if (e.keyCode == 13 || e.which == 13){
 				setTimeout(() => {
 					$(chatbar).focus();
 				}, 50);
