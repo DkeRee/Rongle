@@ -27,11 +27,10 @@
 			</div>
 			<div id = "chat-container">
 				<div id = "chat-wrapper">
-					<div id = "chat-inner-wrapper">
-					</div>
+					<div id = "chat-inner-wrapper"></div>
 				</div>
 				<div id = "chatbar-wrapper">
-					<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "250" autocomplete = "off" placeholder = "Type your message here"></textarea>
+					<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "250" autocomplete = "off" placeholder = "Press T to start typing"></textarea>
 				</div>
 				<script>
 					const chatbar = document.getElementById("chatbar");
@@ -39,20 +38,6 @@
 						chatbar.style.height = "auto";
 
 						chatbar.style.height = `${chatbar.scrollHeight - 10}px`;
-					});
-
-					window.addEventListener("keypress", e => {
-						if (!$(chatbar).is(':focus')){
-							if (e.keyCode == 116 || e.which == 116){
-								setTimeout(() => {
-									$(chatbar).focus();
-								}, 200);
-							}
-						} else {
-							if (e.keyCode == 13 || e.which == 13){
-								chatbar.value = "";
-							}
-						}
 					});
 				</script>
 			</div>

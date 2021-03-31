@@ -11,9 +11,9 @@ const tickrate = 1000/60;
 const players = {};
 const colors = ["#7289da", "#FFA500", "#DF362D", "#FFCD58", "cyan"];
 
-function checkUsername(username){
-	for (var i = 0; i < username.length; i++){
-		if (username[i] !== " "){
+function checkString(string){
+	for (var i = 0; i < string.length; i++){
+		if (string[i] !== " "){
 			return true;
 		}
 	}
@@ -33,7 +33,7 @@ setInterval(() => {
 io.on('connection', socket => {
 	var loggedIn = false;
 	socket.on('join', username => {
-		if (loggedIn == false && username !== "" && username.length <= 16 && checkUsername(username)){
+		if (loggedIn == false && username !== "" && username.length <= 16 && checkString(username)){
 			players[socket.id] = {
 				id: socket.id,
 				username: username.trim(),
@@ -74,6 +74,23 @@ io.on('connection', socket => {
 		}
 		if (keys[65]){
 			players[socket.id].coords.x -= 4;
+		}
+	});
+
+	socket.on("send", msg => {
+		const message = msg.trim();
+		if (loggedIn && message.length <= 250 && message !== "" && checkString(message)){
+			io.emit("recieve", {
+				msg: message,
+				username: players[socket.id].username,
+				color: players[socket.id].color
+			});
+		} else if (msg.length > 250){
+			socket.emit("kick", {
+				header: "Uh Oh",
+				warning: "Looks like something went wrong. Please reload the page"
+			});
+			socket.disconnect();
 		}
 	});
 

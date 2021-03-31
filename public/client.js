@@ -37,9 +37,11 @@
 		const loginContainer = document.getElementById("login-container");
 		const bigUI = document.getElementById("big-ui-container");
 		const myInfo = document.getElementById("my-info");
+		const chat = document.getElementById("chat-container");
 		loginContainer.remove();
 		bigUI.style.backgroundColor = 'transparent';
 		myInfo.style.display = 'block';
+		chat.style.display = 'block';
 
 		var step = function(){
 			update();
@@ -115,7 +117,9 @@
 		});
 	
 		setInterval(() => {
-			socket.emit('movement', keys);
+			if (!typing){
+				socket.emit('movement', keys);
+			}
 		}, tickrate);
 	
 		socket.on('cam-update', id => {
@@ -146,6 +150,61 @@
 		setTimeout(() => {
 			warningContainer.style.display = 'none';
 		}, 3000);
+	});
+
+	const innerWrapper = document.getElementById("chat-inner-wrapper");
+	const chatbar = document.getElementById("chatbar");
+	const messages = [];
+	var typing = false;
+
+	setInterval(() => {
+		if ($(chatbar).is(':focus')){
+			typing = true;
+		} else {
+			typing = false;
+		}
+	});
+
+	socket.on("recieve", info => {
+		const msgContainer = document.createElement("p");
+		msgContainer.setAttribute("class", "msg");
+		msgContainer.style.color = "white";
+
+		const name = document.createElement("bdi");
+		name.textContent = info.username;
+		name.style.color = info.color;
+		name.setAttribute("class", "msg");
+
+		msgContainer.innerHTML = `: ${info.msg}`;
+		msgContainer.prepend(name);
+
+		innerWrapper.appendChild(msgContainer);
+		messages.push(msgContainer);
+
+		if (messages.length > 30){
+			messages[0].remove();
+		}
+	});
+
+	window.addEventListener("keypress", e => {
+		if (!$(chatbar).is(':focus')){
+			if (e.keyCode == 116 || e.which == 116){
+				setTimeout(() => {
+					$(chatbar).focus();
+				}, 50);
+			}
+		} else {
+			if (e.keyCode == 13 || e.which == 13){
+				if (chatbar.value.length !== 0){
+					setTimeout(() => {
+						socket.emit("send", chatbar.value);
+						chatbar.style.height = "20px";
+						chatbar.value = "";
+						chatbar.blur();
+					}, 10);
+				}
+			}
+		}
 	});
 
 	window.addEventListener("keydown", e => {
