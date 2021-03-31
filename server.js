@@ -79,13 +79,13 @@ io.on('connection', socket => {
 
 	socket.on("send", msg => {
 		const message = msg.trim();
-		if (loggedIn && message.length <= 250 && message !== "" && checkString(message)){
+		if (loggedIn && message.length <= 100 && message !== "" && checkString(message)){
 			io.emit("recieve", {
 				msg: message,
 				username: players[socket.id].username,
 				color: players[socket.id].color
 			});
-		} else if (msg.length > 250){
+		} else if (msg.length > 100){
 			socket.emit("kick", {
 				header: "Uh Oh",
 				warning: "Looks like something went wrong. Please reload the page"
