@@ -100,7 +100,7 @@ body {
 	width: 350px;
 	height: auto;
 	text-align: center;
-	opacity: 0.8;
+	opacity: 0.7;
 	display: none;
 }
 
@@ -141,7 +141,6 @@ body {
 	padding: 5px;
 	resize: none;
 	display: flex;
-	opacity: 0.6;
 }
 
 .msg {

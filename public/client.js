@@ -15,6 +15,7 @@
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
+	var loggedIn = false;
 	var myX;
 	var myY;
 
@@ -39,6 +40,7 @@
 	});
 
 	socket.on('joining', () => {
+		loggedIn = true;
 		loginContainer.remove();
 		bigUI.style.backgroundColor = 'transparent';
 		myInfo.style.display = 'block';
@@ -128,7 +130,7 @@
 			canvas.style.backgroundPosition = `${-player.coords.x / 2}px ${-player.coords.y / 2}px`;
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-player.coords.x + canvas.width/2, -player.coords.y + canvas.height/2);
+			ctx.translate(-player.coords.x + canvas.width / 2, -player.coords.y + canvas.height / 2);
 		});
 	});
 
@@ -160,7 +162,7 @@
 		if ($(chatbar).is(":focus")){
 			typing = true;
 			$(chat).removeClass("unselectable");
-			chatbar.style.opacity = "1";
+			chat.style.opacity = "1";
 		} else {
 			typing = false;
 		}
@@ -189,25 +191,27 @@
 	});
 
 	window.addEventListener("keypress", e => {
-		if (!$(chatbar).is(':focus')){
-			if (e.keyCode == 13 || e.which == 13){
-				setTimeout(() => {
-					$(chatbar).focus();
-					$(chat).removeClass("unselectable");
-					chatbar.style.opacity = "1";
-				}, 50);
-			}
-		} else {
-			if (e.keyCode == 13 || e.which == 13){
-				if (chatbar.value.length !== 0){
+		if (loggedIn){
+			if (!$(chatbar).is(':focus')){
+				if (e.keyCode == 13 || e.which == 13){
 					setTimeout(() => {
-						socket.emit("send", chatbar.value);
-						chatbar.style.height = "20px";
-						chatbar.value = "";
-						chatbar.blur();
-						$(chat).addClass("unselectable");
-						chatbar.style.opacity = "0.6";
-					}, 10);
+						$(chatbar).focus();
+						$(chat).removeClass("unselectable");
+						chat.style.opacity = "1";
+					}, 50);
+				}
+			} else {
+				if (e.keyCode == 13 || e.which == 13){
+					if (chatbar.value.length !== 0){
+						setTimeout(() => {
+							socket.emit("send", chatbar.value);
+							chatbar.style.height = "20px";
+							chatbar.value = "";
+							chatbar.blur();
+							$(chat).addClass("unselectable");
+							chat.style.opacity = "0.7";
+						}, 10);
+					}
 				}
 			}
 		}

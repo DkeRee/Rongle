@@ -33,7 +33,7 @@ setInterval(() => {
 io.on('connection', socket => {
 	var loggedIn = false;
 	socket.on('join', username => {
-		if (loggedIn == false && username !== "" && username.length <= 16 && checkString(username)){
+		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username)){
 			players[socket.id] = {
 				id: socket.id,
 				username: username.trim(),
