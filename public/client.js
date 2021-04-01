@@ -121,16 +121,16 @@
 			if (!typing){
 				socket.emit('movement', keys);
 			}
-		}, tickrate);
-	
-		socket.on('cam-update', id => {
-			const player = players[id];
-			myX = players[id].coords.x;
-			myY = players[id].coords.y;
-			canvas.style.backgroundPosition = `${-player.coords.x / 0.8}px ${-player.coords.y / 0.8}px`;
+
+			canvas.style.backgroundPosition = `${-myX / 0.8}px ${-myY / 0.8}px`;
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-player.coords.x + canvas.width / 2, -player.coords.y + canvas.height / 2);
+			ctx.translate(-myX + canvas.width / 2, -myY + canvas.height / 2);
+		}, tickrate);
+	
+		socket.on('cam-update', id => {;
+			myX = players[id].coords.x;
+			myY = players[id].coords.y;
 		});
 	});
 
