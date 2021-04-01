@@ -127,7 +127,7 @@
 			const player = players[id];
 			myX = players[id].coords.x;
 			myY = players[id].coords.y;
-			canvas.style.backgroundPosition = `${-player.coords.x / 2}px ${-player.coords.y / 2}px`;
+			canvas.style.backgroundPosition = `${-player.coords.x / 0.8}px ${-player.coords.y / 0.8}px`;
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.translate(-player.coords.x + canvas.width / 2, -player.coords.y + canvas.height / 2);

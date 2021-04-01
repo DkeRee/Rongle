@@ -64,16 +64,16 @@ io.on('connection', socket => {
 	socket.on('movement', keys => {
 		socket.emit('cam-update', socket.id);
 		if (keys[87]){
-			players[socket.id].coords.y -= 4;
+			players[socket.id].coords.y -= 2;
 		}
 		if (keys[83]){
-			players[socket.id].coords.y += 4;
+			players[socket.id].coords.y += 2;
 		}
 		if (keys[68]){
-			players[socket.id].coords.x += 4;
+			players[socket.id].coords.x += 2;
 		}
 		if (keys[65]){
-			players[socket.id].coords.x -= 4;
+			players[socket.id].coords.x -= 2;
 		}
 	});
 
