@@ -96,6 +96,7 @@ body {
 	z-index: 1;
 	background: url("img/rongle_background.png") repeat;
 	display: none;
+	user-select: none;
 }
 
 .link {
