@@ -19,6 +19,29 @@ function checkString(string){
 	}
 }
 
+function calculatePlayerSides(coord){
+	if (Math.sign(coord) == 1){
+		return coord + 26;
+	} else {
+		return coord - 26;
+	}
+}
+
+function borderCheck(coordX, coordY){
+	if (calculatePlayerSides(coordX) >= 1300){
+		return "right border";
+	}
+	if (calculatePlayerSides(coordX) <= -1300){
+		return "left border";
+	}
+	if (calculatePlayerSides(coordY) >= 1300){
+		return "bottom border";
+	}
+	if (calculatePlayerSides(coordY) <= -1300){
+		return "top border";
+	}
+}
+
 setInterval(() => {
 	for (var player in players){
 		io.emit('pupdate', {
@@ -59,19 +82,32 @@ io.on('connection', socket => {
 	});
 
 	socket.on('movement', keys => {
+		const border = borderCheck(players[socket.id].coords.x, players[socket.id].coords.y);
 		socket.emit('cam-update', socket.id);
-		if (keys[87]){
-			players[socket.id].coords.y -= 2;
-		}
-		if (keys[83]){
-			players[socket.id].coords.y += 2;
-		}
-		if (keys[68]){
-			players[socket.id].coords.x += 2;
-		}
-		if (keys[65]){
-			players[socket.id].coords.x -= 2;
-		}
+			//up
+			if (border !== "top border"){
+				if (keys[87]){
+					players[socket.id].coords.y -= 2;
+				}
+			}
+			//down
+			if (border !== "bottom border"){
+				if (keys[83]){
+					players[socket.id].coords.y += 2;
+				}
+			}
+			//right
+			if (border !== "right border"){
+				if (keys[68]){
+					players[socket.id].coords.x += 2;
+				}
+			}
+			//left
+			if (border !== "left border"){
+				if (keys[65]){
+					players[socket.id].coords.x -= 2;
+				}
+			}
 	});
 
 	socket.on("send", msg => {

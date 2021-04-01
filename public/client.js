@@ -41,12 +41,11 @@
 	});
 
 	socket.on("setup", () => {
-		console.log("e");
 		setInterval(() => {
 			if (!socket.connected){
 				overlappingUI.style.display = 'block';
 			}
-		});
+		}, tickrate);
 	});
 
 	socket.on('joining', () => {
@@ -71,6 +70,12 @@
 		};
 
 		var render = function(){
+			const borderX = -1300;
+			const borderY = -1300;
+			ctx.lineWidth = 5;
+			ctx.strokeStyle = "white";
+			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
+
 			for (var player in players){
 				players[player].body.render();
 			}
