@@ -29,9 +29,7 @@
 				<div id = "chat-wrapper">
 					<div id = "chat-inner-wrapper"></div>
 				</div>
-				<div id = "chatbar-wrapper">
-					<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "100" autocomplete = "off" placeholder = "Hit ENTER to begin typing"></textarea>
-				</div>
+				<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "100" autocomplete = "off" placeholder = "Hit ENTER to begin typing"></textarea>
 				<script>
 					const chatbar = document.getElementById("chatbar");
 					$(chatbar).on("input", () => {
@@ -43,6 +41,12 @@
 			</div>
 		</div>
 		<canvas id = "game"></canvas>
+		<div id = "overlapping-ui-container">
+			<div id = "disconnect-container">
+				<h1 id = "disconnect-header">Uh Oh</h1>
+				<h2 id = "disconnect-info">You have been disconnected. Please <a class = "link" href = "https://rongle.dkeree.repl.co/">RELOAD</a></h2>
+			</div>
+		</div>
 		<script src = "client.js"></script>
 	</body>
 </html>

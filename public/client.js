@@ -10,6 +10,7 @@
 
 	const loginContainer = document.getElementById("login-container");
 	const bigUI = document.getElementById("big-ui-container");
+	const overlappingUI = document.getElementById("overlapping-ui-container");
 	const myInfo = document.getElementById("my-info");
 	const chat = document.getElementById("chat-container");
 	canvas.width = window.innerWidth;
@@ -39,10 +40,19 @@
 		}
 	});
 
+	socket.on("setup", () => {
+		console.log("e");
+		setInterval(() => {
+			if (!socket.connected){
+				overlappingUI.style.display = 'block';
+			}
+		});
+	});
+
 	socket.on('joining', () => {
 		loggedIn = true;
 		loginContainer.remove();
-		bigUI.style.backgroundColor = 'transparent';
+		bigUI.style.background = 'transparent';
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
 
@@ -138,13 +148,7 @@
 	const warningHeader = document.getElementById("warning-header");
 	const warning = document.getElementById("warning");
 
-	socket.on("kick", info => {
-		warningHeader.textContent = info.header;
-		warning.textContent = info.warning;
-		warningContainer.style.display = 'block';
-	});
-
-	socket.on("nickname-warning", info => {
+	socket.on("warning", info => {
 		warningHeader.textContent = info.header;
 		warning.textContent = info.warning;
 		warningContainer.style.display = 'block';

@@ -32,6 +32,7 @@ setInterval(() => {
 
 io.on('connection', socket => {
 	var loggedIn = false;
+	socket.emit("setup");
 	socket.on('join', username => {
 		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username)){
 			players[socket.id] = {
@@ -47,13 +48,9 @@ io.on('connection', socket => {
 			loggedIn = true;
 		} else {
 			if (username.length > 16){
-				socket.emit("kick", {
-					header: "Uh Oh",
-					warning: "Looks like something went wrong. Please reload the page"
-				});
 				socket.disconnect();
 			} else {
-				socket.emit("nickname-warning", {
+				socket.emit("warning", {
 					header: "Uh Oh",
 					warning: "Please enter a valid nickname!"
 				});
@@ -86,10 +83,6 @@ io.on('connection', socket => {
 				color: players[socket.id].color
 			});
 		} else if (msg.length > 100){
-			socket.emit("kick", {
-				header: "Uh Oh",
-				warning: "Looks like something went wrong. Please reload the page"
-			});
 			socket.disconnect();
 		}
 	});
