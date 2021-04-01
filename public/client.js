@@ -87,7 +87,6 @@
 			this.x = x;
 			this.y = y;
 			this.radius = 26;
-			this.speed = 5;
 			this.color = color;
 			this.username = username;
 		}
