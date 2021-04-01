@@ -86,7 +86,6 @@ io.on('connection', socket => {
 			socket.on('movement', keys => {
 				const borderX = borderCheckX(players[socket.id].coords.x, players[socket.id].coords.y);
 				const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
-				socket.emit('cam-update', socket.id);
 				//up
 				if (borderY !== "top border"){
 					if (keys[87]){

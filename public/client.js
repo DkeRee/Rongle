@@ -16,9 +16,12 @@
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	var loggedIn = false;
-	var myX;
-	var myY;
+	var me = {
+		loggedIn: false,
+		myID: undefined,
+		myX: undefined,
+		myY: undefined
+	};
 
 	$(body).bind('contextmenu', function(e) {
 		return false;
@@ -41,6 +44,7 @@
 	});
 
 	socket.on("setup", () => {
+		me.myID = socket.id;
 		setInterval(() => {
 			if (!socket.connected){
 				bigUI.style.display = 'none';
@@ -50,7 +54,7 @@
 	});
 
 	socket.on('joining', () => {
-		loggedIn = true;
+		me.loggedIn = true;
 		loginContainer.remove();
 		bigUI.style.background = 'transparent';
 		myInfo.style.display = 'block';
@@ -67,14 +71,14 @@
 			for (var player in players){
 				players[player].body.update(players[player].coords.x, players[player].coords.y);
 			}
-			coordText.textContent = `Coords: ${myX}, ${myY}`;
+			coordText.textContent = `Coords: ${me.myX}, ${me.myY}`;
 		};
 
 		var render = function(){
-			canvas.style.backgroundPosition = `${-myX / 0.8}px ${-myY / 0.8}px`;
+			canvas.style.backgroundPosition = `${-me.myX / 0.8}px ${-me.myY / 0.8}px`;
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-myX + canvas.width / 2, -myY + canvas.height / 2);
+			ctx.translate(-me.myX + canvas.width / 2, -me.myY + canvas.height / 2);
 			
 			const borderX = -1300;
 			const borderY = -1300;
@@ -124,6 +128,11 @@
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				players[info.id].coords = info.coords;
+
+				if (info.id == me.myID){
+					me.myX = players[info.id].coords.x;
+					me.myY = players[info.id].coords.y;
+				}
 			} else {
 				players[info.id] = {
 					coords: info.coords,
@@ -142,11 +151,6 @@
 				socket.emit('movement', keys);
 			}
 		}, tickrate);
-	
-		socket.on('cam-update', id => {;
-			myX = players[id].coords.x;
-			myY = players[id].coords.y;
-		});
 	});
 
 	const warningContainer = document.getElementById("warning-container");
@@ -200,7 +204,7 @@
 	});
 
 	window.addEventListener("keypress", e => {
-		if (loggedIn){
+		if (me.loggedIn){
 			if (!$(chatbar).is(':focus')){
 				if (e.keyCode == 13 || e.which == 13){
 					setTimeout(() => {
