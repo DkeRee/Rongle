@@ -7,6 +7,11 @@
 	const ctx = canvas.getContext("2d");
 	const players = {};
 	const keys = {};
+
+	const loginContainer = document.getElementById("login-container");
+	const bigUI = document.getElementById("big-ui-container");
+	const myInfo = document.getElementById("my-info");
+	const chat = document.getElementById("chat-container");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
@@ -34,10 +39,6 @@
 	});
 
 	socket.on('joining', () => {
-		const loginContainer = document.getElementById("login-container");
-		const bigUI = document.getElementById("big-ui-container");
-		const myInfo = document.getElementById("my-info");
-		const chat = document.getElementById("chat-container");
 		loginContainer.remove();
 		bigUI.style.backgroundColor = 'transparent';
 		myInfo.style.display = 'block';
@@ -58,8 +59,6 @@
 		};
 
 		var render = function(){
-			ctx.fillStyle = "#23272A";
-			ctx.fillRect(myX - window.innerWidth / 2, myY - window.innerHeight / 2, window.innerWidth, window.innerHeight);
 			for (var player in players){
 				players[player].body.render();
 			}
@@ -158,8 +157,10 @@
 	var typing = false;
 
 	setInterval(() => {
-		if ($(chatbar).is(':focus')){
+		if ($(chatbar).is(":focus")){
 			typing = true;
+			$(chat).removeClass("unselectable");
+			chatbar.style.opacity = "1";
 		} else {
 			typing = false;
 		}
@@ -192,6 +193,8 @@
 			if (e.keyCode == 13 || e.which == 13){
 				setTimeout(() => {
 					$(chatbar).focus();
+					$(chat).removeClass("unselectable");
+					chatbar.style.opacity = "1";
 				}, 50);
 			}
 		} else {
@@ -202,6 +205,8 @@
 						chatbar.style.height = "20px";
 						chatbar.value = "";
 						chatbar.blur();
+						$(chat).addClass("unselectable");
+						chatbar.style.opacity = "0.6";
 					}, 10);
 				}
 			}

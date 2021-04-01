@@ -3,6 +3,10 @@ body {
 	overflow: hidden;
 }
 
+#game {
+	background: url("img/rongle_background.png") repeat;
+}
+
 #warning-container {
 	position: absolute;
 	border-radius: 8px;
@@ -85,6 +89,10 @@ body {
 	display: none;
 }
 
+.unselectable {
+	user-select: none;
+}
+
 #chat-container {
 	position: absolute;
 	left: 50px;
@@ -92,7 +100,7 @@ body {
 	width: 350px;
 	height: auto;
 	text-align: center;
-	opacity: 0.7;
+	opacity: 0.8;
 	display: none;
 }
 
@@ -133,6 +141,7 @@ body {
 	padding: 5px;
 	resize: none;
 	display: flex;
+	opacity: 0.6;
 }
 
 .msg {
