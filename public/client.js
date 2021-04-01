@@ -71,6 +71,11 @@
 		};
 
 		var render = function(){
+			canvas.style.backgroundPosition = `${-myX / 0.8}px ${-myY / 0.8}px`;
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.translate(-myX + canvas.width / 2, -myY + canvas.height / 2);
+			
 			const borderX = -1300;
 			const borderY = -1300;
 			ctx.lineWidth = 5;
@@ -136,11 +141,6 @@
 			if (!typing){
 				socket.emit('movement', keys);
 			}
-
-			canvas.style.backgroundPosition = `${-myX / 0.8}px ${-myY / 0.8}px`;
-			ctx.setTransform(1, 0, 0, 1, 0, 0);
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-myX + canvas.width / 2, -myY + canvas.height / 2);
 		}, tickrate);
 	
 		socket.on('cam-update', id => {;
