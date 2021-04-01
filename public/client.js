@@ -43,6 +43,7 @@
 	socket.on("setup", () => {
 		setInterval(() => {
 			if (!socket.connected){
+				bigUI.style.display = 'none';
 				overlappingUI.style.display = 'block';
 			}
 		}, tickrate);
