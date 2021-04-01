@@ -27,13 +27,16 @@ function calculatePlayerSides(coord){
 	}
 }
 
-function borderCheck(coordX, coordY){
+function borderCheckX(coordX, coordY){
 	if (calculatePlayerSides(coordX) >= 1300){
 		return "right border";
 	}
 	if (calculatePlayerSides(coordX) <= -1300){
 		return "left border";
 	}
+}
+
+function borderCheckY(coordX, coordY){
 	if (calculatePlayerSides(coordY) >= 1300){
 		return "bottom border";
 	}
@@ -81,28 +84,29 @@ io.on('connection', socket => {
 			}
 
 			socket.on('movement', keys => {
-				const border = borderCheck(players[socket.id].coords.x, players[socket.id].coords.y);
+				const borderX = borderCheckX(players[socket.id].coords.x, players[socket.id].coords.y);
+				const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
 				socket.emit('cam-update', socket.id);
 				//up
-				if (border !== "top border"){
+				if (borderY !== "top border"){
 					if (keys[87]){
 						players[socket.id].coords.y -= 2;
 					}
 				}
 				//down
-				if (border !== "bottom border"){
+				if (borderY !== "bottom border"){
 					if (keys[83]){
 						players[socket.id].coords.y += 2;
 					}
 				}
 				//right
-				if (border !== "right border"){
+				if (borderX !== "right border"){
 					if (keys[68]){
 						players[socket.id].coords.x += 2;
 					}
 				}
 				//left
-				if (border !== "left border"){
+				if (borderX !== "left border"){
 					if (keys[65]){
 						players[socket.id].coords.x -= 2;
 					}
