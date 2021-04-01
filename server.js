@@ -21,9 +21,9 @@ function checkString(string){
 
 function calculatePlayerSides(coord){
 	if (Math.sign(coord) == 1){
-		return coord + 26;
+		return coord + 28;
 	} else {
-		return coord - 26;
+		return coord - 28;
 	}
 }
 
@@ -58,69 +58,69 @@ io.on('connection', socket => {
 	socket.emit("setup");
 	socket.on('join', username => {
 		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username)){
-			players[socket.id] = {
-				id: socket.id,
-				username: username.trim(),
-				coords: {
-					x: Math.floor(Math.random() * Math.floor(300)),
-					y: Math.floor(Math.random() * Math.floor(300))
-				},
-				color: colors[Math.floor(Math.random() * colors.length)]
-			};
-			socket.emit('joining');
-			loggedIn = true;
-		} else {
-			if (username.length > 16){
-				socket.disconnect();
+				players[socket.id] = {
+					id: socket.id,
+					username: username.trim(),
+					coords: {
+						x: Math.floor(Math.random() * Math.floor(300)),
+						y: Math.floor(Math.random() * Math.floor(300))
+					},
+					color: colors[Math.floor(Math.random() * colors.length)]
+				};
+				socket.emit('joining');
+				loggedIn = true;
 			} else {
-				socket.emit("warning", {
-					header: "Uh Oh",
-					warning: "Please enter a valid nickname!"
+				if (username.length > 16){
+					socket.disconnect();
+				} else {
+					socket.emit("warning", {
+						header: "Uh Oh",
+						warning: "Please enter a valid nickname!"
+					});
+				}
+			}
+
+			socket.on('movement', keys => {
+				const border = borderCheck(players[socket.id].coords.x, players[socket.id].coords.y);
+				socket.emit('cam-update', socket.id);
+				//up
+				if (border !== "top border"){
+					if (keys[87]){
+						players[socket.id].coords.y -= 2;
+					}
+				}
+				//down
+				if (border !== "bottom border"){
+					if (keys[83]){
+						players[socket.id].coords.y += 2;
+					}
+				}
+				//right
+				if (border !== "right border"){
+					if (keys[68]){
+						players[socket.id].coords.x += 2;
+					}
+				}
+				//left
+				if (border !== "left border"){
+					if (keys[65]){
+						players[socket.id].coords.x -= 2;
+					}
+				}
+		});
+
+		socket.on("send", msg => {
+			const message = msg.trim();
+			if (loggedIn && message.length <= 100 && message !== "" && checkString(message)){
+				io.emit("recieve", {
+					msg: message,
+					username: players[socket.id].username,
+					color: players[socket.id].color
 				});
+			} else if (msg.length > 100){
+				socket.disconnect();
 			}
-		}
-	});
-
-	socket.on('movement', keys => {
-		const border = borderCheck(players[socket.id].coords.x, players[socket.id].coords.y);
-		socket.emit('cam-update', socket.id);
-			//up
-			if (border !== "top border"){
-				if (keys[87]){
-					players[socket.id].coords.y -= 2;
-				}
-			}
-			//down
-			if (border !== "bottom border"){
-				if (keys[83]){
-					players[socket.id].coords.y += 2;
-				}
-			}
-			//right
-			if (border !== "right border"){
-				if (keys[68]){
-					players[socket.id].coords.x += 2;
-				}
-			}
-			//left
-			if (border !== "left border"){
-				if (keys[65]){
-					players[socket.id].coords.x -= 2;
-				}
-			}
-	});
-
-	socket.on("send", msg => {
-		const message = msg.trim();
-		if (loggedIn && message.length <= 100 && message !== "" && checkString(message)){
-			io.emit("recieve", {
-				msg: message,
-				username: players[socket.id].username,
-				color: players[socket.id].color
-			});
-		} else if (msg.length > 100){
-			socket.disconnect();
-		}
+		});
 	});
 
 	socket.on('disconnect', () => {
