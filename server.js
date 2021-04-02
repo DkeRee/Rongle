@@ -147,7 +147,7 @@ io.on('connection', socket => {
 		} else if (!checkCopy(username)){
 			socket.emit("warning", {
 				header: "Uh Oh",
-				warning: "This username has already been taken."
+				warning: "This nickname has already been taken."
 			});
 		}
 	});
