@@ -19,6 +19,14 @@ function checkString(string){
 	}
 }
 
+function checkCopy(username){
+	for (var player in players){
+		if (username == players[player].username){
+			return false;
+		}
+	}
+}
+
 function calculatePlayerSides(coord){
 	if (Math.sign(coord) == 1){
 		return coord + 28;
@@ -50,7 +58,7 @@ setInterval(() => {
 		players[player].time -= 1;
 		if (players[player].time <= 0){
 			io.sockets.sockets.forEach(socket => {
-				if (socket.id == players[player].id){
+				if (players[player] !== undefined && socket.id == players[player].id){
 					socket.disconnect();
 				}
 			});
@@ -115,7 +123,7 @@ io.on('connection', socket => {
 	}
 
 	socket.on('join', username => {
-		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username)){
+		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
 				players[socket.id] = {
 					id: socket.id,
 					username: username.trim(),
@@ -129,15 +137,18 @@ io.on('connection', socket => {
 				setup();
 				socket.emit('joining');
 				loggedIn = true;
-		} else {
-			if (username.length > 16){
-				socket.disconnect();
-			} else {
-				socket.emit("warning", {
-					header: "Uh Oh",
-					warning: "Please enter a valid nickname!"
-				});
-			}
+		} else if (username.length > 16){
+			socket.disconnect();
+		} else if (checkString(username) == undefined){
+			socket.emit("warning", {
+				header: "Uh Oh",
+				warning: "Please enter a valid nickname!"
+			});
+		} else if (!checkCopy(username)){
+			socket.emit("warning", {
+				header: "Uh Oh",
+				warning: "This username has already been taken."
+			});
 		}
 	});
 	socket.on('disconnect', () => {
