@@ -59,30 +59,8 @@ setInterval(() => {
 io.on('connection', socket => {
 	var loggedIn = false;
 	socket.emit("setup");
-	socket.on('join', username => {
-		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username)){
-				players[socket.id] = {
-					id: socket.id,
-					username: username.trim(),
-					coords: {
-						x: Math.floor(Math.random() * Math.floor(300)),
-						y: Math.floor(Math.random() * Math.floor(300))
-					},
-					color: colors[Math.floor(Math.random() * colors.length)]
-				};
-				socket.emit('joining');
-				loggedIn = true;
-			} else {
-				if (username.length > 16){
-					socket.disconnect();
-				} else {
-					socket.emit("warning", {
-						header: "Uh Oh",
-						warning: "Please enter a valid nickname!"
-					});
-				}
-			}
 
+	function setup(){
 			socket.on('movement', keys => {
 				const borderX = borderCheckX(players[socket.id].coords.x, players[socket.id].coords.y);
 				const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
@@ -124,8 +102,33 @@ io.on('connection', socket => {
 				socket.disconnect();
 			}
 		});
-	});
+	}
 
+	socket.on('join', username => {
+		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username)){
+				players[socket.id] = {
+					id: socket.id,
+					username: username.trim(),
+					coords: {
+						x: Math.floor(Math.random() * Math.floor(300)),
+						y: Math.floor(Math.random() * Math.floor(300))
+					},
+					color: colors[Math.floor(Math.random() * colors.length)]
+				};
+				setup();
+				socket.emit('joining');
+				loggedIn = true;
+		} else {
+			if (username.length > 16){
+				socket.disconnect();
+			} else {
+				socket.emit("warning", {
+					header: "Uh Oh",
+					warning: "Please enter a valid nickname!"
+				});
+			}
+		}
+	});
 	socket.on('disconnect', () => {
 		delete players[socket.id];
 		io.emit('leave', socket.id);
