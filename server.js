@@ -88,29 +88,29 @@ io.on('connection', socket => {
 			//up
 			if (borderY !== "top border" && keys[87]){
 				players[socket.id].coords.y -= 2;
-				players[socket.id].time = 20000;
+				players[socket.id].time = 60000;
 			}
 			//down
 			if (borderY !== "bottom border" && keys[83]){
 				players[socket.id].coords.y += 2;
-				players[socket.id].time = 20000;
+				players[socket.id].time = 60000;
 			}
 			//right
 			if (borderX !== "right border" && keys[68]){
 				players[socket.id].coords.x += 2;
-				players[socket.id].time = 20000;
+				players[socket.id].time = 60000;
 			}
 			//left
 			if (borderX !== "left border" && keys[65]){
 				players[socket.id].coords.x -= 2;
-				players[socket.id].time = 20000;
+				players[socket.id].time = 60000;
 			}
 		});
 
 		socket.on("send", msg => {
 			const message = msg.trim();
 			if (loggedIn && message.length <= 100 && message !== "" && checkString(message)){
-				players[socket.id].time = 20000;
+				players[socket.id].time = 60000;
 				io.emit("recieve", {
 					msg: message,
 					username: players[socket.id].username,
@@ -132,7 +132,7 @@ io.on('connection', socket => {
 						y: Math.floor(Math.random() * Math.floor(300))
 					},
 					color: colors[Math.floor(Math.random() * colors.length)],
-					time: 20000
+					time: 60000
 				};
 				setup();
 				socket.emit('joining');
