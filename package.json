@@ -19,6 +19,7 @@
   "homepage": "https://github.com/DkeRee/Rongle#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "randomstring": "^1.1.5",
     "socket.io": "^4.0.0"
   }
 }

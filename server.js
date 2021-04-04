@@ -8,7 +8,10 @@ const io = socket(server);
 
 const tickrate = 1000/60;
 
+const randomstring = require('randomstring');
+
 const players = {};
+const bullets = {};
 const colors = ["#7289da", "#FFA500", "#DF362D", "#FFCD58", "cyan"];
 
 function checkString(string){
@@ -53,6 +56,8 @@ function borderCheckY(coordX, coordY){
 	}
 }
 
+//afk timer
+
 setInterval(() => {
 	for (var player in players){
 		players[player].time -= 1;
@@ -66,6 +71,21 @@ setInterval(() => {
 	}
 }, 1);
 
+//bullet update
+
+setInterval(() => {
+	for (var bullet in bullets){
+		for (var i = 0; i < bullets[bullet].length; i++){
+			const projectile = bullets[bullet][i];
+			const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+
+			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+			projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+		}
+	}
+}, tickrate);
+
+//player emit
 setInterval(() => {
 	for (var player in players){
 		io.emit('pupdate', {
@@ -74,6 +94,25 @@ setInterval(() => {
 			coords: players[player].coords,
 			color: players[player].color
 		});
+	}
+}, tickrate);
+
+//bullet emit
+
+setInterval(() => {
+	for (var bullet in bullets){
+		for (var i = 0; i < bullets[bullet].length; i++){
+			var projectile = bullets[bullet][i];
+			io.emit('bupdate', {
+				playerId: projectile.playerId,
+				bulletId: projectile.bulletId,
+				coords: {
+					x: projectile.bulletCoords.x,
+					y: projectile.bulletCoords.y
+				},
+				color: projectile.color
+			});
+		}
 	}
 }, tickrate);
 
@@ -107,6 +146,30 @@ io.on('connection', socket => {
 			}
 		});
 
+		socket.on("shoot", info => {
+			if (bullets[socket.id].length <= 15){
+				players[socket.id].time = 60000;
+				bullets[socket.id].push({
+					playerId: socket.id,
+					bulletId: randomstring.generate(),
+					screen: {
+						width: info.screen.width,
+						height: info.screen.height
+					},
+					speed: 20,
+					bulletCoords: {
+						x: players[socket.id].coords.x,
+						y: players[socket.id].coords.y
+					},
+					targetCoords: {
+						x: info.coords.x,
+						y: info.coords.y
+					},
+					color: "#72bcd4"
+				});
+			}
+		});
+
 		socket.on("send", msg => {
 			const message = msg.trim();
 			if (loggedIn && message.length <= 100 && message !== "" && checkString(message)){
@@ -124,19 +187,20 @@ io.on('connection', socket => {
 
 	socket.on('join', username => {
 		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
-				players[socket.id] = {
-					id: socket.id,
-					username: username.trim(),
-					coords: {
-						x: Math.floor(Math.random() * Math.floor(300)),
-						y: Math.floor(Math.random() * Math.floor(300))
-					},
-					color: colors[Math.floor(Math.random() * colors.length)],
-					time: 60000
-				};
-				setup();
-				socket.emit('joining');
-				loggedIn = true;
+			players[socket.id] = {
+				id: socket.id,
+				username: username.trim(),
+				coords: {
+					x: Math.floor(Math.random() * Math.floor(300)),
+					y: Math.floor(Math.random() * Math.floor(300))
+				},
+				color: colors[Math.floor(Math.random() * colors.length)],
+				time: 60000
+			};
+			bullets[socket.id] = [];
+			setup();
+			socket.emit('joining');
+			loggedIn = true;
 		} else if (username.length > 16){
 			socket.disconnect();
 		} else if (checkString(username) == undefined){
@@ -153,6 +217,7 @@ io.on('connection', socket => {
 	});
 	socket.on('disconnect', () => {
 		delete players[socket.id];
+		delete bullets[socket.id];
 		io.emit('leave', socket.id);
 	});
 });

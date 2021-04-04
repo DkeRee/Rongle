@@ -6,6 +6,7 @@
 	const canvas = document.getElementById("game");
 	const ctx = canvas.getContext("2d");
 	const players = {};
+	const bullets = {};
 	const keys = {};
 
 	const loginContainer = document.getElementById("login-container");
@@ -68,6 +69,11 @@
 
 		var update = function(){
 			const coordText = document.getElementById("coords");
+			for (var player in bullets){
+				for (var bullet in bullets[player]){
+					bullets[player][bullet].body.update(bullets[player][bullet].coords.x, bullets[player][bullet].coords.y);
+				}
+			}
 			for (var player in players){
 				players[player].body.update(players[player].coords.x, players[player].coords.y);
 			}
@@ -86,12 +92,20 @@
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
 
+			for (var player in bullets){
+				for (var bullet in bullets[player]){
+					bullets[player][bullet].body.render();
+				}
+			}
+
 			for (var player in players){
 				players[player].body.render();
 			}
 		};
 
 		requestAnimationFrame(step);
+
+		//Player constructor
 
 		function Player(x, y, color, username){
 			this.x = x;
@@ -125,6 +139,33 @@
 			ctx.closePath();
 		};
 
+		//Bullet constructor
+
+		function Bullet(x, y, color){
+			this.x = x;
+			this.y = y;
+			this.radius = 6;
+			this.color = color;
+		}
+
+		Bullet.prototype.update = function(x, y){
+			this.x = x;
+			this.y = y;
+		};
+
+		Bullet.prototype.render = function(){
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
+			ctx.fillStyle = this.color;
+			ctx.fill();
+		};
+
+		Bullet.prototype.destroy = function(){
+			ctx.beginPath();
+			ctx.clearRect(this.x - this.radius - 1, this.y - this.radius - 1, this.radius * 2 + 2, this.radius * 2 + 2);
+			ctx.closePath();
+		};
+
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				players[info.id].coords = info.coords;
@@ -138,12 +179,41 @@
 					coords: info.coords,
 					body: new Player(info.coords.x, info.coords.y, info.color, info.username)
 				};
+				bullets[info.id] = {};
 			}
+		});
+
+		socket.on('bupdate', info => {
+			if (bullets[info.playerId][info.bulletId]){
+				bullets[info.playerId][info.bulletId].coords = info.coords;
+			} else {
+				bullets[info.playerId][info.bulletId] = {
+					playerId: info.playerId,
+					coords: info.coords,
+					body: new Bullet(info.coords.x, info.coords.y, info.color),
+					color: info.color
+				};
+			}
+		});
+
+		window.addEventListener("click", e => {
+			console.log("b");
+			socket.emit("shoot", {
+				screen: {
+					width: window.innerWidth,
+					height: window.innerHeight
+				},
+				coords: {
+					x: e.clientX,
+					y: e.clientY
+				}
+			});
 		});
 
 		socket.on('leave', id => {
 			players[id].body.destroy();
 			delete players[id];
+			delete bullets[id];
 		});
 	
 		setInterval(() => {
