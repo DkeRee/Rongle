@@ -154,22 +154,22 @@ io.on('connection', socket => {
 			const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
 			//up
 			if (borderY !== "top border" && keys[87]){
-				players[socket.id].coords.y -= 2;
+				players[socket.id].coords.y -= 3;
 				players[socket.id].time = 60000;
 			}
 			//down
 			if (borderY !== "bottom border" && keys[83]){
-				players[socket.id].coords.y += 2;
+				players[socket.id].coords.y += 3;
 				players[socket.id].time = 60000;
 			}
 			//right
 			if (borderX !== "right border" && keys[68]){
-				players[socket.id].coords.x += 2;
+				players[socket.id].coords.x += 3;
 				players[socket.id].time = 60000;
 			}
 			//left
 			if (borderX !== "left border" && keys[65]){
-				players[socket.id].coords.x -= 2;
+				players[socket.id].coords.x -= 3;
 				players[socket.id].time = 60000;
 			}
 		});
