@@ -30,6 +30,15 @@ function checkCopy(username){
 	}
 }
 
+function checkShooting(id){
+	for (var player in players){
+		if (player == id && players[player].bTime >= 120){
+			players[player].bTime = 0;
+			return true;
+		}
+	}
+}
+
 function calculatePlayerSides(coord){
 	if (Math.sign(coord) == 1){
 		return coord + 30;
@@ -56,10 +65,11 @@ function borderCheckY(coordX, coordY){
 	}
 }
 
-//afk timer
+//timer
 
 setInterval(() => {
 	for (var player in players){
+		players[player].bTime += 1;
 		players[player].time -= 1;
 		if (players[player].time <= 0){
 			io.sockets.sockets.forEach(socket => {
@@ -165,7 +175,7 @@ io.on('connection', socket => {
 		});
 
 		socket.on("shoot", info => {
-			if (bullets[socket.id].length <= 30){
+			if (bullets[socket.id].length <= 30 && checkShooting(socket.id)){
 				players[socket.id].time = 60000;
 				bullets[socket.id].push({
 					playerId: socket.id,
@@ -214,7 +224,8 @@ io.on('connection', socket => {
 					y: Math.floor(Math.random() * Math.floor(300))
 				},
 				color: colors[Math.floor(Math.random() * colors.length)],
-				time: 60000
+				time: 60000,
+				bTime: 0
 			};
 			bullets[socket.id] = [];
 			setup();
