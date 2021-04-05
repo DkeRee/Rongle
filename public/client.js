@@ -133,12 +133,6 @@
 			ctx.fillText(this.username, this.x, this.y - 38);
 		};
 
-		Player.prototype.destroy = function(){
-			ctx.beginPath();
-			ctx.clearRect(this.x - this.radius - 1, this.y - this.radius - 1, this.radius * 2 + 2, this.radius * 2 + 2);
-			ctx.closePath();
-		};
-
 		//Bullet constructor
 
 		function Bullet(x, y, color){
@@ -158,12 +152,6 @@
 			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
 			ctx.fillStyle = this.color;
 			ctx.fill();
-		};
-
-		Bullet.prototype.destroy = function(){
-			ctx.beginPath();
-			ctx.clearRect(this.x - this.radius - 1, this.y - this.radius - 1, this.radius * 2 + 2, this.radius * 2 + 2);
-			ctx.closePath();
 		};
 
 		//updates
@@ -199,7 +187,9 @@
 		});
 
 		socket.on("bullet-destroy", info => {
-			bullets[info.playerId][info.bulletId].body.destroy();
+			setInterval(() => {
+				bullets[info.playerId];
+			});
 			delete bullets[info.playerId][info.bulletId];
 		});
 
@@ -217,7 +207,6 @@
 		});
 
 		socket.on('leave', id => {
-			players[id].body.destroy();
 			delete players[id];
 			delete bullets[id];
 		});

@@ -79,14 +79,10 @@ setInterval(() => {
 			const projectile = bullets[bullet][i];
 			projectile.time -= 1;
 			if (projectile.time <= 0){
-				io.sockets.sockets.forEach(socket => {
-					if (players[projectile.playerId] !== undefined && socket.id == players[projectile.playerId].id){
-						bullets[bullet].splice(i, 1);
-						socket.emit("bullet-destroy", {
-							playerId: projectile.playerId,
-							bulletId: projectile.bulletId
-						});
-					}
+				bullets[bullet].splice(i, 1);
+				io.emit("bullet-destroy", {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId
 				});
 			}
 		}
@@ -175,7 +171,7 @@ io.on('connection', socket => {
 					playerId: socket.id,
 					bulletId: randomstring.generate(),
 					speed: 20,
-					time: 200,
+					time: 150,
 					screen: {
 						width: info.screen.width,
 						height: info.screen.height
