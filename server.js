@@ -171,7 +171,7 @@ io.on('connection', socket => {
 					playerId: socket.id,
 					bulletId: randomstring.generate(),
 					speed: 20,
-					time: 150,
+					time: 800,
 					screen: {
 						width: info.screen.width,
 						height: info.screen.height
