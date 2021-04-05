@@ -71,6 +71,28 @@ setInterval(() => {
 	}
 }, 1);
 
+//bullet timer
+
+setInterval(() => {
+	for (var bullet in bullets){
+		for (var i = 0; i < bullets[bullet].length; i++){
+			const projectile = bullets[bullet][i];
+			projectile.time -= 1;
+			if (projectile.time <= 0){
+				io.sockets.sockets.forEach(socket => {
+					if (players[projectile.playerId] !== undefined && socket.id == players[projectile.playerId].id){
+						bullets[bullet].splice(i, 1);
+						socket.emit("bullet-destroy", {
+							playerId: projectile.playerId,
+							bulletId: projectile.bulletId
+						});
+					}
+				});
+			}
+		}
+	}
+}, 1);
+
 //bullet update
 
 setInterval(() => {
@@ -147,16 +169,17 @@ io.on('connection', socket => {
 		});
 
 		socket.on("shoot", info => {
-			if (bullets[socket.id].length <= 15){
+			if (bullets[socket.id].length <= 30){
 				players[socket.id].time = 60000;
 				bullets[socket.id].push({
 					playerId: socket.id,
 					bulletId: randomstring.generate(),
+					speed: 20,
+					time: 200,
 					screen: {
 						width: info.screen.width,
 						height: info.screen.height
 					},
-					speed: 20,
 					bulletCoords: {
 						x: players[socket.id].coords.x,
 						y: players[socket.id].coords.y

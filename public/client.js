@@ -92,14 +92,14 @@
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
 
+			for (var player in players){
+				players[player].body.render();
+			}
+
 			for (var player in bullets){
 				for (var bullet in bullets[player]){
 					bullets[player][bullet].body.render();
 				}
-			}
-
-			for (var player in players){
-				players[player].body.render();
 			}
 		};
 
@@ -166,6 +166,8 @@
 			ctx.closePath();
 		};
 
+		//updates
+
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				players[info.id].coords = info.coords;
@@ -196,8 +198,12 @@
 			}
 		});
 
+		socket.on("bullet-destroy", info => {
+			bullets[info.playerId][info.bulletId].body.destroy();
+			delete bullets[info.playerId][info.bulletId];
+		});
+
 		window.addEventListener("click", e => {
-			console.log("b");
 			socket.emit("shoot", {
 				screen: {
 					width: window.innerWidth,
