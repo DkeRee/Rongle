@@ -279,26 +279,28 @@
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
 	function serverMsg(info, message){
-		const msgContainer = document.createElement("div");
-		msgContainer.setAttribute("class", "msg-container");
+		if (me.loggedIn){
+			const msgContainer = document.createElement("div");
+			msgContainer.setAttribute("class", "msg-container");
 
-		const msg = document.createElement("p");
-		msg.textContent = message;
-		msg.setAttribute("class", "msg");
-		msg.style.color = "white";
+			const msg = document.createElement("p");
+			msg.textContent = message;
+			msg.setAttribute("class", "msg");
+			msg.style.color = "white";
 
-		const name = document.createElement("bdi");
-		name.textContent = info.username;
-		name.style.color = info.color;
-		name.setAttribute("class", "msg");
+			const name = document.createElement("bdi");
+			name.textContent = info.username;
+			name.style.color = info.color;
+			name.setAttribute("class", "msg");
 
-		msg.prepend(name);
-		msgContainer.appendChild(msg);
-		serverInnerWrapper.appendChild(msgContainer);
+			msg.prepend(name);
+			msgContainer.appendChild(msg);
+			serverInnerWrapper.appendChild(msgContainer);
 
-		setTimeout(() => {
-			msgContainer.remove();
-		}, 3000);
+			setTimeout(() => {
+				msgContainer.remove();
+			}, 3000);
+		}
 	}
 
 	setInterval(() => {
@@ -312,24 +314,26 @@
 	});
 
 	socket.on("recieve", info => {
-		const msgContainer = document.createElement("p");
-		msgContainer.setAttribute("class", "msg");
-		msgContainer.style.color = "white";
+		if (me.loggedIn){
+			const msgContainer = document.createElement("p");
+			msgContainer.setAttribute("class", "msg");
+			msgContainer.style.color = "white";
 
-		const name = document.createElement("bdi");
-		name.textContent = info.username;
-		name.style.color = info.color;
-		name.setAttribute("class", "msg");
+			const name = document.createElement("bdi");
+			name.textContent = info.username;
+			name.style.color = info.color;
+			name.setAttribute("class", "msg");
 
-		msgContainer.innerHTML = `: ${info.msg}`;
-		msgContainer.prepend(name);
+			msgContainer.innerHTML = `: ${info.msg}`;
+			msgContainer.prepend(name);
 
-		chatInnerWrapper.appendChild(msgContainer);
-		messages.push(msgContainer);
+			chatInnerWrapper.appendChild(msgContainer);
+			messages.push(msgContainer);
 
-		if (messages.length > 30){
-			messages[0].remove();
-			messages.shift();
+			if (messages.length > 30){
+				messages[0].remove();
+				messages.shift();
+			}
 		}
 	});
 
