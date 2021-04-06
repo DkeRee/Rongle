@@ -261,11 +261,7 @@ io.on('connection', socket => {
 	});
 
 	socket.on('disconnect', () => {
-		io.emit('leave', {
-			id: socket.id,
-			username: players[socket.id].username,
-			color: players[socket.id].color	
-		});
+		io.emit('leave', socket.id);
 		delete players[socket.id];
 	});
 });

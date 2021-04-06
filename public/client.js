@@ -278,7 +278,7 @@
 
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
-	function serverMsg(info, message){
+	function serverMsg(id, message){
 		if (me.loggedIn){
 			const msgContainer = document.createElement("div");
 			msgContainer.setAttribute("class", "msg-container");
@@ -289,8 +289,8 @@
 			msg.style.color = "white";
 
 			const name = document.createElement("bdi");
-			name.textContent = info.username;
-			name.style.color = info.color;
+			name.textContent = players[id].username;
+			name.style.color = players[id].color;
 			name.setAttribute("class", "msg");
 
 			msg.prepend(name);
@@ -337,13 +337,13 @@
 		}
 	});
 
-	socket.on("plr-joined", info => {
-		serverMsg(info, " has joined the server");
+	socket.on("plr-joined", id => {
+		serverMsg(id, " has joined the server");
 	});
 
-	socket.on('leave', info => {
-		delete players[info.id];
-		serverMsg(info, " has left the server");
+	socket.on('leave', id => {
+		delete players[id];
+		serverMsg(id, " has left the server");
 	});
 
 	window.addEventListener("keypress", e => {
