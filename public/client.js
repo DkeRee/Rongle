@@ -210,6 +210,8 @@
 			} else {
 				players[info.id] = {
 					coords: info.coords,
+					username: info.username,
+					color: info.color,
 					body: new Player(info.coords.x, info.coords.y, info.color, info.username)
 				};
 				bullets[info.id] = {};
