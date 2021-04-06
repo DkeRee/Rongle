@@ -220,8 +220,8 @@ io.on('connection', socket => {
 				id: socket.id,
 				username: username.trim(),
 				coords: {
-					x: Math.floor(Math.random() * Math.floor(300)),
-					y: Math.floor(Math.random() * Math.floor(300))
+					x: Math.floor(Math.random() * 300) + -300,
+					y: Math.floor(Math.random() * 300) + -300
 				},
 				color: colors[Math.floor(Math.random() * colors.length)],
 				time: 60000,
@@ -230,6 +230,10 @@ io.on('connection', socket => {
 			bullets[socket.id] = [];
 			setup();
 			socket.emit('joining');
+			io.emit('plr-joined', {
+				username: username,
+				color: players[socket.id].color
+			});
 			loggedIn = true;
 		} else if (username.length > 16){
 			socket.disconnect();
@@ -248,19 +252,21 @@ io.on('connection', socket => {
 
 	socket.on("bullet-num", () => {
 		var num = 0;
-
 		for (var bullet in bullets){
 			for (var i = 0; i < bullets[bullet].length; i++){
 				num++;
 			}
 		}
-
 		socket.emit("bullet-numdate", num);
 	});
 
 	socket.on('disconnect', () => {
+		io.emit('leave', {
+			id: socket.id,
+			username: players[socket.id].username,
+			color: players[socket.id].color	
+		});
 		delete players[socket.id];
-		io.emit('leave', socket.id);
 	});
 });
 
