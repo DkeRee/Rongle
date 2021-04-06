@@ -176,7 +176,7 @@
 			ctx.fill();
 		};
 
-		for (var i = 0; i < 1000; i++){
+		for (var i = 0; i < 500; i++){
 			bulletStorage.push(new Bullet(5000, 5000, "transparent"));
 		}
 
@@ -191,7 +191,7 @@
 
 		setInterval(() => {
 			if (me.bulletCount > bulletStorage.length){
-				for (var i = 0; i < 100; i++){
+				for (var i = 0; i < 500; i++){
 					bulletStorage.push(new Bullet(5000, 5000, "transparent"));
 				}
 			}
