@@ -280,28 +280,52 @@
 
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
-	function serverMsg(id, message){
+	function serverMsg(info, message){
 		if (me.loggedIn){
-			const msgContainer = document.createElement("div");
-			msgContainer.setAttribute("class", "msg-container");
+			if (typeof info == 'object'){
+				const msgContainer = document.createElement("div");
+				msgContainer.setAttribute("class", "msg-container");
 
-			const msg = document.createElement("p");
-			msg.textContent = message;
-			msg.setAttribute("class", "msg");
-			msg.style.color = "white";
+				const msg = document.createElement("p");
+				msg.textContent = message;
+				msg.setAttribute("class", "msg");
+				msg.style.color = "white";
 
-			const name = document.createElement("bdi");
-			name.textContent = players[id].username;
-			name.style.color = players[id].color;
-			name.setAttribute("class", "msg");
+				const name = document.createElement("bdi");
+				name.textContent = info.username;
+				name.style.color = info.color;
+				name.setAttribute("class", "msg");
 
-			msg.prepend(name);
-			msgContainer.appendChild(msg);
-			serverInnerWrapper.appendChild(msgContainer);
+				msg.prepend(name);
+				msgContainer.appendChild(msg);
+				serverInnerWrapper.appendChild(msgContainer);
 
-			setTimeout(() => {
-				msgContainer.remove();
-			}, 3000);
+				setTimeout(() => {
+					msgContainer.remove();
+				}, 3000);
+			}
+			if (typeof info == 'string'){
+				const msgContainer = document.createElement("div");
+				msgContainer.setAttribute("class", "msg-container");
+
+				const msg = document.createElement("p");
+				msg.textContent = message;
+				msg.setAttribute("class", "msg");
+				msg.style.color = "white";
+
+				const name = document.createElement("bdi");
+				name.textContent = players[info].username;
+				name.style.color = players[info].color;
+				name.setAttribute("class", "msg");
+
+				msg.prepend(name);
+				msgContainer.appendChild(msg);
+				serverInnerWrapper.appendChild(msgContainer);
+
+				setTimeout(() => {
+					msgContainer.remove();
+				}, 3000);
+			}
 		}
 	}
 
