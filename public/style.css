@@ -90,7 +90,7 @@ body {
 	letter-spacing: 5px;
 }
 
-#disconnect-info {
+.disconnect-info {
 	font-family: 'Poppins', sans-serif;
 	color: white;
 	font-size: 35px;
