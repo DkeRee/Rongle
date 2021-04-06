@@ -245,9 +245,21 @@ io.on('connection', socket => {
 			});
 		}
 	});
+
+	socket.on("bullet-num", () => {
+		var num = 0;
+
+		for (var bullet in bullets){
+			for (var i = 0; i < bullets[bullet].length; i++){
+				num++;
+			}
+		}
+
+		socket.emit("bullet-numdate", num);
+	});
+
 	socket.on('disconnect', () => {
 		delete players[socket.id];
-		delete bullets[socket.id];
 		io.emit('leave', socket.id);
 	});
 });

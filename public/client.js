@@ -5,7 +5,9 @@
 	const body = document.getElementById("body");
 	const canvas = document.getElementById("game");
 	const ctx = canvas.getContext("2d");
+
 	const players = {};
+	const bulletStorage = [];
 	const bullets = {};
 	const keys = {};
 
@@ -21,7 +23,8 @@
 		loggedIn: false,
 		myID: undefined,
 		myX: undefined,
-		myY: undefined
+		myY: undefined,
+		bulletCount: undefined
 	};
 
 	$(body).bind('contextmenu', function(e) {
@@ -53,6 +56,10 @@
 			}
 		}, tickrate);
 	});
+
+	setInterval(() => {
+		socket.emit("bullet-num");
+	}, tickrate);
 
 	socket.on('joining', () => {
 		me.loggedIn = true;
@@ -140,7 +147,22 @@
 			this.y = y;
 			this.radius = 6;
 			this.color = color;
+			this.taken = false;
 		}
+
+		Bullet.prototype.create = function(x, y, color){
+			this.x = x;
+			this.y = y;
+			this.color = color;
+			this.taken = true;
+		};
+
+		Bullet.prototype.destroy = function(){
+			this.x = 5000;
+			this.y = 5000;
+			this.color = "transparent";
+			this.taken = false;
+		};
 
 		Bullet.prototype.update = function(x, y){
 			this.x = x;
@@ -153,6 +175,27 @@
 			ctx.fillStyle = this.color;
 			ctx.fill();
 		};
+
+		for (var i = 0; i < 1000; i++){
+			bulletStorage.push(new Bullet(5000, 5000, "transparent"));
+		}
+
+		function getBullet(coords, color){
+			for (var i = 0; i < bulletStorage.length; i++){
+				if (bulletStorage[i].taken == false){
+					bulletStorage[i].create(coords.x, coords.y, color);
+					return bulletStorage[i];
+				}
+			}
+		}
+
+		setInterval(() => {
+			if (me.bulletCount > bulletStorage.length){
+				for (var i = 0; i < 1000; i++){
+					bulletStorage.push(new Bullet(5000, 5000, "transparent"));
+				}
+			}
+		}, tickrate);
 
 		//updates
 
@@ -180,16 +223,18 @@
 				bullets[info.playerId][info.bulletId] = {
 					playerId: info.playerId,
 					coords: info.coords,
-					body: new Bullet(info.coords.x, info.coords.y, info.color),
+					body: getBullet(info.coords, info.color),
 					color: info.color
 				};
 			}
 		});
 
+		socket.on("bullet-numdate", num => {
+			me.bulletCount = num;
+		});
+
 		socket.on("bullet-destroy", info => {
-			setInterval(() => {
-				bullets[info.playerId];
-			});
+			bullets[info.playerId][info.bulletId].body.destroy();
 			delete bullets[info.playerId][info.bulletId];
 		});
 
@@ -208,7 +253,6 @@
 
 		socket.on('leave', id => {
 			delete players[id];
-			delete bullets[id];
 		});
 	
 		setInterval(() => {
