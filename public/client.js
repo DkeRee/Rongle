@@ -368,8 +368,8 @@
 	});
 
 	socket.on('leave', id => {
-		delete players[id];
 		serverMsg(id, " has left the server");
+		delete players[id];
 	});
 
 	window.addEventListener("keypress", e => {
