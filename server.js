@@ -214,7 +214,8 @@ io.on('connection', socket => {
 		});
 	}
 
-	socket.on('join', username => {
+	socket.on('join', nickname => {
+		const username = nickname.trim();
 		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
 			players[socket.id] = {
 				id: socket.id,
