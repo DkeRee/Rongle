@@ -220,8 +220,8 @@ io.on('connection', socket => {
 				id: socket.id,
 				username: username.trim(),
 				coords: {
-					x: Math.ceil(Math.random() * 300) * (Math.round(Math.random()) ? 1 : -1),
-					y: Math.ceil(Math.random() * 300) * (Math.round(Math.random()) ? 1 : -1)
+					x: Math.ceil(Math.random() * 350) * (Math.round(Math.random()) ? 1 : -1),
+					y: Math.ceil(Math.random() * 350) * (Math.round(Math.random()) ? 1 : -1)
 				},
 				color: colors[Math.floor(Math.random() * colors.length)],
 				time: 60000,
