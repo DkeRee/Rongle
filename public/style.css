@@ -232,6 +232,8 @@ body {
 	padding: 10px;
 	text-align: center;
 	margin: 15px;
+	display: flex;
+	flex-direction: column-reverse;
 }
 
 .player-widget-name {

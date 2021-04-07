@@ -285,13 +285,13 @@
 		});
 	
 		setInterval(() => {
-			if (keys[70]){
-				playerList.style.display = 'block';
-			} else {
-				playerList.style.display = 'none';
-			}
 			if (!typing){
 				socket.emit('movement', keys);
+				if (keys[70]){
+					playerList.style.display = 'block';
+				} else {
+					playerList.style.display = 'none';
+				}
 			}
 		}, tickrate);
 	});
