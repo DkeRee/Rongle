@@ -16,6 +16,7 @@
 	const overlappingUI = document.getElementById("overlapping-ui-container");
 	const myInfo = document.getElementById("my-info");
 	const chat = document.getElementById("chat-container");
+	const playerList = document.getElementById("player-list-container");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
@@ -197,12 +198,41 @@
 			}
 		}, tickrate);
 
+		function addPlayerList(info, id){
+			const playerListWrapper = document.getElementById("player-list-inner-wrapper");
+
+			const playerContainer = document.createElement("div");
+			playerContainer.style.border = `2px solid ${info.color}`;
+			playerContainer.setAttribute("class", "player-widget");
+			playerContainer.setAttribute("id", id);
+
+			d3.select(playerContainer)
+				.append("svg")
+				.attr("class", "player-svg")
+				.attr("width", "60")
+				.attr("height", "60")
+				.append("circle")
+				.attr("cx", 30)
+				.attr("cy", 30)
+				.attr("r", 20)
+				.style("stroke", `${info.color}`)
+				.style("stroke-width", 2)
+				.style("fill", "transparent");
+
+			const name = document.createElement("bdi");
+			name.textContent = info.username;
+			name.style.color = info.color;
+			name.setAttribute("class", "player-widget-name");
+
+			playerContainer.appendChild(name);
+			playerListWrapper.appendChild(playerContainer);
+		}
+
 		//updates
 
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				players[info.id].coords = info.coords;
-
 				if (info.id == me.myID){
 					me.myX = players[info.id].coords.x;
 					me.myY = players[info.id].coords.y;
@@ -215,6 +245,7 @@
 					body: new Player(info.coords.x, info.coords.y, info.color, info.username)
 				};
 				bullets[info.id] = {};
+				addPlayerList(players[info.id], info.id);
 			}
 		});
 
@@ -254,6 +285,11 @@
 		});
 	
 		setInterval(() => {
+			if (keys[70]){
+				playerList.style.display = 'block';
+			} else {
+				playerList.style.display = 'none';
+			}
 			if (!typing){
 				socket.emit('movement', keys);
 			}
@@ -369,6 +405,7 @@
 
 	socket.on('leave', id => {
 		serverMsg(id, " has left the server");
+		document.getElementById(id).remove();
 		delete players[id];
 	});
 

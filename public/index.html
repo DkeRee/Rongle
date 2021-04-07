@@ -4,6 +4,7 @@
 		<title>Rongle</title>
 		<link rel = "icon" href = "img/rongle.png">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="https://d3js.org/d3.v6.min.js"></script>
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
 		<script src = "/socket.io/socket.io.js"></script>
@@ -28,6 +29,10 @@
 					<input id = "username-submit" type = "text" placeholder = "Nickname" maxlength = "16" autocomplete = "off" autofocus>
 				</form>
 			</div>
+			<div id = "player-list-container">
+				<h1 id = "player-list">Player List</h1>
+				<div id = "player-list-inner-wrapper"></div>
+			</div>
 			<div id = "my-info">
 				<h1 class = "header">My Info</h1>
 				<h2 class = "info" id = "coords"></h2>
@@ -46,7 +51,7 @@
 					});
 				</script>
 			</div>
-			<div id = "server-msg-container" class = "unselectable">
+			<div id = "server-msg-container">
 				<div id = "server-msg-inner-wrapper"></div>
 			</div>
 			<canvas id = "game"></canvas>
