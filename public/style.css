@@ -156,6 +156,41 @@ body {
 	display: none;
 }
 
+#stamina-container {
+	width: 350px;
+	height: 30px;
+	position: absolute;
+	top: 20px;
+	left: 50px;
+	text-align: left;
+}
+
+#stamina-wrapper {
+	border-radius: 8px;
+	background-color: #424549;
+	height: 100%;
+	width: 100%;
+}
+
+#stamina-text-container {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	text-align: center;
+}
+
+#stamina-text {
+	margin: 0;
+}
+
+#stamina-bar {
+	position: absolute;
+	border-radius: 8px;
+	height: 100%;
+	width: 100%;
+	left: 0;
+}
+
 .unselectable {
 	user-select: none;
 }

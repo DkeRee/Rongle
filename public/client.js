@@ -17,15 +17,19 @@
 	const myInfo = document.getElementById("my-info");
 	const chat = document.getElementById("chat-container");
 	const playerList = document.getElementById("player-list-container");
+	const staminaContainer = document.getElementById("stamina-container");
+	const staminaBar = document.getElementById("stamina-bar")
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
 	var me = {
 		loggedIn: false,
 		myID: undefined,
-		myX: undefined,
-		myY: undefined,
-		bulletCount: undefined
+		myX: "N/A",
+		myY: "N/A",
+		bulletCount: undefined,
+		stamina: undefined,
+		burntOut: false,
 	};
 
 	$(body).bind('contextmenu', function(e) {
@@ -68,6 +72,7 @@
 		bigUI.style.background = 'transparent';
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
+		staminaContainer.style.display = 'block';
 
 		var step = function(){
 			update();
@@ -99,6 +104,14 @@
 			ctx.lineWidth = 5;
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
+
+			staminaBar.style.width = `${me.stamina}%`;
+
+			if (!me.burntOut){
+				staminaBar.style.backgroundColor = "#4ee44e";
+			} else {
+				staminaBar.style.backgroundColor = "#f70d1a";
+			}
 
 			for (var player in players){
 				players[player].body.render();
@@ -236,6 +249,8 @@
 				if (info.id == me.myID){
 					me.myX = players[info.id].coords.x;
 					me.myY = players[info.id].coords.y;
+					me.stamina = info.stamina;
+					me.burntOut = info.burntOut;
 				}
 			} else {
 				players[info.id] = {
