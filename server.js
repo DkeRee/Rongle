@@ -176,6 +176,10 @@ io.on('connection', socket => {
 			const borderX = borderCheckX(players[socket.id].coords.x, players[socket.id].coords.y);
 			const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
 
+			if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
+				players[socket.id].running = false;
+			}
+
 			if (!players[socket.id].burntOut){
 				//running up
 				if (borderY !== "top border" && keys[87] && keys[16]){
