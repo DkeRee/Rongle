@@ -147,15 +147,12 @@ body {
 }
 
 #my-info {
-	border-radius: 8px;
-	border: 3px solid white;
 	width: 200px;
 	height: auto;
 	position: absolute;
-	top: 50px;
-	right: 50px;
-	text-align: center;
-	background-color: #424549;
+	top: 20px;
+	right: 40px;
+	text-align: right;
 	display: none;
 }
 
