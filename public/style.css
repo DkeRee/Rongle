@@ -163,6 +163,7 @@ body {
 	top: 20px;
 	left: 50px;
 	text-align: left;
+	display: none;
 }
 
 #stamina-wrapper {
