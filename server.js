@@ -122,18 +122,14 @@ setInterval(() => {
 		} else {
 			if (players[player].stamina < 100){
 				players[player].stamina += 1;
+				if (players[player].stamina == 100){
+					players[player].burntOut = false;
+				}
 			}
 		}
 		if (players[player].stamina <= 0){
 			players[player].burntOut = true;
 			players[player].running = false;
-
-			const checkStamina = setInterval(() => {
-				if (players[player].stamina == 100){
-					players[player].burntOut = false;
-					clearInterval(checkStamina);
-				}
-			});
 		}
 	}
 }, tickrate);
