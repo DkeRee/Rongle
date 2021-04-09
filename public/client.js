@@ -32,9 +32,16 @@
 		burntOut: false,
 	};
 
-	$(body).bind('contextmenu', function(e) {
+	$(body).bind('contextmenu', e => {
 		return false;
-	}); 
+	});
+
+	$(window).keydown(e => {
+		if (e.keyCode == 9){
+			e.preventDefault();
+			e.stopPropagation();
+		}
+	});
 
 	window.onresize = function(){
 		canvas.width = window.innerWidth;
