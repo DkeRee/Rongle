@@ -121,7 +121,7 @@ setInterval(() => {
 			players[player].stamina -= 1;
 		} else {
 			if (players[player].stamina < 100){
-				players[player].stamina += 1;
+				players[player].stamina += 0.7;
 				if (players[player].stamina == 100){
 					players[player].burntOut = false;
 				}
@@ -153,7 +153,7 @@ setInterval(() => {
 setInterval(() => {
 	for (var bullet in bullets){
 		for (var i = 0; i < bullets[bullet].length; i++){
-			var projectile = bullets[bullet][i];
+			const projectile = bullets[bullet][i];
 			io.emit('bupdate', {
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId,
@@ -163,6 +163,17 @@ setInterval(() => {
 				},
 				color: projectile.color
 			});
+			for (var player in players){
+				const x = projectile.bulletCoords.x - players[player].coords.x;
+				const y = projectile.bulletCoords.y - players[player].coords.y;
+				if (players[player].id !== projectile.playerId && 32 > Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))){
+					bullets[bullet].splice(i, 1);
+					io.emit("bullet-destroy", {
+						playerId: projectile.playerId,
+						bulletId: projectile.bulletId
+					});
+				}
+			}
 		}
 	}
 }, tickrate);
