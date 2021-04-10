@@ -293,6 +293,10 @@
 			delete bullets[info.playerId][info.bulletId];
 		});
 
+		socket.on("death-countdown", () => {
+			console.log("e");
+		});
+
 		window.addEventListener("click", e => {
 			socket.emit("shoot", {
 				screen: {
