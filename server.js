@@ -117,6 +117,10 @@ setInterval(() => {
 
 setInterval(() => {
 	for (var player in players){
+		if (!players[player].dead && players[player].health < 100){
+			players[player].health++;
+			players[player].health = Math.round(players[player].health);
+		}
 		if (players[player].dead){
 			players[player].respawnTime -= 1;
 			//respawning section
@@ -195,10 +199,6 @@ setInterval(() => {
 			});
 			for (var player in players){
 				if (!players[player].dead){
-					if (players[player].health < 100){
-						players[player].health++;
-						players[player].health = Math.round(players[player].health);
-					}
 					const x = projectile.bulletCoords.x - players[player].coords.x;
 					const y = projectile.bulletCoords.y - players[player].coords.y;
 					if (players[player].id !== projectile.playerId && 32 > Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) && !players[player].dead){
@@ -212,6 +212,7 @@ setInterval(() => {
 					}
 					if (players[player].health <= 0){
 						players[player].dead = true;
+						players[player].health = 0;
 						players[player].latestWinner = players[projectile.playerId].username;
 						io.emit("player-death", {
 							loser: players[player].username,
@@ -235,6 +236,10 @@ io.on('connection', socket => {
 				const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
 
 				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
+					players[socket.id].running = false;
+				}
+
+				if (!keys[16]){
 					players[socket.id].running = false;
 				}
 
