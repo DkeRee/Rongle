@@ -131,6 +131,10 @@ setInterval(() => {
 				players[player].health = 100;
 				players[player].respawnTime = 5;
 				players[player].dead = false;
+				io.emit("plr-respawn", {
+					playerId: players[player].id,
+					playerColor: players[player].color
+				});
 			} else {
 				/*
 				socket.emit("death-countdown", {
@@ -169,7 +173,6 @@ setInterval(() => {
 //player emit
 setInterval(() => {
 	for (var player in players){
-		console.log(players);
 		io.emit('pupdate', {
 			id: players[player].id,
 			username: players[player].username,
@@ -214,8 +217,9 @@ setInterval(() => {
 						players[player].dead = true;
 						players[player].health = 0;
 						players[player].latestWinner = players[projectile.playerId].username;
-						io.emit("player-death", {
+						io.emit("plr-death", {
 							loser: players[player].username,
+							loserId: players[player].id,
 							winner: players[player].latestWinner
 						});
 					}

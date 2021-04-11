@@ -18,7 +18,8 @@
 	const chat = document.getElementById("chat-container");
 	const playerList = document.getElementById("player-list-container");
 	const staminaContainer = document.getElementById("stamina-container");
-	const staminaBar = document.getElementById("stamina-bar")
+	const staminaBar = document.getElementById("stamina-bar");
+	const warningContainer = document.getElementById("warning-container");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
@@ -80,6 +81,7 @@
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
+		warningContainer.style.display = 'none';
 
 		var step = function(){
 			update();
@@ -139,6 +141,7 @@
 			this.x = x;
 			this.y = y;
 			this.radius = 26;
+			this.dead = false;
 			this.color = color;
 			this.username = username;
 		}
@@ -155,10 +158,12 @@
 			ctx.strokeStyle = this.color;
 			ctx.stroke();
 
-			ctx.font = "25px monospace";
-			ctx.fillStyle = "white";
-			ctx.textAlign = "center";
-			ctx.fillText(this.username, this.x, this.y - 38);
+			if (!this.dead){
+				ctx.font = "25px monospace";
+				ctx.fillStyle = "white";
+				ctx.textAlign = "center";
+				ctx.fillText(this.username, this.x, this.y - 38);
+			}
 		};
 
 		//Bullet constructor
@@ -321,8 +326,6 @@
 			}
 		}, tickrate);
 	});
-
-	const warningContainer = document.getElementById("warning-container");
 	const warningHeader = document.getElementById("warning-header");
 	const warning = document.getElementById("warning");
 
@@ -427,6 +430,16 @@
 
 	socket.on("plr-joined", id => {
 		serverMsg(id, " has joined the server");
+	});
+
+	socket.on("plr-death", info => {
+		players[info.loserId].body.color = "transparent";
+		players[info.loserId].body.dead = true;
+	});
+
+	socket.on("plr-respawn", info => {
+		players[info.playerId].body.color = info.playerColor;
+		players[info.playerId].body.dead = false;
 	});
 
 	socket.on('leave', id => {
