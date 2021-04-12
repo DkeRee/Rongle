@@ -370,7 +370,7 @@ io.on('connection', socket => {
 		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
 			players[socket.id] = {
 				id: socket.id,
-				username: username.trim(),
+				username: username,
 				coords: {
 					x: Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1)
