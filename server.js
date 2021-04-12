@@ -125,7 +125,6 @@ setInterval(() => {
 			players[player].respawnTime -= 1;
 			//respawning section
 			if (players[player].respawnTime <= -1){
-				//socket.emit("respawn");
 				players[player].coords.x = Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1);
 				players[player].coords.y = Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1);
 				players[player].health = 100;
@@ -135,15 +134,7 @@ setInterval(() => {
 					playerId: players[player].id,
 					playerColor: players[player].color
 				});
-			} else {
-				/*
-				socket.emit("death-countdown", {
-					countdown: players[socket.id].respawnTime,
-					winner: players[socket.id].latestWinner
-				});
-				*/
 			}
-
 		}
 	}
 }, 1000);
