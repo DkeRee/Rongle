@@ -167,10 +167,10 @@
 				ctx.fillText(this.username, this.x, this.y - 38);
 
 				ctx.fillStyle = "#f70d1a";
-				ctx.fillRect(this.x - 49, this.y - 80, 100, 15);
+				ctx.fillRect(this.x - 50, this.y - 80, 100, 15);
 
 				ctx.fillStyle = "#4ee44e";
-				ctx.fillRect(this.x - 49, this.y - 80, this.health, 15);
+				ctx.fillRect(this.x - 50, this.y - 80, this.health, 15);
 			}
 		};
 
