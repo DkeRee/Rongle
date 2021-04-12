@@ -216,11 +216,18 @@ setInterval(() => {
 					if (players[player].health <= 0){
 						players[player].dead = true;
 						players[player].health = 0;
-						players[player].latestWinner = players[projectile.playerId].username;
+						players[player].latestWinner.username = players[projectile.playerId].username;
+						players[player].latestWinner.color = players[projectile.playerId].color;
 						io.emit("plr-death", {
-							loser: players[player].username,
-							loserId: players[player].id,
-							winner: players[player].latestWinner
+							loser: {
+								username: players[player].username,
+								id: players[player].id,
+								color: players[player].color
+							},
+							winner: {
+								username: players[player].latestWinner.username,
+								color: players[player].latestWinner.color
+							}
 						});
 					}
 				}
@@ -381,7 +388,10 @@ io.on('connection', socket => {
 				health: 100,
 				dead: false,
 				respawnTime: 5,
-				latestWinner: undefined,
+				latestWinner: {
+					username: undefined,
+					color: undefined
+				},
 				stamina: 100,
 				running: false,
 				burntOut: false,

@@ -29,7 +29,7 @@
 		myX: "N/A",
 		myY: "N/A",
 		bulletCount: undefined,
-		stamina: undefined,
+		stamina: 100,
 		burntOut: false,
 	};
 
@@ -97,7 +97,7 @@
 				}
 			}
 			for (var player in players){
-				players[player].body.update(players[player].coords.x, players[player].coords.y);
+				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health);
 			}
 			coordText.textContent = `Coords: ${me.myX}, ${me.myY}`;
 		};
@@ -137,18 +137,20 @@
 
 		//Player constructor
 
-		function Player(x, y, color, username){
+		function Player(x, y, health, color, username){
 			this.x = x;
 			this.y = y;
 			this.radius = 26;
 			this.dead = false;
+			this.health = health;
 			this.color = color;
 			this.username = username;
 		}
 
-		Player.prototype.update = function(x, y){
+		Player.prototype.update = function(x, y, health){
 			this.x = x;
 			this.y = y;
+			this.health = health;
 		};
 
 		Player.prototype.render = function(){
@@ -163,6 +165,12 @@
 				ctx.fillStyle = "white";
 				ctx.textAlign = "center";
 				ctx.fillText(this.username, this.x, this.y - 38);
+
+				ctx.fillStyle = "#f70d1a";
+				ctx.fillRect(this.x - 48, this.y - 80, 100, 15);
+
+				ctx.fillStyle = "#4ee44e";
+				ctx.fillRect(this.x - 48, this.y - 80, this.health, 15);
 			}
 		};
 
@@ -258,6 +266,7 @@
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				players[info.id].coords = info.coords;
+				players[info.id].health = info.health;
 				if (info.id == me.myID){
 					me.myX = players[info.id].coords.x;
 					me.myY = players[info.id].coords.y;
@@ -269,7 +278,8 @@
 					coords: info.coords,
 					username: info.username,
 					color: info.color,
-					body: new Player(info.coords.x, info.coords.y, info.color, info.username)
+					health: info.health,
+					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username)
 				};
 				bullets[info.id] = {};
 				addPlayerList(players[info.id], info.id);
@@ -433,8 +443,34 @@
 	});
 
 	socket.on("plr-death", info => {
-		players[info.loserId].body.color = "transparent";
-		players[info.loserId].body.dead = true;
+		players[info.loser.id].body.color = "transparent";
+		players[info.loser.id].body.dead = true;
+		if (me.loggedIn){
+			const msgContainer = document.createElement("div");
+			msgContainer.setAttribute("class", "msg-container");
+
+			const msg = document.createElement("p");
+			msg.textContent = " was killed by ";
+			msg.setAttribute("class", "msg");
+			msg.style.color = "white";
+
+			const loser = document.createElement("bdi");
+			loser.textContent = info.loser.username;
+			loser.style.color = info.loser.color;
+
+			const winner = document.createElement("bdi");
+			winner.textContent = info.winner.username;
+			winner.style.color = info.winner.color;
+
+			msg.prepend(loser);
+			msg.appendChild(winner);
+			msgContainer.appendChild(msg);
+			serverInnerWrapper.appendChild(msgContainer);
+
+			setTimeout(() => {
+				msgContainer.remove();
+			}, 3000);
+		}
 	});
 
 	socket.on("plr-respawn", info => {
