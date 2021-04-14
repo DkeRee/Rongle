@@ -352,7 +352,7 @@ io.on('connection', socket => {
 
 		socket.on("send", msg => {
 			const message = msg.trim();
-			if (loggedIn && message.length <= 100 && message !== "" && checkString(message)){
+			if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
 				players[socket.id].time = 60000;
 				io.emit("recieve", {
 					msg: message,
@@ -367,7 +367,7 @@ io.on('connection', socket => {
 
 	socket.on('join', nickname => {
 		const username = nickname.trim();
-		if (!loggedIn && username !== "" && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
+		if (!loggedIn && username.length !== 0 && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
 			players[socket.id] = {
 				id: socket.id,
 				username: username,
