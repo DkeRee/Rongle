@@ -26,10 +26,10 @@
 
 	var me = {
 		loggedIn: false,
-		myID: undefined,
+		myID: null,
 		myX: "N/A",
 		myY: "N/A",
-		bulletCount: undefined,
+		bulletCount: null,
 		stamina: 100,
 		burntOut: false,
 	};
@@ -85,6 +85,11 @@
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
 		warningContainer.style.display = 'none';
+
+		$("#cursor").css({
+			left: e.pageX - 15,
+			top: e.pageY - 15
+		});
 
 		var step = function(){
 			update();
