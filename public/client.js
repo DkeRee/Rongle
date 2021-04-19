@@ -86,11 +86,6 @@
 		staminaContainer.style.display = 'block';
 		warningContainer.style.display = 'none';
 
-		$("#cursor").css({
-			left: e.pageX - 15,
-			top: e.pageY - 15
-		});
-
 		var step = function(){
 			update();
 			render();
