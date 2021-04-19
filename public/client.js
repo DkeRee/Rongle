@@ -13,6 +13,7 @@
 
 	const loginContainer = document.getElementById("login-container");
 	const bigUI = document.getElementById("big-ui-container");
+	const cursor = document.getElementById("cursor");
 	const overlappingUI = document.getElementById("overlapping-ui-container");
 	const myInfo = document.getElementById("my-info");
 	const chat = document.getElementById("chat-container");
@@ -78,6 +79,8 @@
 		me.loggedIn = true;
 		loginContainer.remove();
 		bigUI.style.background = 'transparent';
+		bigUI.style.cursor = 'none';
+		cursor.style.display = 'block';
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
@@ -309,15 +312,24 @@
 		});
 
 		window.addEventListener("click", e => {
-			socket.emit("shoot", {
-				screen: {
-					width: window.innerWidth,
-					height: window.innerHeight
-				},
-				coords: {
-					x: e.clientX,
-					y: e.clientY
-				}
+			if (!typing){
+				socket.emit("shoot", {
+					screen: {
+						width: window.innerWidth,
+						height: window.innerHeight
+					},
+					coords: {
+						x: e.clientX,
+						y: e.clientY
+					}
+				});
+			}
+		});
+
+		window.addEventListener("mousemove", e => {
+			$("#cursor").css({
+				left: e.pageX - 15,
+				top: e.pageY - 15
 			});
 		});
 	
@@ -400,16 +412,6 @@
 		}
 	}
 
-	setInterval(() => {
-		if ($(chatbar).is(":focus")){
-			typing = true;
-			$(chat).removeClass("unselectable");
-			chat.style.opacity = "1";
-		} else {
-			typing = false;
-		}
-	});
-
 	socket.on("recieve", info => {
 		if (me.loggedIn){
 			const msgContainer = document.createElement("p");
@@ -436,6 +438,12 @@
 
 	socket.on("plr-joined", id => {
 		serverMsg(id, " has joined the server");
+	});
+
+	socket.on('leave', id => {
+		serverMsg(id, " has left the server");
+		document.getElementById(id).remove();
+		delete players[id];
 	});
 
 	socket.on("plr-death", info => {
@@ -474,10 +482,14 @@
 		players[info.playerId].body.dead = false;
 	});
 
-	socket.on('leave', id => {
-		serverMsg(id, " has left the server");
-		document.getElementById(id).remove();
-		delete players[id];
+	setInterval(() => {
+		if ($(chatbar).is(":focus")){
+			$(chat).removeClass("unselectable");
+			chat.style.opacity = "1";
+			typing = true;
+		} else {
+			chatbar.style.height = "20px";
+		}
 	});
 
 	window.addEventListener("keypress", e => {
@@ -486,8 +498,6 @@
 				if (e.keyCode == 13 || e.which == 13){
 					setTimeout(() => {
 						$(chatbar).focus();
-						$(chat).removeClass("unselectable");
-						chat.style.opacity = "1";
 					}, 50);
 				}
 			} else {
@@ -495,11 +505,11 @@
 					if (chatbar.value.length !== 0){
 						setTimeout(() => {
 							socket.emit("send", chatbar.value);
-							chatbar.style.height = "20px";
 							chatbar.value = "";
 							chatbar.blur();
 							$(chat).addClass("unselectable");
 							chat.style.opacity = "0.7";
+							typing = false;
 						}, 10);
 					}
 				}

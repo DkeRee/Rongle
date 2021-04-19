@@ -7,6 +7,17 @@ body {
 	background: url("img/rongle_background.png") repeat;
 }
 
+#cursor {
+	position: absolute;
+	user-drag: none;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	display: none;
+}
+
 #warning-container {
 	position: absolute;
 	border-radius: 8px;
@@ -218,6 +229,7 @@ body {
 	flex-direction: column-reverse;
 	overflow: auto;
 	padding: 10px;
+	cursor: cell;
 }
 
 #chat-inner-wrapper {
