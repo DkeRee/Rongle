@@ -9,6 +9,7 @@
 	const players = {};
 	const bulletStorage = [];
 	const bullets = {};
+	const healthDrops = {};
 	const keys = {};
 
 	const loginContainer = document.getElementById("login-container");
@@ -125,6 +126,10 @@
 				staminaBar.style.backgroundColor = "#f70d1a";
 			}
 
+			for (var healthDrop in healthDrops){
+				healthDrops[healthDrop].body.render();
+			}
+
 			for (var player in players){
 				players[player].body.render();
 			}
@@ -234,6 +239,22 @@
 			}
 		}, tickrate);
 
+		function HealthDrop(x, y, width, height,color){
+			this.x = x;
+			this.y = y;
+			this.color = color;
+			this.width = width;
+			this.height = height;
+		}
+
+		HealthDrop.prototype.render = function(){
+			ctx.beginPath();
+			ctx.lineWidth = "2";
+			ctx.strokeStyle = this.color;
+			ctx.rect(this.x, this.y, this.width, this.height);
+			ctx.stroke();
+		};
+
 		function addPlayerList(info, id){
 			const playerListWrapper = document.getElementById("player-list-inner-wrapper");
 
@@ -266,6 +287,7 @@
 
 		//updates
 
+		//player update
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				players[info.id].coords = info.coords;
@@ -289,6 +311,7 @@
 			}
 		});
 
+		//bullet update
 		socket.on('bupdate', info => {
 			if (bullets[info.playerId][info.bulletId]){
 				bullets[info.playerId][info.bulletId].coords = info.coords;
@@ -324,6 +347,21 @@
 					}
 				});
 			}
+		});
+
+		//health drop update
+		socket.on('hdupdate', info => {
+			console.log(healthDrops);
+			if (healthDrops[info.dropId] == undefined){
+				healthDrops[info.dropId] = {
+					dropId: info.dropId,
+					body: new HealthDrop(info.coords.x, info.coords.y, info.width, info.height, info.color),
+				};
+			}
+		});
+
+		socket.on("healthDrop-destroy", id => {
+			delete healthDrops[id];
 		});
 
 		window.addEventListener("mousemove", e => {

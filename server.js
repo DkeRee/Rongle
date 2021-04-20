@@ -12,6 +12,7 @@ const randomstring = require('randomstring');
 
 const players = {};
 const bullets = {};
+const healthDrops = {};
 const colors = ["#7289da", "#FFA500", "#DF362D", "#FFCD58", "cyan"];
 
 function checkString(string){
@@ -113,6 +114,24 @@ setInterval(() => {
 	}
 }, tickrate);
 
+//health drop spawner
+
+setInterval(() => {
+	if (Object.keys(healthDrops).length <= 1){
+		const id = randomstring.generate();
+		healthDrops[id] = {
+			dropId: id,
+			width: 100,
+			height: 100,
+			coords: {
+				x: Math.ceil(Math.random() * 900) * (Math.round(Math.random()) ? 1 : -1),
+				y: Math.ceil(Math.random() * 900) * (Math.round(Math.random()) ? 1 : -1)
+			},
+			color: "#4ee44e"
+		};
+	}
+}, 10000);
+
 //player respawn check
 
 setInterval(() => {
@@ -193,9 +212,9 @@ setInterval(() => {
 			});
 			for (var player in players){
 				if (!players[player].dead){
-					const x = projectile.bulletCoords.x - players[player].coords.x;
-					const y = projectile.bulletCoords.y - players[player].coords.y;
-					if (players[player].id !== projectile.playerId && 32 > Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) && !players[player].dead){
+					const distX = projectile.bulletCoords.x - players[player].coords.x;
+					const distY = projectile.bulletCoords.y - players[player].coords.y;
+					if (players[player].id !== projectile.playerId && 32 > Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) && !players[player].dead){
 						players[player].health -= 5;
 						players[player].health = Math.round(players[player].health);
 						bullets[bullet].splice(i, 1);
@@ -222,6 +241,64 @@ setInterval(() => {
 						});
 					}
 				}
+			}
+		}
+	}
+}, tickrate);
+
+//healthdrop emit
+
+setInterval(() => {
+	for (var healthDrop in healthDrops){
+		io.emit('hdupdate', {
+			dropId: healthDrops[healthDrop].dropId,
+			width: healthDrops[healthDrop].width,
+			height: healthDrops[healthDrop].height,
+			coords: {
+				x: healthDrops[healthDrop].coords.x,
+				y: healthDrops[healthDrop].coords.y
+			},
+			color: healthDrops[healthDrop].color
+		});
+		for (var player in players){
+			if (!players[player].dead){
+				const cx = players[player].coords.x;
+				const cy = players[player].coords.y;
+
+				const sx = healthDrops[healthDrop].coords.x;
+				const sy = healthDrops[healthDrop].coords.y;
+				const sw = healthDrops[healthDrop].width;
+				const sh = healthDrops[healthDrop].height;
+
+				var testX = cx
+				var testY = cy
+
+				if (cx < sx){
+					testX = sx;
+				} else if (cx > sx + sw){
+					testX = sx + sw;
+				}
+				if (cy < sy){
+					testY = sy;
+				} else if (cy > sy + sh){
+					testY = sy + sh;
+				}
+
+				const distX = cx - testX;
+				const distY = cy - testY;
+				const distance = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+
+				if (distance <= 26){
+					io.emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
+				}
+				/*
+				const distX = Math.abs(players[player].coords.x - healthDrops[healthDrop].coords.x - healthDrops[healthDrop].width / 2);
+				const distY = Math.abs(players[player].coords.y - healthDrops[healthDrop].coords.y - healthDrops[healthDrop].height / 2);
+
+				if (distX <= healthDrops[healthDrop].width / 2 || distY <= healthDrops[healthDrop].height / 2){
+					io.emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
+				}
+				*/
 			}
 		}
 	}
