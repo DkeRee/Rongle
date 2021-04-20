@@ -249,10 +249,8 @@
 
 		HealthDrop.prototype.render = function(){
 			ctx.beginPath();
-			ctx.lineWidth = "2";
-			ctx.strokeStyle = this.color;
-			ctx.rect(this.x, this.y, this.width, this.height);
-			ctx.stroke();
+			ctx.fillStyle = this.color;
+			ctx.fillRect(this.x, this.y, this.width, this.height);
 		};
 
 		function addPlayerList(info, id){

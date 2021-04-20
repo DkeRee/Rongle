@@ -74,7 +74,7 @@ setInterval(() => {
 		players[player].time -= 1;
 		if (players[player].time <= 0){
 			io.sockets.sockets.forEach(socket => {
-				if (players[player] !== undefined && socket.id == players[player].id){
+				if (players[player] && socket.id == players[player].id){
 					socket.disconnect();
 				}
 			});
@@ -117,12 +117,12 @@ setInterval(() => {
 //health drop spawner
 
 setInterval(() => {
-	if (Object.keys(healthDrops).length <= 1){
+	if (Object.keys(healthDrops).length <= 6){
 		const id = randomstring.generate();
 		healthDrops[id] = {
 			dropId: id,
-			width: 100,
-			height: 100,
+			width: 30,
+			height: 30,
 			coords: {
 				x: Math.ceil(Math.random() * 900) * (Math.round(Math.random()) ? 1 : -1),
 				y: Math.ceil(Math.random() * 900) * (Math.round(Math.random()) ? 1 : -1)
@@ -130,7 +130,7 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
-}, 10000);
+}, 20000);
 
 //player respawn check
 
@@ -261,7 +261,8 @@ setInterval(() => {
 			color: healthDrops[healthDrop].color
 		});
 		for (var player in players){
-			if (!players[player].dead){
+			console.log(players);
+			if (!players[player].dead && healthDrops[healthDrop]){
 				const cx = players[player].coords.x;
 				const cy = players[player].coords.y;
 
@@ -290,15 +291,15 @@ setInterval(() => {
 
 				if (distance <= 26){
 					io.emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
+					delete healthDrops[healthDrops[healthDrop].dropId];
+					if (players[player].health + 10 > 100){
+						const subtractedAmount = players[player].health + 10 - 100;
+						const newAmount = 10 - subtractedAmount;
+						players[player].health += newAmount;
+					} else {
+						players[player].health += 10;
+					}
 				}
-				/*
-				const distX = Math.abs(players[player].coords.x - healthDrops[healthDrop].coords.x - healthDrops[healthDrop].width / 2);
-				const distY = Math.abs(players[player].coords.y - healthDrops[healthDrop].coords.y - healthDrops[healthDrop].height / 2);
-
-				if (distX <= healthDrops[healthDrop].width / 2 || distY <= healthDrops[healthDrop].height / 2){
-					io.emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
-				}
-				*/
 			}
 		}
 	}
@@ -457,8 +458,8 @@ io.on('connection', socket => {
 				dead: false,
 				respawnTime: 5,
 				latestWinner: {
-					username: undefined,
-					color: undefined
+					username: null,
+					color: null
 				},
 				stamina: 100,
 				running: false,
@@ -484,7 +485,7 @@ io.on('connection', socket => {
 		} else if (!checkCopy(username)){
 			socket.emit("warning", {
 				header: "Uh Oh",
-				warning: "This nickname has already been taken."
+				warning: "This nickname has been taken."
 			});
 		}
 	});
