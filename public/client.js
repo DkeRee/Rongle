@@ -349,7 +349,6 @@
 
 		//health drop update
 		socket.on('hdupdate', info => {
-			console.log(healthDrops);
 			if (healthDrops[info.dropId] == undefined){
 				healthDrops[info.dropId] = {
 					dropId: info.dropId,
