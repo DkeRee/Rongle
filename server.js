@@ -261,7 +261,6 @@ setInterval(() => {
 			color: healthDrops[healthDrop].color
 		});
 		for (var player in players){
-			console.log(players);
 			if (!players[player].dead && healthDrops[healthDrop]){
 				const cx = players[player].coords.x;
 				const cy = players[player].coords.y;
