@@ -126,12 +126,12 @@
 				staminaBar.style.backgroundColor = "#f70d1a";
 			}
 
-			for (var healthDrop in healthDrops){
-				healthDrops[healthDrop].body.render();
-			}
-
 			for (var player in players){
 				players[player].body.render();
+			}
+
+			for (var healthDrop in healthDrops){
+				healthDrops[healthDrop].body.render();
 			}
 
 			for (var player in bullets){
