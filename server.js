@@ -49,19 +49,19 @@ function calculatePlayerSides(coord){
 }
 
 function borderCheckX(coordX, coordY){
-	if (calculatePlayerSides(coordX) >= 1300){
+	if (calculatePlayerSides(coordX) >= 1800){
 		return "right border";
 	}
-	if (calculatePlayerSides(coordX) <= -1300){
+	if (calculatePlayerSides(coordX) <= -1800){
 		return "left border";
 	}
 }
 
 function borderCheckY(coordX, coordY){
-	if (calculatePlayerSides(coordY) >= 1300){
+	if (calculatePlayerSides(coordY) >= 1800){
 		return "bottom border";
 	}
-	if (calculatePlayerSides(coordY) <= -1300){
+	if (calculatePlayerSides(coordY) <= -1800){
 		return "top border";
 	}
 }
@@ -117,15 +117,15 @@ setInterval(() => {
 //health drop spawner
 
 setInterval(() => {
-	if (Object.keys(healthDrops).length <= 6){
+	if (Object.keys(healthDrops).length <= 10){
 		const id = randomstring.generate();
 		healthDrops[id] = {
 			dropId: id,
 			width: 30,
 			height: 30,
 			coords: {
-				x: Math.ceil(Math.random() * 900) * (Math.round(Math.random()) ? 1 : -1),
-				y: Math.ceil(Math.random() * 900) * (Math.round(Math.random()) ? 1 : -1)
+				x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+				y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
 			},
 			color: "#4ee44e"
 		};
@@ -144,8 +144,8 @@ setInterval(() => {
 			players[player].respawnTime -= 1;
 			//respawning section
 			if (players[player].respawnTime <= -1){
-				players[player].coords.x = Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1);
-				players[player].coords.y = Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1);
+				players[player].coords.x = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
+				players[player].coords.y = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
 				players[player].health = 100;
 				players[player].respawnTime = 5;
 				players[player].dead = false;
@@ -449,8 +449,8 @@ io.on('connection', socket => {
 				id: socket.id,
 				username: username,
 				coords: {
-					x: Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1),
-					y: Math.ceil(Math.random() * 800) * (Math.round(Math.random()) ? 1 : -1)
+					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
 				},
 				color: colors[Math.floor(Math.random() * colors.length)],
 				health: 100,

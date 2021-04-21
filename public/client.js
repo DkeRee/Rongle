@@ -46,10 +46,14 @@
 		}
 	});
 
-	window.onresize = function(){
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+	
+	window.onresize = () => {
+		canvas.width = window.innerWidth * window.devicePixelRatio;
+		canvas.height = window.innerHeight * window.devicePixelRatio;
+		canvas.style.width = `${window.innerWidth}px`;
+		canvas.style.height = `${window.innerHeight}px`;
 	};
+	
 
 	const form = document.getElementById("form");
 	const input = document.getElementById("username-submit");
@@ -112,8 +116,8 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.translate(-me.myX + canvas.width / 2, -me.myY + canvas.height / 2);
 			
-			const borderX = -1300;
-			const borderY = -1300;
+			const borderX = -1800;
+			const borderY = -1800;
 			ctx.lineWidth = 5;
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
