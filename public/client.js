@@ -375,7 +375,7 @@
 		setInterval(() => {
 			if (!typing){
 				socket.emit('movement', keys);
-				if (keys[70]){
+				if (keys[9]){
 					playerList.style.display = 'block';
 				} else {
 					playerList.style.display = 'none';
