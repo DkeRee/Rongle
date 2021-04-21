@@ -1,7 +1,7 @@
 {
   "name": "rongle",
   "version": "1.0.0",
-  "description": "A multiplayer game :D",
+  "description": "A simple infinite FFA shooter game!",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
