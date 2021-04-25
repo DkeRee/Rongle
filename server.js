@@ -188,7 +188,7 @@ setInterval(() => {
 
 					//calculate knockback
 					if (Math.sign(players[player].coords.x) == 1){
-						if (1771 - players[player].coords.x >= 120){
+						if (1771 - players[player].coords.x <= 120){
 							kbX = 1771 - players[player].coords.x;
 						}
 					} else {
@@ -198,7 +198,7 @@ setInterval(() => {
 					}
 
 					if (Math.sign(players[player].coords.y) == 1){
-						if (1771 - players[player].coords.y >= 120){
+						if (1771 - players[player].coords.y <= 120){
 							kbY = 1771 - players[player].coords.y;
 						}
 					} else {
