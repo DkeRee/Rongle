@@ -14,7 +14,7 @@ const players = {};
 const bullets = {};
 const healthDrops = {};
 const ramBots = {};
-const colors = ["#7289da", "#FFA500", "#DF362D", "#FFCD58", "cyan"];
+const colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
 
 function checkString(string){
 	for (var i = 0; i < string.length; i++){
@@ -114,7 +114,7 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
-	if (Object.keys(ramBots).length <= 15){
+	if (Object.keys(ramBots).length <= 7){
 		const id = randomstring.generate();
 		ramBots[id] = {
 			botId: id,
@@ -157,6 +157,7 @@ setInterval(() => {
 //ramBot emit
 setInterval(() => {
 	for (var bot in ramBots){
+		console.log(ramBots);
 		io.emit("rbupdate", {
 			botId: ramBots[bot].botId,
 			radius: ramBots[bot].radius,
@@ -164,16 +165,74 @@ setInterval(() => {
 			coords: ramBots[bot].coords,
 			color: ramBots[bot].color
 		});
+
+		//shake bots
+		ramBots[bot].coords.x += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
+		ramBots[bot].coords.y += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
+
 		//calculate closest player
 		const playerInfo = [];
 		for (var player in players){
 			const distX = ramBots[bot].coords.x - players[player].coords.x;
-			const distY = ramBots[bot].coords.x - players[player].coords.y;
-			playerInfo.push({
-				playerId: players[player].id,
-				dist: Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2))
-			});
+			const distY = ramBots[bot].coords.y - players[player].coords.y;
+			const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+
+			if (!players[player].dead){
+				playerInfo.push({
+						playerId: players[player].id,
+					dist: dist
+				});
+
+				if (41 > dist){
+					var kbX = 120;
+					var kbY = 120;
+
+					//calculate knockback
+					if (Math.sign(players[player].coords.x) == 1){
+						if (1771 - players[player].coords.x >= 120){
+							kbX = 1771 - players[player].coords.x;
+						}
+					} else {
+						if (-1771 - players[player].coords.x >= -120){
+							kbX = -1771 - players[player].coords.x;
+						}
+					}
+
+					if (Math.sign(players[player].coords.y) == 1){
+						if (1771 - players[player].coords.y >= 120){
+							kbY = 1771 - players[player].coords.y;
+						}
+					} else {
+						if (-1771 - players[player].coords.y >= -120){
+							kbY = -1771 - players[player].coords.y;
+						}
+					}
+
+					ramBots[bot].coords.x += Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1);
+					ramBots[bot].coords.y += Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1);
+					players[player].coords.x += Math.ceil(Math.random() * kbX) * (Math.round(Math.random()) ? 1 : -1);
+					players[player].coords.y += Math.ceil(Math.random() * kbY) * (Math.round(Math.random()) ? 1 : -1);
+					players[player].health -= 4;
+					if (players[player].health <= 0){
+						players[player].dead = true;
+						players[player].health = 0;
+						io.emit("plr-death", {
+							loser: {
+								username: players[player].username,
+								id: players[player].id,
+								color: players[player].color
+							},
+							winner: {
+								username: "A RAMBOT",
+								color: "#DF362D"
+							},
+							type: "bot"
+						});					
+					}
+				}
+			}
 		}
+
 		const playerDist = playerInfo.map(player => player.dist);
 		const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
 		if (playerInfo[index]){
@@ -274,8 +333,26 @@ setInterval(() => {
 							winner: {
 								username: players[player].latestWinner.username,
 								color: players[player].latestWinner.color
-							}
+							},
+							type: "player"
 						});
+					}
+				}
+			}
+			for (var bot in ramBots){
+				const distX = projectile.bulletCoords.x - ramBots[bot].coords.x;
+				const distY = projectile.bulletCoords.y - ramBots[bot].coords.y;
+				if (21 > Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2))){
+					ramBots[bot].health -= 5;
+					ramBots[bot].health = Math.round(ramBots[bot].health);
+					bullets[bullet].splice(i, 1);
+					io.emit("bullet-destroy", {
+						playerId: projectile.playerId,
+						bulletId: projectile.bulletId
+					});
+					if (ramBots[bot].health <= 0){
+						io.emit("rambot-destroy", ramBots[bot].botId);
+						delete ramBots[bot];
 					}
 				}
 			}

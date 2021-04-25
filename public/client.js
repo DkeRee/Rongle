@@ -286,6 +286,12 @@
 			ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 			ctx.fillStyle = this.color;
 			ctx.fill();
+
+			ctx.fillStyle = "#424549";
+			ctx.fillRect(this.x - 15, this.y - 35, 30, 10);
+
+			ctx.fillStyle = "#4ee44e";
+			ctx.fillRect(this.x - 15, this.y - 35, this.health, 10);
 		};
 
 		function addPlayerList(info, id){
@@ -305,7 +311,7 @@
 				.attr("cx", 30)
 				.attr("cy", 30)
 				.attr("r", 20)
-				.style("stroke", `${info.color}`)
+				.style("stroke", info.color)
 				.style("stroke-width", 2)
 				.style("fill", "transparent");
 
@@ -336,6 +342,7 @@
 					coords: info.coords,
 					username: info.username,
 					health: info.health,
+					color: info.color,
 					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius)
 				};
 				bullets[info.id] = {};
@@ -394,7 +401,7 @@
 			delete healthDrops[id];
 		});
 
-		//ram bot update
+		//rambot update
 		socket.on("rbupdate", info => {
 			if (ramBots[info.botId]){
 				ramBots[info.botId].coords = info.coords;
@@ -406,6 +413,11 @@
 					body: new RamBot(info.coords.x, info.coords.y, info.radius, info.color, info.health)
 				};
 			}
+		});
+
+		socket.on("rambot-destroy", botId => {
+			console.log("b");
+			delete ramBots[botId];
 		});
 
 		window.addEventListener("mousemove", e => {
@@ -547,6 +559,10 @@
 			const winner = document.createElement("bdi");
 			winner.textContent = info.winner.username;
 			winner.style.color = info.winner.color;
+
+			if (info.type == "bot"){
+				winner.style.textDecoration = "underline";
+			}
 
 			msg.prepend(loser);
 			msg.appendChild(winner);
