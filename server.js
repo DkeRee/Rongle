@@ -157,7 +157,6 @@ setInterval(() => {
 //ramBot emit
 setInterval(() => {
 	for (var bot in ramBots){
-		console.log(ramBots);
 		io.emit("rbupdate", {
 			botId: ramBots[bot].botId,
 			radius: ramBots[bot].radius,
