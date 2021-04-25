@@ -13,6 +13,7 @@ const randomstring = require('randomstring');
 const players = {};
 const bullets = {};
 const healthDrops = {};
+const ramBots = {};
 const colors = ["#7289da", "#FFA500", "#DF362D", "#FFCD58", "cyan"];
 
 function checkString(string){
@@ -67,7 +68,6 @@ function borderCheckY(coordX, coordY){
 }
 
 //timer
-
 setInterval(() => {
 	for (var player in players){
 		players[player].bTime += 1;
@@ -83,7 +83,6 @@ setInterval(() => {
 }, 1);
 
 //bullet timer
-
 setInterval(() => {
 	for (var bullet in bullets){
 		for (var i = 0; i < bullets[bullet].length; i++){
@@ -100,22 +99,7 @@ setInterval(() => {
 	}
 }, 1);
 
-//bullet update
-
-setInterval(() => {
-	for (var bullet in bullets){
-		for (var i = 0; i < bullets[bullet].length; i++){
-			const projectile = bullets[bullet][i];
-			const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
-
-			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-			projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
-		}
-	}
-}, tickrate);
-
-//health drop spawner
-
+//spawner
 setInterval(() => {
 	if (Object.keys(healthDrops).length <= 10){
 		const id = randomstring.generate();
@@ -130,10 +114,22 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
+	if (Object.keys(ramBots).length <= 15){
+		const id = randomstring.generate();
+		ramBots[id] = {
+			botId: id,
+			health: 30,
+			radius: 15,
+			coords: {
+				x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+				y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+			},
+			color: "#DF362D"
+		};
+	}
 }, 20000);
 
 //player respawn check
-
 setInterval(() => {
 	for (var player in players){
 		if (!players[player].dead && players[player].health < 100){
@@ -158,10 +154,61 @@ setInterval(() => {
 	}
 }, 1000);
 
-//player stamina check
+//ramBot emit
+setInterval(() => {
+	for (var bot in ramBots){
+		io.emit("rbupdate", {
+			botId: ramBots[bot].botId,
+			radius: ramBots[bot].radius,
+			health: ramBots[bot].health,
+			coords: ramBots[bot].coords,
+			color: ramBots[bot].color
+		});
+		//calculate closest player
+		const playerInfo = [];
+		for (var player in players){
+			const distX = ramBots[bot].coords.x - players[player].coords.x;
+			const distY = ramBots[bot].coords.x - players[player].coords.y;
+			playerInfo.push({
+				playerId: players[player].id,
+				dist: Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2))
+			});
+		}
+		const playerDist = playerInfo.map(player => player.dist);
+		const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
+		if (playerInfo[index]){
+			const targetPlayer = players[playerInfo[index].playerId];
 
+			//follow closest player
+			if (targetPlayer.coords.x < ramBots[bot].coords.x){
+				ramBots[bot].coords.x -= 3.5;
+			}
+			if (targetPlayer.coords.x > ramBots[bot].coords.x){
+				ramBots[bot].coords.x += 3.5;
+			}
+			if (targetPlayer.coords.y < ramBots[bot].coords.y){
+				ramBots[bot].coords.y -= 3.5;
+			}
+			if (targetPlayer.coords.y > ramBots[bot].coords.y){
+				ramBots[bot].coords.y += 3.5;
+			}
+		}
+	}
+}, tickrate);
+
+//player emit
 setInterval(() => {
 	for (var player in players){
+		io.emit('pupdate', {
+			id: players[player].id,
+			username: players[player].username,
+			coords: players[player].coords,
+			health: players[player].health,
+			stamina: players[player].stamina,
+			burntOut: players[player].burntOut,
+			radius: players[player].radius,
+			color: players[player].color
+		});
 		if (players[player].running){
 			players[player].stamina -= 1;
 		} else {
@@ -180,27 +227,16 @@ setInterval(() => {
 	}
 }, tickrate);
 
-//player emit
-setInterval(() => {
-	for (var player in players){
-		io.emit('pupdate', {
-			id: players[player].id,
-			username: players[player].username,
-			coords: players[player].coords,
-			health: players[player].health,
-			stamina: players[player].stamina,
-			burntOut: players[player].burntOut,
-			color: players[player].color
-		});
-	}
-}, tickrate);
-
 //bullet emit
-
 setInterval(() => {
 	for (var bullet in bullets){
 		for (var i = 0; i < bullets[bullet].length; i++){
 			const projectile = bullets[bullet][i];
+			const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+
+			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+			projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+
 			io.emit('bupdate', {
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId,
@@ -210,6 +246,7 @@ setInterval(() => {
 				},
 				color: projectile.color
 			});
+
 			for (var player in players){
 				if (!players[player].dead){
 					const distX = projectile.bulletCoords.x - players[player].coords.x;
@@ -247,7 +284,6 @@ setInterval(() => {
 }, tickrate);
 
 //healthdrop emit
-
 setInterval(() => {
 	for (var healthDrop in healthDrops){
 		io.emit('hdupdate', {
@@ -448,6 +484,7 @@ io.on('connection', socket => {
 			players[socket.id] = {
 				id: socket.id,
 				username: username,
+				radius: 26,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)

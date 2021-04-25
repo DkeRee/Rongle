@@ -10,6 +10,8 @@
 	const bulletStorage = [];
 	const bullets = {};
 	const healthDrops = {};
+	const ramBots = {};
+
 	const keys = {};
 
 	const loginContainer = document.getElementById("login-container");
@@ -99,6 +101,10 @@
 
 		var update = function(){
 			const coordText = document.getElementById("coords");
+			for (var bot in ramBots){
+				ramBots[bot].body.update(ramBots[bot].coords.x, ramBots[bot].coords.y, ramBots[bot].health);
+			}
+
 			for (var player in bullets){
 				for (var bullet in bullets[player]){
 					bullets[player][bullet].body.update(bullets[player][bullet].coords.x, bullets[player][bullet].coords.y);
@@ -134,6 +140,10 @@
 				healthDrops[healthDrop].body.render();
 			}
 
+			for (var bot in ramBots){
+				ramBots[bot].body.render();
+			}
+
 			for (var player in players){
 				players[player].body.render();
 			}
@@ -148,11 +158,10 @@
 		requestAnimationFrame(step);
 
 		//Player constructor
-
-		function Player(x, y, health, color, username){
+		function Player(x, y, health, color, username, radius){
 			this.x = x;
 			this.y = y;
-			this.radius = 26;
+			this.radius = radius;
 			this.dead = false;
 			this.health = health;
 			this.color = color;
@@ -187,7 +196,6 @@
 		};
 
 		//Bullet constructor
-
 		function Bullet(x, y, color){
 			this.x = x;
 			this.y = y;
@@ -226,7 +234,7 @@
 			bulletStorage.push(new Bullet(5000, 5000, "transparent"));
 		}
 
-		function getBullet(coords, color){
+		function getBullet(coords, color, radius){
 			for (var i = 0; i < bulletStorage.length; i++){
 				if (bulletStorage[i].taken == false){
 					bulletStorage[i].create(coords.x, coords.y, color);
@@ -243,7 +251,8 @@
 			}
 		}, tickrate);
 
-		function HealthDrop(x, y, width, height,color){
+		//health drop constructor
+		function HealthDrop(x, y, width, height, color){
 			this.x = x;
 			this.y = y;
 			this.color = color;
@@ -255,6 +264,28 @@
 			ctx.beginPath();
 			ctx.fillStyle = this.color;
 			ctx.fillRect(this.x, this.y, this.width, this.height);
+		};
+
+		//ram bot constructor
+		function RamBot(x, y, radius, color, health){
+			this.x = x;
+			this.y = y;
+			this.health = health;
+			this.radius = radius;
+			this.color = color;
+		}
+
+		RamBot.prototype.update = function(x, y, health){
+			this.x = x;
+			this.y = y;
+			this.health = health;
+		};
+
+		RamBot.prototype.render = function(){
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+			ctx.fillStyle = this.color;
+			ctx.fill();
 		};
 
 		function addPlayerList(info, id){
@@ -304,9 +335,8 @@
 				players[info.id] = {
 					coords: info.coords,
 					username: info.username,
-					color: info.color,
 					health: info.health,
-					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username)
+					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius)
 				};
 				bullets[info.id] = {};
 				addPlayerList(players[info.id], info.id);
@@ -322,7 +352,6 @@
 					playerId: info.playerId,
 					coords: info.coords,
 					body: getBullet(info.coords, info.color),
-					color: info.color
 				};
 			}
 		});
@@ -352,7 +381,7 @@
 		});
 
 		//health drop update
-		socket.on('hdupdate', info => {
+		socket.on("hdupdate", info => {
 			if (healthDrops[info.dropId] == undefined){
 				healthDrops[info.dropId] = {
 					dropId: info.dropId,
@@ -363,6 +392,20 @@
 
 		socket.on("healthDrop-destroy", id => {
 			delete healthDrops[id];
+		});
+
+		//ram bot update
+		socket.on("rbupdate", info => {
+			if (ramBots[info.botId]){
+				ramBots[info.botId].coords = info.coords;
+				ramBots[info.botId].health = info.health;
+			} else {
+				ramBots[info.botId] = {
+					coords: info.coords,
+					health: info.health,
+					body: new RamBot(info.coords.x, info.coords.y, info.radius, info.color, info.health)
+				};
+			}
 		});
 
 		window.addEventListener("mousemove", e => {
