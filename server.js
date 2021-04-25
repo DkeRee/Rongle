@@ -114,7 +114,7 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
-	if (Object.keys(ramBots).length <= 7){
+	if (Object.keys(ramBots).length <= 10){
 		const id = randomstring.generate();
 		ramBots[id] = {
 			botId: id,
