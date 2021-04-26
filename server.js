@@ -214,7 +214,6 @@ setInterval(() => {
 					players[player].health -= 4;
 					if (players[player].health <= 0){
 						players[player].dead = true;
-						players[player].health = 0;
 						io.emit("plr-death", {
 							loser: {
 								username: players[player].username,
@@ -267,9 +266,20 @@ setInterval(() => {
 			radius: players[player].radius,
 			color: players[player].color
 		});
+
 		if (players[player]){
-			//movement update
 			const keys = players[player].keys;
+
+			//death update
+			if (players[player].dead){
+				players[player].health = 0;
+				players[player].running = false;
+				for (var key in keys){
+					keys[key] = false;
+				}
+			}
+
+			//movement update
 			const borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 			const borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
 
@@ -413,7 +423,6 @@ setInterval(() => {
 					}
 					if (players[player].health <= 0){
 						players[player].dead = true;
-						players[player].health = 0;
 						players[player].latestWinner.username = players[projectile.playerId].username;
 						players[player].latestWinner.color = players[projectile.playerId].color;
 						io.emit("plr-death", {
