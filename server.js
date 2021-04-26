@@ -641,5 +641,5 @@ app.get('/', (req, res) => {
 });
 
 app.get('*', (req, res) => {
-	res.sendFile(path.resolve(__dirname, 'public/404.html'));
+	res.sendFile(path.resolve(__dirname, 'public/error.html'));
 });
