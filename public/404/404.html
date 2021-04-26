@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rongle | 404</title>
+		<link rel = "icon" href = "../img/rongle.png">
+    <meta property = "og:title" content = "Rongle | 404">
+    <meta property = "og:image" content = "https://rongle.dkeree.repl.co/img/rongle.png">
+    <meta property = "og:description" content = "404 not found :(">
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<link href = "style.css" rel = "stylesheet" type = "text/css">
+  </head>
+  <body id = "body">
+    <div id = "error-container">
+      <h1 id = "error-title">404 Not Found</h1>
+      <p id = "error-msg">In the meantime enjoy this RamBot :D</p>
+      <canvas id = "rambot-canvas"></canvas>
+      <script>
+        (function(){
+          const canvas = document.getElementById("rambot-canvas");
+          const ctx = canvas.getContext("2d");
+
+          canvas.width = 500;
+          canvas.height = 300;
+
+          function RamBot(x, y, radius, color){
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.color = color;
+          }
+  
+          RamBot.prototype.update = function(x, y){
+            this.x = x;
+            this.y = y;
+
+            if (this.x <= 0 || this.x >= 500){
+                this.x = 250;
+            }
+            if (this.y <= 0 || this.y >= 300){
+              this.y = 150;
+            }
+          };
+
+          RamBot.prototype.render = function(){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+
+            ctx.fillStyle = "#4ee44e";
+            ctx.fillRect(this.x - 15, this.y - 35, 30, 10);
+          };
+
+          const ramBot = new RamBot(250, 150, 15, "#DF362D");
+
+          $(body).bind('contextmenu', e => {
+            return false;
+          });
+
+          window.onload = function(){
+            requestAnimationFrame(step);
+          };
+  
+          function step(){
+            ramBot.update(ramBot.x += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1), ramBot.y += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1));
+            ramBot.render();
+            requestAnimationFrame(step);
+          };
+        })();
+      </script>
+    </div>
+  </body>
+</html>

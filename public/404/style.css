@@ -1,0 +1,27 @@
+body {
+	background: url("../img/rongle_background.png") repeat;
+}
+
+#rambot-canvas {
+	border: 2px solid white;
+}
+
+#error-container {
+	margin: auto;
+	margin-top: 5%;
+	text-align: center;
+}
+
+#error-title {
+	color: white;
+	font-family: 'Poppins', sans-serif;
+	font-size: 100px;
+	user-select: none;
+}
+
+#error-msg {
+	color: white;
+	font-family: 'Poppins', sans-serif;
+	font-size: 30px;
+	user-select: none;
+}

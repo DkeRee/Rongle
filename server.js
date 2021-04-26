@@ -222,7 +222,7 @@ setInterval(() => {
 								color: players[player].color
 							},
 							winner: {
-								username: "A RAMBOT",
+								username: "A RamBot",
 								color: "#DF362D"
 							},
 							type: "bot"

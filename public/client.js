@@ -47,7 +47,6 @@
 			e.stopPropagation();
 		}
 	});
-
 	
 	window.onresize = () => {
 		canvas.width = window.innerWidth * window.devicePixelRatio;
@@ -55,7 +54,6 @@
 		canvas.style.width = `${window.innerWidth}px`;
 		canvas.style.height = `${window.innerHeight}px`;
 	};
-	
 
 	const form = document.getElementById("form");
 	const input = document.getElementById("username-submit");
