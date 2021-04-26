@@ -16,7 +16,6 @@
 
 	const loginContainer = document.getElementById("login-container");
 	const bigUI = document.getElementById("big-ui-container");
-	const cursor = document.getElementById("cursor");
 	const overlappingUI = document.getElementById("overlapping-ui-container");
 	const myInfo = document.getElementById("my-info");
 	const chat = document.getElementById("chat-container");
@@ -84,7 +83,7 @@
 		me.loggedIn = true;
 		loginContainer.remove();
 		bigUI.style.background = 'transparent';
-		bigUI.style.cursor = 'none';
+		bigUI.style.cursor = "url('img/cursor.png'), auto";
 		cursor.style.display = 'block';
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
@@ -415,13 +414,6 @@
 
 		socket.on("rambot-destroy", botId => {
 			delete ramBots[botId];
-		});
-
-		window.addEventListener("mousemove", e => {
-			$("#cursor").css({
-				left: e.pageX - 15,
-				top: e.pageY - 15
-			});
 		});
 	
 		setInterval(() => {
