@@ -371,7 +371,7 @@
 		});
 
 		window.addEventListener("mousedown", e => {
-			if (!typing){
+			if (!typing && e.button == 0){
 				socket.emit("shoot", {
 					screen: {
 						width: window.innerWidth,
