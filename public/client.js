@@ -84,7 +84,6 @@
 		loginContainer.remove();
 		bigUI.style.background = 'transparent';
 		bigUI.style.cursor = "url('img/cursor.png'), auto";
-		cursor.style.display = 'block';
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
