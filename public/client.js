@@ -369,6 +369,7 @@
 
 		socket.on("bullet-destroy", info => {
 			bullets[info.playerId][info.bulletId].body.destroy();
+			delete bullets[info.playerId][info.bulletId];
 		});
 
 		window.addEventListener("click", e => {
