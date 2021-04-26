@@ -622,6 +622,10 @@ io.on('connection', socket => {
 
 app.use(express.static('public'));
 
-app.get('/', () => {
+app.get('/', (req, res) => {
 	res.sendFile(path.resolve(__dirname, 'public/index.html'));
+});
+
+app.get('*', (req, res) => {
+	res.sendFile(path.resolve(__dirname, 'public/404.html'));
 });
