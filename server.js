@@ -267,20 +267,22 @@ setInterval(() => {
 			radius: players[player].radius,
 			color: players[player].color
 		});
-		if (players[player].running){
-			players[player].stamina -= 1;
-		} else {
-			if (players[player].stamina < 100){
-				players[player].stamina += 0.7;
-				if (players[player].stamina >= 100){
-					players[player].stamina = 100;
-					players[player].burntOut = false;
+		if (players[player]){
+			if (players[player].running){
+				players[player].stamina -= 1;
+			} else {
+				if (players[player].stamina < 100){
+					players[player].stamina += 0.7;
+					if (players[player].stamina >= 100){
+						players[player].stamina = 100;
+						players[player].burntOut = false;
+					}
 				}
 			}
-		}
-		if (players[player].stamina <= 0){
-			players[player].burntOut = true;
-			players[player].running = false;
+			if (players[player].stamina <= 0){
+				players[player].burntOut = true;
+				players[player].running = false;
+			}
 		}
 	}
 }, tickrate);
