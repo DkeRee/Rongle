@@ -372,7 +372,7 @@
 			delete bullets[info.playerId][info.bulletId];
 		});
 
-		window.addEventListener("click", e => {
+		window.addEventListener("mousedown", e => {
 			if (!typing){
 				socket.emit("shoot", {
 					screen: {
