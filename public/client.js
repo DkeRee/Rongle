@@ -83,7 +83,7 @@
 		me.loggedIn = true;
 		loginContainer.remove();
 		bigUI.style.background = 'transparent';
-		bigUI.style.cursor = "url('img/cursor.png'), auto";
+		bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
