@@ -268,6 +268,97 @@ setInterval(() => {
 			color: players[player].color
 		});
 		if (players[player]){
+			//movement update
+			const keys = players[player].keys;
+			const borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
+			const borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
+
+			if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
+				players[player].running = false;
+			}
+
+			if (!keys[16]){
+				players[player].running = false;
+			}
+
+			if (!players[player].burntOut){
+				//running up
+				if (borderY !== "top border" && keys[87] && keys[16]){
+					players[player].coords.y -= 5;
+					players[player].running = true;
+					players[player].time = 60000;
+				}
+				//running down
+				if (borderY !== "bottom border" && keys[83] && keys[16]){
+					players[player].coords.y += 5;
+					players[player].running = true;
+					players[player].time = 60000;
+				}
+				//running right
+				if (borderX !== "right border" && keys[68] && keys[16]){
+					players[player].coords.x += 5;
+					players[player].running = true;
+					players[player].time = 60000;
+				}
+				//running left
+				if (borderX !== "left border" && keys[65] && keys[16]){
+					players[player].coords.x -= 5;
+					players[player].running = true;
+					players[player].time = 60000;
+				}
+		
+				//with stamina up
+				if (borderY !== "top border" && keys[87] && !keys[16]){
+					players[player].coords.y -= 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+				//with stamina down
+				if (borderY !== "bottom border" && keys[83] && !keys[16]){
+					players[player].coords.y += 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+				//with stamina right
+				if (borderX !== "right border" && keys[68] && !keys[16]){
+					players[player].coords.x += 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+				//with stamina down
+				if (borderX !== "left border" && keys[65] && !keys[16]){
+					players[player].coords.x -= 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+			} else {
+				//without stamina up
+				if (borderY !== "top border" && keys[87]){
+					players[player].coords.y -= 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+				//without stamina down
+				if (borderY !== "bottom border" && keys[83]){
+					players[player].coords.y += 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+				//without stamina right
+				if (borderX !== "right border" && keys[68]){
+					players[player].coords.x += 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}
+				//without stamina down
+				if (borderX !== "left border" && keys[65]){
+					players[player].coords.x -= 3;
+					players[player].running = false;
+					players[player].time = 60000;
+				}				
+			}
+
+			//stamina update
 			if (players[player].running){
 				players[player].stamina -= 1;
 			} else {
@@ -425,94 +516,7 @@ io.on('connection', socket => {
 	function setup(){
 		socket.on('movement', keys => {
 			if (!players[socket.id].dead){
-				const borderX = borderCheckX(players[socket.id].coords.x, players[socket.id].coords.y);
-				const borderY = borderCheckY(players[socket.id].coords.x, players[socket.id].coords.y);
-
-				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
-					players[socket.id].running = false;
-				}
-
-				if (!keys[16]){
-					players[socket.id].running = false;
-				}
-
-				if (!players[socket.id].burntOut){
-					//running up
-					if (borderY !== "top border" && keys[87] && keys[16]){
-						players[socket.id].coords.y -= 5;
-						players[socket.id].running = true;
-						players[socket.id].time = 60000;
-					}
-					//running down
-					if (borderY !== "bottom border" && keys[83] && keys[16]){
-						players[socket.id].coords.y += 5;
-						players[socket.id].running = true;
-						players[socket.id].time = 60000;
-					}
-					//running right
-					if (borderX !== "right border" && keys[68] && keys[16]){
-						players[socket.id].coords.x += 5;
-						players[socket.id].running = true;
-						players[socket.id].time = 60000;
-					}
-					//running left
-					if (borderX !== "left border" && keys[65] && keys[16]){
-						players[socket.id].coords.x -= 5;
-						players[socket.id].running = true;
-						players[socket.id].time = 60000;
-					}
-			
-
-					//with stamina up
-					if (borderY !== "top border" && keys[87] && !keys[16]){
-						players[socket.id].coords.y -= 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-					//with stamina down
-					if (borderY !== "bottom border" && keys[83] && !keys[16]){
-						players[socket.id].coords.y += 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-					//with stamina right
-					if (borderX !== "right border" && keys[68] && !keys[16]){
-						players[socket.id].coords.x += 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-					//with stamina down
-					if (borderX !== "left border" && keys[65] && !keys[16]){
-						players[socket.id].coords.x -= 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-				} else {
-					//without stamina up
-					if (borderY !== "top border" && keys[87]){
-						players[socket.id].coords.y -= 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-					//without stamina down
-					if (borderY !== "bottom border" && keys[83]){
-						players[socket.id].coords.y += 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-					//without stamina right
-					if (borderX !== "right border" && keys[68]){
-						players[socket.id].coords.x += 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}
-					//without stamina down
-					if (borderX !== "left border" && keys[65]){
-						players[socket.id].coords.x -= 3;
-						players[socket.id].running = false;
-						players[socket.id].time = 60000;
-					}				
-				}
+				players[socket.id].keys = keys;
 			}
 		});
 
@@ -567,6 +571,7 @@ io.on('connection', socket => {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
 				},
+				keys: {},
 				color: colors[Math.floor(Math.random() * colors.length)],
 				health: 100,
 				dead: false,
