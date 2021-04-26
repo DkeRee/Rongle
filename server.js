@@ -211,7 +211,6 @@ setInterval(() => {
 					ramBots[bot].coords.y += Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1);
 					players[player].coords.x += Math.ceil(Math.random() * kbX) * (Math.round(Math.random()) ? 1 : -1);
 					players[player].coords.y += Math.ceil(Math.random() * kbY) * (Math.round(Math.random()) ? 1 : -1);
-					ramBots[bot].health -= 1;
 					players[player].health -= 4;
 					if (players[player].health <= 0){
 						players[player].dead = true;
@@ -229,17 +228,13 @@ setInterval(() => {
 							type: "bot"
 						});					
 					}
-					if (ramBots[bot].health <= 0){
-						io.emit("rambot-destroy", ramBots[bot].botId);
-						delete ramBots[bot];
-					}
 				}
 			}
 		}
 
 		const playerDist = playerInfo.map(player => player.dist);
 		const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
-		if (playerInfo[index] && ramBots[bot]){
+		if (playerInfo[index]){
 			const targetPlayer = players[playerInfo[index].playerId];
 
 			//follow closest player
