@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html id = "html">
   <head>
     <title>Rongle | 404</title>
 		<link rel = "icon" href = "img/rongle.png">
     <meta property = "og:title" content = "Rongle | 404">
     <meta property = "og:image" content = "https://rongle.dkeree.repl.co/img/rongle.png">
     <meta property = "og:description" content = "404 not found :(">
-		<link rel="preconnect" href="https://fonts.gstatic.com">
-		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<link rel = "preconnect" href = "https://fonts.gstatic.com">
+		<link href = "https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel = "stylesheet">
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 		<link href = "error.css" rel = "stylesheet" type = "text/css">
   </head>
-  <body id = "body">
+  <body>
     <div id = "error-container">
       <h1 id = "error-title">404 Not Found</h1>
-      <p id = "error-msg">In the meantime enjoy this RamBot instead :D</p>
+      <p id = "error-msg">Your journey comes to a halt here :(</p>
       <canvas id = "rambot-canvas"></canvas>
       <script>
         (function(){
@@ -56,7 +56,7 @@
 
           const ramBot = new RamBot(250, 150, 15, "#DF362D");
 
-          $(body).bind('contextmenu', e => {
+          $("#html").bind('contextmenu', e => {
             return false;
           });
 
