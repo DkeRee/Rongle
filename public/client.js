@@ -2,7 +2,6 @@
 	const socket = io.connect();
 	const tickrate = 1000/60;
 
-	const body = document.getElementById("body");
 	const canvas = document.getElementById("game");
 	const ctx = canvas.getContext("2d");
 
@@ -36,7 +35,7 @@
 		burntOut: false,
 	};
 
-	$(body).bind('contextmenu', e => {
+	$("#html").bind('contextmenu', e => {
 		return false;
 	});
 
