@@ -110,11 +110,19 @@ body {
 
 .link {
 	color: white;
+	padding: 10px;
+	text-decoration: none;
+	border-radius: 6px;
+	background-color: rgb(94, 186, 94);
     font-family: 'Poppins', sans-serif;
+    -webkit-transition: background-color 0.2s ease-out;
+	-moz-transition: background-color 0.2s ease-out;
+	-o-transition: background-color 0.2s ease-out;
+	transition: background-color 0.2s ease-out;
 }
 
 .link:hover {
-    color: #7289DA;
+    background-color: #4ee44e;
 }
 
 #login-container {
