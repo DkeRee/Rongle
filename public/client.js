@@ -35,7 +35,7 @@
 		burntOut: false,
 	};
 
-	$(document.getElementById("html")).bind('contextmenu', () => {
+	$("#html").bind('contextmenu', () => {
 		return false;
 	});
 
