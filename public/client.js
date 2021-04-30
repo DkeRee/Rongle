@@ -25,7 +25,7 @@
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	var me = {
+	const me = {
 		loggedIn: false,
 		myID: null,
 		myX: "N/A",
@@ -52,6 +52,10 @@
 		canvas.style.width = `${window.innerWidth}px`;
 		canvas.style.height = `${window.innerHeight}px`;
 	};
+
+	function lerp(x, y, a){
+		return x * (1 - a) + y * a;
+	}
 
 	const form = document.getElementById("form");
 	const input = document.getElementById("username-submit");
@@ -164,9 +168,9 @@
 		}
 
 		Player.prototype.update = function(x, y, health){
-			this.x = x;
-			this.y = y;
-			this.health = health;
+			this.x = lerp(this.x, x, 0.4);
+			this.y = lerp(this.y, y, 0.4);
+			this.health = lerp(this.health, health, 0.3);
 		};
 
 		Player.prototype.render = function(){
@@ -271,9 +275,9 @@
 		}
 
 		RamBot.prototype.update = function(x, y, health){
-			this.x = x;
-			this.y = y;
-			this.health = health;
+			this.x = lerp(this.x, x, 0.8);
+			this.y = lerp(this.y, y, 0.8);
+			this.health = lerp(this.health, health, 0.3);
 		};
 
 		RamBot.prototype.render = function(){
