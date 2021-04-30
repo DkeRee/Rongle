@@ -421,7 +421,7 @@ setInterval(() => {
 					const distX = projectile.bulletCoords.x - players[player].coords.x;
 					const distY = projectile.bulletCoords.y - players[player].coords.y;
 					if (players[player].id !== projectile.playerId && 32 > Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) && !players[player].dead){
-						players[player].health -= 5;
+						players[player].health -= 10;
 						players[player].health = Math.round(players[player].health);
 						bullets[bullet].splice(i, 1);
 						emit("bullet-destroy", {
@@ -452,7 +452,7 @@ setInterval(() => {
 				const distX = projectile.bulletCoords.x - ramBots[bot].coords.x;
 				const distY = projectile.bulletCoords.y - ramBots[bot].coords.y;
 				if (21 > Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2))){
-					ramBots[bot].health -= 5;
+					ramBots[bot].health -= 10;
 					ramBots[bot].health = Math.round(ramBots[bot].health);
 					bullets[bullet].splice(i, 1);
 					emit("bullet-destroy", {
