@@ -36,7 +36,7 @@ function checkCopy(username){
 
 function checkShooting(id){
 	for (var player in players){
-		if (player == id && players[player].bTime >= 120){
+		if (player == id && players[player].bTime >= 85){
 			players[player].bTime = 0;
 			return true;
 		}
