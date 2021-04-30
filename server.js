@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
+const xss = require('xss');
+
 const socket = require('socket.io');
 const server = app.listen(process.env.PORT || 3000);
 const io = socket(server);
@@ -561,7 +563,7 @@ io.on('connection', socket => {
 		});
 
 		socket.on("send", msg => {
-			const message = msg.trim();
+			const message = xss(msg.trim());
 			if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
 				players[socket.id].time = 60000;
 				emit("recieve", {
