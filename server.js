@@ -262,7 +262,7 @@ setInterval(() => {
 //player emit
 setInterval(() => {
 	for (var player in players){
-		io.emit('pupdate', {
+		emit('pupdate', {
 			id: players[player].id,
 			username: players[player].username,
 			coords: players[player].coords,
@@ -470,7 +470,7 @@ setInterval(() => {
 //healthdrop emit
 setInterval(() => {
 	for (var healthDrop in healthDrops){
-		io.emit('hdupdate', {
+		emit('hdupdate', {
 			dropId: healthDrops[healthDrop].dropId,
 			width: healthDrops[healthDrop].width,
 			height: healthDrops[healthDrop].height,
