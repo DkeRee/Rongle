@@ -67,6 +67,12 @@ function borderCheckY(coordX, coordY){
 	}
 }
 
+function emit(type, data){
+	for (var player in players){
+		io.to(players[player].id).emit(type, data);
+	}
+}
+
 //timer
 setInterval(() => {
 	for (var player in players){
@@ -90,7 +96,7 @@ setInterval(() => {
 			projectile.time -= 1;
 			if (projectile.time <= 0){
 				bullets[bullet].splice(i, 1);
-				io.emit("bullet-destroy", {
+				emit("bullet-destroy", {
 					playerId: projectile.playerId,
 					bulletId: projectile.bulletId
 				});
@@ -145,7 +151,7 @@ setInterval(() => {
 				players[player].health = 100;
 				players[player].respawnTime = 5;
 				players[player].dead = false;
-				io.emit("plr-respawn", {
+				emit("plr-respawn", {
 					playerId: players[player].id,
 					playerColor: players[player].color
 				});
@@ -157,7 +163,7 @@ setInterval(() => {
 //ramBot emit
 setInterval(() => {
 	for (var bot in ramBots){
-		io.emit("rbupdate", {
+		emit("rbupdate", {
 			botId: ramBots[bot].botId,
 			radius: ramBots[bot].radius,
 			health: ramBots[bot].health,
@@ -214,7 +220,7 @@ setInterval(() => {
 					players[player].health -= 4;
 					if (players[player].health <= 0){
 						players[player].dead = true;
-						io.emit("plr-death", {
+						emit("plr-death", {
 							loser: {
 								username: players[player].username,
 								id: players[player].id,
@@ -398,7 +404,7 @@ setInterval(() => {
 			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
 			projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
 
-			io.emit('bupdate', {
+			emit('bupdate', {
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId,
 				coords: {
@@ -416,7 +422,7 @@ setInterval(() => {
 						players[player].health -= 5;
 						players[player].health = Math.round(players[player].health);
 						bullets[bullet].splice(i, 1);
-						io.emit("bullet-destroy", {
+						emit("bullet-destroy", {
 							playerId: projectile.playerId,
 							bulletId: projectile.bulletId
 						});
@@ -425,7 +431,7 @@ setInterval(() => {
 						players[player].dead = true;
 						players[player].latestWinner.username = players[projectile.playerId].username;
 						players[player].latestWinner.color = players[projectile.playerId].color;
-						io.emit("plr-death", {
+						emit("plr-death", {
 							loser: {
 								username: players[player].username,
 								id: players[player].id,
@@ -447,12 +453,12 @@ setInterval(() => {
 					ramBots[bot].health -= 5;
 					ramBots[bot].health = Math.round(ramBots[bot].health);
 					bullets[bullet].splice(i, 1);
-					io.emit("bullet-destroy", {
+					emit("bullet-destroy", {
 						playerId: projectile.playerId,
 						bulletId: projectile.bulletId
 					});
 					if (ramBots[bot].health <= 0){
-						io.emit("rambot-destroy", ramBots[bot].botId);
+						emit("rambot-destroy", ramBots[bot].botId);
 						delete ramBots[bot];
 					}
 				}
@@ -503,7 +509,7 @@ setInterval(() => {
 				const distance = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
 				if (distance <= 26){
-					io.emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
+					emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
 					delete healthDrops[healthDrops[healthDrop].dropId];
 					if (players[player].health + 10 > 100){
 						const subtractedAmount = players[player].health + 10 - 100;
@@ -558,7 +564,7 @@ io.on('connection', socket => {
 			const message = msg.trim();
 			if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
 				players[socket.id].time = 60000;
-				io.emit("recieve", {
+				emit("recieve", {
 					msg: message,
 					username: players[socket.id].username,
 					color: players[socket.id].color
@@ -598,7 +604,7 @@ io.on('connection', socket => {
 			bullets[socket.id] = [];
 			setup();
 			socket.emit('joining');
-			io.emit('plr-joined', {
+			emit('plr-joined', {
 				username: username,
 				color: players[socket.id].color
 			});
@@ -629,7 +635,7 @@ io.on('connection', socket => {
 	});
 
 	socket.on('disconnect', () => {
-		io.emit('leave', socket.id);
+		emit("leave", socket.id);
 		delete players[socket.id];
 	});
 });
