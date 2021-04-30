@@ -512,7 +512,7 @@
 			name.style.color = info.color;
 			name.setAttribute("class", "msg");
 
-			msgContainer.innerHTML = `: ${info.msg}`;
+			msgContainer.innerText = `: ${info.msg}`;
 			msgContainer.prepend(name);
 
 			chatInnerWrapper.appendChild(msgContainer);
