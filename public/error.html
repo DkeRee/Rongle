@@ -24,6 +24,10 @@
           canvas.width = 500;
           canvas.height = 300;
 
+          function lerp(x, y, a){
+            return x * (1 - a) + y * a;
+          }
+
           function RamBot(x, y, radius, color){
             this.x = x;
             this.y = y;
@@ -32,14 +36,14 @@
           }
   
           RamBot.prototype.update = function(x, y){
-            this.x = x;
-            this.y = y;
+            this.x = lerp(this.x, x, 0.8);
+            this.y = lerp(this.y, y, 0.8);
 
             if (this.x <= 0 || this.x >= 500){
-                this.x = 250;
+                this.x = lerp(this.x, 250, 0.8);
             }
             if (this.y <= 0 || this.y >= 300){
-              this.y = 150;
+              this.y = lerp(this.y, 150, 0.8);
             }
           };
 
