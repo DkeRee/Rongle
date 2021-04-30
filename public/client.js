@@ -112,7 +112,7 @@
 			for (var player in players){
 				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health);
 			}
-			coordText.textContent = `Coords: ${me.myX}, ${me.myY}`;
+			coordText.innerText = `Coords: ${me.myX}, ${me.myY}`;
 		};
 
 		var render = function(){
@@ -315,7 +315,7 @@
 				.style("fill", "transparent");
 
 			const name = document.createElement("bdi");
-			name.textContent = info.username;
+			name.innerText = info.username;
 			name.style.color = info.color;
 			name.setAttribute("class", "player-widget-name");
 
@@ -433,8 +433,8 @@
 	const warning = document.getElementById("warning");
 
 	socket.on("warning", info => {
-		warningHeader.textContent = info.header;
-		warning.textContent = info.warning;
+		warningHeader.innerText = info.header;
+		warning.innerText = info.warning;
 		warningContainer.style.display = 'block';
 		setTimeout(() => {
 			warningContainer.style.display = 'none';
@@ -455,12 +455,12 @@
 				msgContainer.setAttribute("class", "msg-container");
 
 				const msg = document.createElement("p");
-				msg.textContent = message;
+				msg.innerText = message;
 				msg.setAttribute("class", "msg");
 				msg.style.color = "white";
 
 				const name = document.createElement("bdi");
-				name.textContent = info.username;
+				name.innerText = info.username;
 				name.style.color = info.color;
 				name.setAttribute("class", "msg");
 
@@ -477,12 +477,12 @@
 				msgContainer.setAttribute("class", "msg-container");
 
 				const msg = document.createElement("p");
-				msg.textContent = message;
+				msg.innerText = message;
 				msg.setAttribute("class", "msg");
 				msg.style.color = "white";
 
 				const name = document.createElement("bdi");
-				name.textContent = players[info].username;
+				name.innerText = players[info].username;
 				name.style.color = players[info].color;
 				name.setAttribute("class", "msg");
 
@@ -504,7 +504,7 @@
 			msgContainer.style.color = "white";
 
 			const name = document.createElement("bdi");
-			name.textContent = info.username;
+			name.innerText = info.username;
 			name.style.color = info.color;
 			name.setAttribute("class", "msg");
 
@@ -539,16 +539,16 @@
 			msgContainer.setAttribute("class", "msg-container");
 
 			const msg = document.createElement("p");
-			msg.textContent = " was killed by ";
+			msg.innerText = " was killed by ";
 			msg.setAttribute("class", "msg");
 			msg.style.color = "white";
 
 			const loser = document.createElement("bdi");
-			loser.textContent = info.loser.username;
+			loser.innerText = info.loser.username;
 			loser.style.color = info.loser.color;
 
 			const winner = document.createElement("bdi");
-			winner.textContent = info.winner.username;
+			winner.innerText = info.winner.username;
 			winner.style.color = info.winner.color;
 
 			if (info.type == "bot"){
