@@ -30,6 +30,8 @@
 		myID: null,
 		myX: "N/A",
 		myY: "N/A",
+		lerpX: null,
+		lerpY: null,
 		bulletCount: null,
 		stamina: 100,
 		burntOut: false,
@@ -119,7 +121,7 @@
 			canvas.style.backgroundPosition = `${-me.myX / 0.8}px ${-me.myY / 0.8}px`;
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-me.myX + canvas.width / 2, -me.myY + canvas.height / 2);
+			ctx.translate(-me.lerpX + canvas.width / 2, -me.lerpY + canvas.height / 2);
 			
 			const borderX = -1800;
 			const borderY = -1800;
@@ -168,8 +170,8 @@
 		}
 
 		Player.prototype.update = function(x, y, health){
-			this.x = lerp(this.x, x, 0.4);
-			this.y = lerp(this.y, y, 0.4);
+			this.x = lerp(this.x, x, 0.45);
+			this.y = lerp(this.y, y, 0.45);
 			this.health = lerp(this.health, health, 0.3);
 		};
 
@@ -328,14 +330,16 @@
 		//player update
 		socket.on('pupdate', info => {
 			if (players[info.id]){
-				players[info.id].coords = info.coords;
-				players[info.id].health = info.health;
 				if (info.id == me.myID){
 					me.myX = players[info.id].coords.x;
 					me.myY = players[info.id].coords.y;
+					me.lerpX = lerp(players[info.id].coords.x, info.coords.x, 0.45);
+					me.lerpY = lerp(players[info.id].coords.y, info.coords.y, 0.45);
 					me.stamina = info.stamina;
 					me.burntOut = info.burntOut;
 				}
+				players[info.id].coords = info.coords;
+				players[info.id].health = info.health;
 			} else {
 				players[info.id] = {
 					coords: info.coords,
