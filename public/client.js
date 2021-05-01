@@ -95,6 +95,10 @@
 		warningContainer.style.display = 'none';
 
 		var step = function(){
+			canvas.style.backgroundPosition = `${-me.lerpX / 0.8}px ${-me.lerpY / 0.8}px`;
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.translate(-me.lerpX + canvas.width / 2, -me.lerpY + canvas.height / 2);
 			update();
 			render();
 			requestAnimationFrame(step);
@@ -117,12 +121,7 @@
 			coordText.innerText = `Coords: ${me.myX}, ${me.myY}`;
 		};
 
-		var render = function(){
-			canvas.style.backgroundPosition = `${-me.myX / 0.8}px ${-me.myY / 0.8}px`;
-			ctx.setTransform(1, 0, 0, 1, 0, 0);
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-me.lerpX + canvas.width / 2, -me.lerpY + canvas.height / 2);
-			
+		var render = function(){			
 			const borderX = -1800;
 			const borderY = -1800;
 			ctx.lineWidth = 5;

@@ -185,41 +185,91 @@ setInterval(() => {
 			const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
 			if (!players[player].dead){
+				var ramBotX = 0;
+				var ramBotY = 0;
 				playerInfo.push({
 						playerId: players[player].id,
 					dist: dist
 				});
 
+				const playerDist = playerInfo.map(player => player.dist);
+				const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
+				if (playerInfo[index]){
+					const targetPlayer = players[playerInfo[index].playerId];
+
+					//follow closest player
+					if (targetPlayer.coords.x < ramBots[bot].coords.x){
+						ramBotX = -3.5;
+					}
+					if (targetPlayer.coords.x > ramBots[bot].coords.x){
+						ramBotX = 3.5;
+					}
+					if (targetPlayer.coords.y < ramBots[bot].coords.y){
+						ramBotY = -3.5;
+					}
+					if (targetPlayer.coords.y > ramBots[bot].coords.y){
+						ramBotY = 3.5;
+					}
+					ramBots[bot].coords.x += ramBotX;
+					ramBots[bot].coords.y += ramBotY;
+				}
+
 				if (41 > dist){
-					var kbX = 120;
-					var kbY = 120;
+					var bkbX = 80;
+					var bkbY = 80;
+					var pkbX = 80;
+					var pkbY = 80;
 
 					//calculate knockback
+
+					//prevent knocking outside of arena
 					if (Math.sign(players[player].coords.x) == 1){
-						if (1771 - players[player].coords.x <= 120){
-							kbX = 1771 - players[player].coords.x;
+						if (1771 - players[player].coords.x <= 80){
+							pkbX = 1771 - players[player].coords.x;
 						}
 					} else {
-						if (-1771 - players[player].coords.x >= -120){
-							kbX = -1771 - players[player].coords.x;
+						if (-1771 - players[player].coords.x >= -80){
+							pkbX = -1771 - players[player].coords.x;
 						}
 					}
 
 					if (Math.sign(players[player].coords.y) == 1){
-						if (1771 - players[player].coords.y <= 120){
-							kbY = 1771 - players[player].coords.y;
+						if (1771 - players[player].coords.y <= 80){
+							pkbY = 1771 - players[player].coords.y;
 						}
 					} else {
-						if (-1771 - players[player].coords.y >= -120){
-							kbY = -1771 - players[player].coords.y;
+						if (-1771 - players[player].coords.y >= -80){
+							pkbY = -1771 - players[player].coords.y;
 						}
 					}
 
-					ramBots[bot].coords.x += Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1);
-					ramBots[bot].coords.y += Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1);
-					players[player].coords.x += Math.ceil(Math.random() * kbX) * (Math.round(Math.random()) ? 1 : -1);
-					players[player].coords.y += Math.ceil(Math.random() * kbY) * (Math.round(Math.random()) ? 1 : -1);
+					const dir = Math.atan2((ramBots[bot].coords.x - 80) - players[player].coords.x, (ramBots[bot].coords.y - 80) - players[player].coords.y);
+
+					//calculate direction
+					if (Math.sign(ramBotX) == 1){
+						pkbX = pkbX;
+						bkbX = -bkbX;
+					}
+					if (Math.sign(ramBotX) == -1){
+						pkbX = -pkbX;
+						bkbX = bkbX;
+					}
+					if (Math.sign(ramBotY) == 1){
+						pkbY = pkbY;
+						bkbY = -bkbY;
+					}
+					if (Math.sign(ramBotY) == -1){
+						pkbY = -pkbY;
+						bkbY = bkbY;
+					}
+
+					//hit
+					ramBots[bot].coords.x += -Math.round(bkbX * Math.cos(dir));
+					ramBots[bot].coords.y += -Math.round(bkbY * Math.sin(dir));
+					players[player].coords.x += -Math.round(pkbX * Math.cos(dir));
+					players[player].coords.y += -Math.round(pkbY * Math.sin(dir));
 					players[player].health -= 4;
+
 					if (players[player].health <= 0){
 						players[player].dead = true;
 						emit("plr-death", {
@@ -236,26 +286,6 @@ setInterval(() => {
 						});					
 					}
 				}
-			}
-		}
-
-		const playerDist = playerInfo.map(player => player.dist);
-		const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
-		if (playerInfo[index]){
-			const targetPlayer = players[playerInfo[index].playerId];
-
-			//follow closest player
-			if (targetPlayer.coords.x < ramBots[bot].coords.x){
-				ramBots[bot].coords.x -= 3.5;
-			}
-			if (targetPlayer.coords.x > ramBots[bot].coords.x){
-				ramBots[bot].coords.x += 3.5;
-			}
-			if (targetPlayer.coords.y < ramBots[bot].coords.y){
-				ramBots[bot].coords.y -= 3.5;
-			}
-			if (targetPlayer.coords.y > ramBots[bot].coords.y){
-				ramBots[bot].coords.y += 3.5;
 			}
 		}
 	}
