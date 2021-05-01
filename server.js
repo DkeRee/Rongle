@@ -109,7 +109,7 @@ setInterval(() => {
 
 //spawner
 setInterval(() => {
-	if (Object.keys(healthDrops).length <= 10){
+	if (Object.keys(healthDrops).length < 10){
 		const id = randomstring.generate();
 		healthDrops[id] = {
 			dropId: id,
@@ -122,7 +122,7 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
-	if (Object.keys(ramBots).length <= 6){
+	if (Object.keys(ramBots).length < 6){
 		const id = randomstring.generate();
 		ramBots[id] = {
 			botId: id,
