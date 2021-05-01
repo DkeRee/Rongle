@@ -242,7 +242,6 @@ setInterval(() => {
 							pkbY = -1772 - players[player].coords.y;
 						}
 					}
-					console.log(pkbX);
 
 					const dir = Math.atan2((ramBots[bot].coords.x - 80) - players[player].coords.x, (ramBots[bot].coords.y - 80) - players[player].coords.y);
 
