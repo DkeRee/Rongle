@@ -234,40 +234,41 @@ setInterval(() => {
 					}
 
 					if (Math.sign(players[player].coords.y) == 1){
-						if (1771 - players[player].coords.y <= 80){
-							pkbY = 1771 - players[player].coords.y;
+						if (1772 - players[player].coords.y <= 80){
+							pkbY = 1772 - players[player].coords.y;
 						}
 					} else {
-						if (-1771 - players[player].coords.y >= -80){
-							pkbY = -1771 - players[player].coords.y;
+						if (-1772 - players[player].coords.y >= -80){
+							pkbY = -1772 - players[player].coords.y;
 						}
 					}
+					console.log(pkbX);
 
 					const dir = Math.atan2((ramBots[bot].coords.x - 80) - players[player].coords.x, (ramBots[bot].coords.y - 80) - players[player].coords.y);
 
 					//calculate direction
 					if (Math.sign(ramBotX) == 1){
-						pkbX = pkbX;
-						bkbX = -bkbX;
-					}
-					if (Math.sign(ramBotX) == -1){
 						pkbX = -pkbX;
 						bkbX = bkbX;
 					}
-					if (Math.sign(ramBotY) == 1){
-						pkbY = pkbY;
-						bkbY = -bkbY;
+					if (Math.sign(ramBotX) == -1){
+						pkbX = pkbX;
+						bkbX = -bkbX;
 					}
-					if (Math.sign(ramBotY) == -1){
+					if (Math.sign(ramBotY) == 1){
 						pkbY = -pkbY;
 						bkbY = bkbY;
 					}
+					if (Math.sign(ramBotY) == -1){
+						pkbY = pkbY;
+						bkbY = -bkbY;
+					}
 
 					//hit
-					ramBots[bot].coords.x += -Math.round(bkbX * Math.cos(dir));
-					ramBots[bot].coords.y += -Math.round(bkbY * Math.sin(dir));
-					players[player].coords.x += -Math.round(pkbX * Math.cos(dir));
-					players[player].coords.y += -Math.round(pkbY * Math.sin(dir));
+					ramBots[bot].coords.x += Math.round(bkbX * Math.cos(dir));
+					ramBots[bot].coords.y += Math.round(bkbY * Math.sin(dir));
+					players[player].coords.x += Math.round(pkbX * Math.cos(dir));
+					players[player].coords.y += Math.round(pkbY * Math.sin(dir));
 					players[player].health -= 4;
 
 					if (players[player].health <= 0){
