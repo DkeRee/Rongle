@@ -225,7 +225,7 @@ setInterval(() => {
 					//prevent knocking outside of arena
 					if (Math.sign(players[player].coords.x) == 1){
 						if (1771 - players[player].coords.x <= 80){
-							if (1771 - players[player].coords.x < 2){
+							if (1771 - players[player].coords.x < 0){
 								pkbX = 0;
 							} else {
 								pkbX = 1771 - players[player].coords.x;
@@ -233,7 +233,7 @@ setInterval(() => {
 						}
 					} else {
 						if (-1771 - players[player].coords.x >= -80){
-							if (-1771 - players[player].coords.x > 2){
+							if (-1771 - players[player].coords.x > 0){
 								pkbX = 0;
 							} else {
 								pkbX = -1771 - players[player].coords.x;
@@ -243,7 +243,7 @@ setInterval(() => {
 
 					if (Math.sign(players[player].coords.y) == 1){
 						if (1771 - players[player].coords.y <= 80){
-							if (1771 - players[player].coords.y < 2){
+							if (1771 - players[player].coords.y < 0){
 								pkbY = 0;
 							} else {
 								pkbY = 1771 - players[player].coords.y;
@@ -251,7 +251,7 @@ setInterval(() => {
 						}
 					} else {
 						if (-1771 - players[player].coords.y >= -80){
-							if (-1771 - players[player].coords.y > 2){
+							if (-1771 - players[player].coords.y > 0){
 								pkbY = 0;
 							} else {
 								pkbY = -1771 - players[player].coords.y;
