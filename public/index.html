@@ -49,10 +49,8 @@
 				</div>
 				<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "100" autocomplete = "off" placeholder = "Hit ENTER to begin typing"></textarea>
 				<script>
-					const chatbar = document.getElementById("chatbar");
-					$(chatbar).on("input", () => {
+					$("#chatbar").on("input", () => {
 						chatbar.style.height = "auto";
-
 						chatbar.style.height = `${chatbar.scrollHeight - 10}px`;
 					});
 				</script>
