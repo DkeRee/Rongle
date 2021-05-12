@@ -284,7 +284,7 @@ setInterval(() => {
 					ramBots[bot].coords.y += Math.round(bkbY * Math.sin(dir));
 					players[player].coords.x += Math.round(pkbX * Math.cos(dir));
 					players[player].coords.y += Math.round(pkbY * Math.sin(dir));
-					players[player].health -= 4;
+					players[player].health -= 8;
 
 					if (players[player].health <= 0){
 						players[player].dead = true;
