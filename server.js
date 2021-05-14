@@ -165,6 +165,9 @@ setInterval(() => {
 //ramBot emit
 setInterval(() => {
 	for (var bot in ramBots){
+		var ramBotX = 0;
+		var ramBotY = 0;
+
 		emit("rbupdate", {
 			botId: ramBots[bot].botId,
 			radius: ramBots[bot].radius,
@@ -185,8 +188,6 @@ setInterval(() => {
 			const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
 			if (!players[player].dead){
-				var ramBotX = 0;
-				var ramBotY = 0;
 				playerInfo.push({
 						playerId: players[player].id,
 					dist: dist
@@ -210,8 +211,6 @@ setInterval(() => {
 					if (targetPlayer.coords.y > ramBots[bot].coords.y){
 						ramBotY = 3.5;
 					}
-					ramBots[bot].coords.x += ramBotX;
-					ramBots[bot].coords.y += ramBotY;
 				}
 
 				if (41 > dist){
@@ -304,6 +303,8 @@ setInterval(() => {
 				}
 			}
 		}
+		ramBots[bot].coords.x += ramBotX;
+		ramBots[bot].coords.y += ramBotY;
 	}
 }, tickrate);
 
