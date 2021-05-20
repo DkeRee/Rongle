@@ -283,27 +283,37 @@ setInterval(() => {
 
 				for (var plr in blocks){
 					for (var i = 0; i < blocks[plr].length; i++){
-						if (cirToRectCollision(ramBots[bot], blocks[plr][i])){
-							var kbX = 80;
-							var kbY = 80;
+						if (blocks[plr][i]){
+							if (cirToRectCollision(ramBots[bot], blocks[plr][i])){
+								var kbX = 80;
+								var kbY = 80;
 
-							const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[plr][i].coords.x, (ramBots[bot].coords.y - 80) - blocks[plr][i].coords.y);
+								const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[plr][i].coords.x, (ramBots[bot].coords.y - 80) - blocks[plr][i].coords.y);
 
-							if (Math.sign(ramBotX) == 1){
-								kbX = kbX;
-							}
-							if (Math.sign(ramBotX) == -1){
-								kbX = -kbX;
-							}
-							if (Math.sign(ramBotY) == 1){
-								kbY = kbY;
-							}
-							if (Math.sign(ramBotY) == -1){
-								kbY = -kbY;
-							}
+								if (Math.sign(ramBotX) == 1){
+									kbX = kbX;
+								}
+								if (Math.sign(ramBotX) == -1){
+									kbX = -kbX;
+								}
+								if (Math.sign(ramBotY) == 1){
+									kbY = kbY;
+								}
+								if (Math.sign(ramBotY) == -1){
+									kbY = -kbY;
+								}
 
-							ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
-							ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
+								ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
+								ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
+								blocks[plr][i].health -= 8;
+								if (blocks[plr][i].health <= 0){
+									emit("block-destroy", {
+										playerId: blocks[plr][i].playerId,
+										blockId: blocks[plr][i].blockId
+									});
+									delete blocks[plr][i];
+								}
+							}
 						}
 					}
 				}
@@ -349,6 +359,43 @@ setInterval(() => {
 								pkbY = 0;
 							} else {
 								pkbY = -1771 - players[player].coords.y;
+							}
+						}
+					}
+
+					//prevent knocking into wall
+					for (var plr in blocks){
+						for (var i = 0; i < blocks[plr].length; i++){
+							if (blocks[plr][i]){
+								if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[plr][i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[plr][i].coords.y, 2)) <= 155){
+									if (Math.sign(players[player].coords.x) == 1){
+										if (blocks[plr][i].coords.x - players[player].coords.x < 0){
+												pkbX = 0;
+										} else {
+											pkbX = blocks[plr][i].coords.x - players[player].coords.x;
+										}				
+									} else {
+										if (-blocks[plr][i].coords.x - players[player].coords.x > 0){
+											pkbX = 0;
+										} else {
+											pkbX = -blocks[plr][i].coords.x - players[player].coords.x;
+										}				
+									}
+
+									if (Math.sign(players[player].coords.y) == 1){
+										if (blocks[plr][i].coords.y - players[player].coords.y < 0){
+											pkbY = 0;
+										} else {
+											pkbY = blocks[plr][i].coords.y - players[player].coords.y;
+										}				
+									} else {
+										if (-blocks[plr][i].coords.y - players[player].coords.y > 0){
+											pkbY = 0;
+										} else {
+											pkbY = -blocks[plr][i].coords.y - players[player].coords.y;
+										}				
+									}
+								}
 							}
 						}
 					}
@@ -435,52 +482,54 @@ setInterval(() => {
 
 			for (var plr in blocks){
 				for (var i = 0; i < blocks[plr].length; i++){
-					const block = blocks[plr][i];
+					if (blocks[plr][i]){
+						const block = blocks[plr][i];
 
-					var leftX = block.coords.x;
-					var leftSide = {
-						width: 50,
-						height: 50,
-						coords: {
-							x: leftX -= 3,
-							y: block.coords.y
-						}
-					};
+						var leftX = block.coords.x;
+						var leftSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: leftX -= 3,
+								y: block.coords.y
+							}
+						};
 
-					var rightX = block.coords.x;
-					var rightSide = {
-						width: 50,
-						height: 50,
-						coords: {
-							x: rightX += 3,
-							y: block.coords.y
-						}
-					};
+						var rightX = block.coords.x;
+						var rightSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: rightX += 3,
+								y: block.coords.y
+							}
+						};
 
-					var topY = block.coords.y;
-					var topSide = {
-						width: 50,
-						height: 50,
-						coords: {
-							x: block.coords.x,
-							y: topY -= 3
-						}
-					};
+						var topY = block.coords.y;
+						var topSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: block.coords.x,
+								y: topY -= 3
+							}
+						};
 
-					var bottomY = block.coords.y;
-					var bottomSide = {
-						width: 50,
-						height: 50,
-						coords: {
-							x: block.coords.x,
-							y: bottomY += 3
-						}
-					};
+						var bottomY = block.coords.y;
+						var bottomSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: block.coords.x,
+								y: bottomY += 3
+							}
+						};
 
-					if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
-					if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
-					if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
-					if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
+						if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
+						if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
+						if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
+						if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
+					}
 				}
 			}
 
@@ -593,19 +642,22 @@ setInterval(() => {
 setInterval(() => {
 	for (var player in blocks){
 		for (var i = 0; i < blocks[player].length; i++){
-			const chunk = blocks[player][i];
+			if (blocks[player][i]){
+				const chunk = blocks[player][i];
 
-			emit('blo-update', {
-				playerId: chunk.playerId,
-				blockId: chunk.blockId,
-				width: chunk.width,
-				height: chunk.height,
-				color: chunk.color,
-				coords: {
-					x: chunk.coords.x,
-					y: chunk.coords.y
-				}
-			});
+				emit('blo-update', {
+					playerId: chunk.playerId,
+					blockId: chunk.blockId,
+					width: chunk.width,
+					height: chunk.height,
+					health: chunk.health,
+					color: chunk.color,
+					coords: {
+						x: chunk.coords.x,
+						y: chunk.coords.y
+					}
+				});
+			}
 		}
 	}
 }, tickrate);
@@ -636,6 +688,20 @@ setInterval(() => {
 
 			for (var player in players){
 				if (!players[player].dead){
+			
+					for (var i = 0; i < blocks[player].length; i++){
+						if (cirToRectCollision(projectile, blocks[plr][i])){
+							blocks[player][i].health -= 10;
+							if (blocks[player][i].health <= 0){
+								emit("block-destroy", {
+									playerId: blocks[player][i].playerId,
+									blockId: blocks[player][i].blockId
+								});
+								delete blocks[player][i];
+							}
+						}
+					}
+
 					if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
 						players[player].health -= 10;
 						players[player].health = Math.round(players[player].health);
@@ -734,6 +800,7 @@ io.on('connection', socket => {
 				blocks[socket.id].push({
 					playerId: socket.id,
 					blockId: randomstring.generate(),
+					health: 50,
 					width: 50,
 					height: 50,
 					color: "white",

@@ -113,6 +113,12 @@
 				ramBots[bot].body.update(ramBots[bot].coords.x, ramBots[bot].coords.y, ramBots[bot].health);
 			}
 
+			for (var player in blocks){
+				for (var block in blocks[player]){
+					blocks[player][block].body.update(blocks[player][block].health);
+				}
+			}
+
 			for (var player in bullets){
 				for (var bullet in bullets[player]){
 					bullets[player][bullet].body.update(bullets[player][bullet].coords.x, bullets[player][bullet].coords.y);
@@ -306,17 +312,25 @@
 		};
 
 		//block constructor
-		function Block(x, y, width, height, color){
+		function Block(x, y, width, height, health, color){
 			this.x = x;
 			this.y = y;
 			this.color = color;
+			this.health = health;
 			this.width = width;
 			this.height = height;
 		}
 
+		Block.prototype.update = function(health){
+			this.health = lerp(this.health, health, 0.3);
+		};
+
 		Block.prototype.render = function(){
 			ctx.beginPath();
-			ctx.lineWidth = "3";
+			ctx.fillStyle = "#424549";
+			ctx.fillRect(this.x, this.y, this.health, this.health);
+
+			ctx.lineWidth = 3;
 			ctx.strokeStyle = this.color;
 			ctx.strokeRect(this.x, this.y, this.width, this.height);			
 		};
@@ -403,13 +417,20 @@
 		});
 
 		socket.on('blo-update', info => {
-			if(blocks[info.playerId][info.blockId] == undefined){
+			if (blocks[info.playerId][info.blockId]){
+				blocks[info.playerId][info.blockId].health = info.health;
+			} else {
 				blocks[info.playerId][info.blockId] = {
 					playerId: info.playerId,
 					coords: info.coords,
-					body: new Block(info.coords.x, info.coords.y, info.width, info.height, info.color)
+					health: info.health,
+					body: new Block(info.coords.x, info.coords.y, info.width, info.height, info.health, info.color)
 				};
 			}
+		});
+
+		socket.on("block-destroy", info => {
+			delete blocks[info.playerId][info.blockId];
 		});
 
 		//click event listener
