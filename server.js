@@ -56,32 +56,43 @@ function checkDelay(id, mode){
 	}
 }
 
-function checkPlacement(info){
-	info.width = 50;
-	info.height = 50;
+function cirToCirCollision(cirOne, cirTwo){
+	const distX = cirOne.coords.x - cirTwo.coords.x;
+	const distY = cirOne.coords.y - cirTwo.coords.y;
 
-	function cirToRectCollision(cir, rect){
-		const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
-		const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
+	if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < cirOne.radius + cirTwo.radius) return true;
+}
 
-		if (distX > (rect.width / 2 + cir.radius)) return false;
-		if (distY > (rect.height / 2 + cir.radius)) return false;
+function cirToRectCollision(cir, rect){
+	const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
+	const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
+	if (distX > (rect.width / 2 + cir.radius)) return false;
+	if (distY > (rect.height / 2 + cir.radius)) return false;
+	
+	if (distX <= (rect.width / 2 + cir.radius)) return true;
+	if (distY <= (rect.height / 2 + cir.radius)) return true;
+}
 
-		if (distX <= (rect.width / 2 + cir.radius)) return true;
-		if (distY <= (rect.height / 2 + cir.radius)) return true;
-	}
-
-	function rectangleCollision(rectOne, rectTwo){
-		if (rectOne.coords.x < rectTwo.coords.x + rectTwo.width){
-			if (rectOne.coords.x + rectOne.width > rectTwo.coords.x){
-				if (rectOne.coords.y < rectTwo.coords.y + rectTwo.height){
-					if (rectOne.coords.y + rectOne.height > rectTwo.coords.y){
-						return true;
-					}
+function rectangleCollision(rectOne, rectTwo){
+	if (rectOne.coords.x < rectTwo.coords.x + rectTwo.width){
+		if (rectOne.coords.x + rectOne.width > rectTwo.coords.x){
+			if (rectOne.coords.y < rectTwo.coords.y + rectTwo.height){
+				if (rectOne.coords.y + rectOne.height > rectTwo.coords.y){
+					return true;
 				}
 			}
 		}
 	}
+}
+
+function checkPlacement(info){
+	info.width = 50;
+	info.height = 50;
+
+	if (Math.sqrt(Math.pow(info.coords.x - players[info.playerId].coords.x, 2) + Math.pow(info.coords.y - players[info.playerId].coords.y, 2)) > 500) return true;
+
+	if (info.coords.x < -1800 || info.coords.x > 1800) return true;
+	if (info.coords.y < -1800 || info.coords.y > 1800) return true;
 
 	for (var player in players){
 		if (cirToRectCollision(players[player], info)) return true;
@@ -179,6 +190,7 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
+	/*
 	if (Object.keys(ramBots).length < 6){
 		const id = randomstring.generate();
 		ramBots[id] = {
@@ -192,6 +204,7 @@ setInterval(() => {
 			color: "#DF362D"
 		};
 	}
+	*/
 }, 20000);
 
 //player respawn check
@@ -246,7 +259,7 @@ setInterval(() => {
 
 			if (!players[player].dead){
 				playerInfo.push({
-						playerId: players[player].id,
+					playerId: players[player].id,
 					dist: dist
 				});
 
@@ -270,7 +283,7 @@ setInterval(() => {
 					}
 				}
 
-				if (41 > dist){
+				if (cirToCirCollision(ramBots[bot], players[player])){
 					var bkbX = 80;
 					var bkbY = 80;
 					var pkbX = 80;
@@ -392,8 +405,59 @@ setInterval(() => {
 			}
 
 			//movement update
-			const borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
-			const borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
+			var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
+			var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
+
+			for (var plr in blocks){
+				for (var i = 0; i < blocks[plr].length; i++){
+					const block = blocks[plr][i];
+
+					var leftX = block.coords.x;
+					var leftSide = {
+						width: 50,
+						height: 50,
+						coords: {
+							x: leftX -= 3,
+							y: block.coords.y
+						}
+					};
+
+					var rightX = block.coords.x;
+					var rightSide = {
+						width: 50,
+						height: 50,
+						coords: {
+							x: rightX += 3,
+							y: block.coords.y
+						}
+					};
+
+					var topY = block.coords.y;
+					var topSide = {
+						width: 50,
+						height: 50,
+						coords: {
+							x: block.coords.x,
+							y: topY -= 3
+						}
+					};
+
+					var bottomY = block.coords.y;
+					var bottomSide = {
+						width: 50,
+						height: 50,
+						coords: {
+							x: block.coords.x,
+							y: bottomY += 3
+						}
+					};
+
+					if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
+					if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
+					if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
+					if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
+				}
+			}
 
 			if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
 				players[player].running = false;
@@ -502,9 +566,9 @@ setInterval(() => {
 
 //block emit
 setInterval(() => {
-	for (var block in blocks){
-		for (var i = 0; i < blocks[block].length; i++){
-			const chunk = blocks[block][i];
+	for (var player in blocks){
+		for (var i = 0; i < blocks[player].length; i++){
+			const chunk = blocks[player][i];
 
 			emit('blo-update', {
 				playerId: chunk.playerId,
@@ -541,11 +605,13 @@ setInterval(() => {
 				color: projectile.color
 			});
 
+			//detect hits
+
+			projectile.coords = projectile.bulletCoords;
+
 			for (var player in players){
 				if (!players[player].dead){
-					const distX = projectile.bulletCoords.x - players[player].coords.x;
-					const distY = projectile.bulletCoords.y - players[player].coords.y;
-					if (players[player].id !== projectile.playerId && 32 > Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) && !players[player].dead){
+					if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
 						players[player].health -= 10;
 						players[player].health = Math.round(players[player].health);
 						bullets[bullet].splice(i, 1);
@@ -574,9 +640,7 @@ setInterval(() => {
 				}
 			}
 			for (var bot in ramBots){
-				const distX = projectile.bulletCoords.x - ramBots[bot].coords.x;
-				const distY = projectile.bulletCoords.y - ramBots[bot].coords.y;
-				if (21 > Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2))){
+				if (cirToCirCollision(projectile, ramBots[bot])){
 					ramBots[bot].health -= 10;
 					ramBots[bot].health = Math.round(ramBots[bot].health);
 					bullets[bullet].splice(i, 1);
@@ -609,33 +673,7 @@ setInterval(() => {
 		});
 		for (var player in players){
 			if (!players[player].dead && healthDrops[healthDrop]){
-				const cx = players[player].coords.x;
-				const cy = players[player].coords.y;
-
-				const sx = healthDrops[healthDrop].coords.x;
-				const sy = healthDrops[healthDrop].coords.y;
-				const sw = healthDrops[healthDrop].width;
-				const sh = healthDrops[healthDrop].height;
-
-				var testX = cx
-				var testY = cy
-
-				if (cx < sx){
-					testX = sx;
-				} else if (cx > sx + sw){
-					testX = sx + sw;
-				}
-				if (cy < sy){
-					testY = sy;
-				} else if (cy > sy + sh){
-					testY = sy + sh;
-				}
-
-				const distX = cx - testX;
-				const distY = cy - testY;
-				const distance = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-
-				if (distance <= 26){
+				if (cirToRectCollision(players[player], healthDrops[healthDrop])){
 					emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
 					delete healthDrops[healthDrops[healthDrop].dropId];
 					if (players[player].health + 10 > 100){
@@ -663,9 +701,10 @@ io.on('connection', socket => {
 		});
 
 		socket.on("place", info => {
-			info.coords.x = players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34;
-			info.coords.y = players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25;
-			if (blocks[socket.id].length < 30 && checkDelay(socket.id, "block") && checkPlacement(info) == undefined && !players[socket.id].dead){
+			info.playerId = socket.id;
+			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
+			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
+			if (blocks[socket.id].length < 60 && checkDelay(socket.id, "block") && checkPlacement(info) == undefined && !players[socket.id].dead){
 				players[socket.id].time = 60000;
 				blocks[socket.id].push({
 					playerId: socket.id,
