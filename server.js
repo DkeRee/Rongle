@@ -190,7 +190,6 @@ setInterval(() => {
 			color: "#4ee44e"
 		};
 	}
-	/*
 	if (Object.keys(ramBots).length < 6){
 		const id = randomstring.generate();
 		ramBots[id] = {
@@ -204,7 +203,6 @@ setInterval(() => {
 			color: "#DF362D"
 		};
 	}
-	*/
 }, 20000);
 
 //player respawn check
@@ -280,6 +278,33 @@ setInterval(() => {
 					}
 					if (targetPlayer.coords.y > ramBots[bot].coords.y){
 						ramBotY = 3.5;
+					}
+				}
+
+				for (var plr in blocks){
+					for (var i = 0; i < blocks[plr].length; i++){
+						if (cirToRectCollision(ramBots[bot], blocks[plr][i])){
+							var kbX = 80;
+							var kbY = 80;
+
+							const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[plr][i].coords.x, (ramBots[bot].coords.y - 80) - blocks[plr][i].coords.y);
+
+							if (Math.sign(ramBotX) == 1){
+								kbX = kbX;
+							}
+							if (Math.sign(ramBotX) == -1){
+								kbX = -kbX;
+							}
+							if (Math.sign(ramBotY) == 1){
+								kbY = kbY;
+							}
+							if (Math.sign(ramBotY) == -1){
+								kbY = -kbY;
+							}
+
+							ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
+							ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
+						}
 					}
 				}
 
