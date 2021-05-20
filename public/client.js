@@ -8,6 +8,7 @@
 	const players = {};
 	const bulletStorage = [];
 	const bullets = {};
+	const blocks = {};
 	const healthDrops = {};
 	const ramBots = {};
 
@@ -36,6 +37,8 @@
 		stamina: 100,
 		burntOut: false,
 	};
+
+	var mode = "placing";
 
 	$("#html").bind('contextmenu', () => {
 		return false;
@@ -115,9 +118,11 @@
 					bullets[player][bullet].body.update(bullets[player][bullet].coords.x, bullets[player][bullet].coords.y);
 				}
 			}
+
 			for (var player in players){
 				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health);
 			}
+
 			coordText.innerText = `Coords: ${me.myX}, ${me.myY}`;
 		};
 
@@ -138,6 +143,12 @@
 
 			for (var healthDrop in healthDrops){
 				healthDrops[healthDrop].body.render();
+			}
+
+			for (var player in blocks){
+				for (var block in blocks[player]){
+					blocks[player][block].body.render();
+				}
 			}
 
 			for (var bot in ramBots){
@@ -294,6 +305,22 @@
 			ctx.fillRect(this.x - 15, this.y - 35, this.health, 10);
 		};
 
+		//block constructor
+		function Block(x, y, width, height, color){
+			this.x = x;
+			this.y = y;
+			this.color = color;
+			this.width = width;
+			this.height = height;
+		}
+
+		Block.prototype.render = function(){
+			ctx.beginPath();
+			ctx.lineWidth = "3";
+			ctx.strokeStyle = this.color;
+			ctx.strokeRect(this.x, this.y, this.width, this.height);			
+		};
+
 		function addPlayerList(info, id){
 			const playerListWrapper = document.getElementById("player-list-inner-wrapper");
 
@@ -348,6 +375,7 @@
 					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius)
 				};
 				bullets[info.id] = {};
+				blocks[info.id] = {};
 				addPlayerList(players[info.id], info.id);
 			}
 		});
@@ -374,18 +402,38 @@
 			delete bullets[info.playerId][info.bulletId];
 		});
 
+		socket.on('blo-update', info => {
+			if(blocks[info.playerId][info.blockId] == undefined){
+				blocks[info.playerId][info.blockId] = {
+					playerId: info.playerId,
+					coords: info.coords,
+					body: new Block(info.coords.x, info.coords.y, info.width, info.height, info.color)
+				};
+			}
+		});
+
+		//click event listener
 		window.addEventListener("mousedown", e => {
+			const info = {
+				screen: {
+					width: window.innerWidth,
+					height: window.innerHeight
+				},
+				coords: {
+					x: e.clientX,
+					y: e.clientY
+				}
+			};
 			if (!typing && e.button == 0){
-				socket.emit("shoot", {
-					screen: {
-						width: window.innerWidth,
-						height: window.innerHeight
-					},
-					coords: {
-						x: e.clientX,
-						y: e.clientY
-					}
-				});
+				switch (mode){
+					case "shooting":
+						socket.emit("shoot", info);
+						break;
+					case "placing":
+						socket.emit("place", info);
+						break;
+				}
+
 			}
 		});
 
@@ -532,6 +580,8 @@
 		serverMsg(id, " has left the server");
 		document.getElementById(id).remove();
 		delete players[id];
+		delete bullets[id];
+		delete blocks[id];
 	});
 
 	socket.on("plr-death", info => {

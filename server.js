@@ -14,6 +14,7 @@ const randomstring = require('randomstring');
 
 const players = {};
 const bullets = {};
+const blocks = {};
 const healthDrops = {};
 const ramBots = {};
 const colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
@@ -34,12 +35,67 @@ function checkCopy(username){
 	}
 }
 
-function checkShooting(id){
+function checkDelay(id, mode){
 	for (var player in players){
-		if (player == id && players[player].bTime >= 85){
-			players[player].bTime = 0;
-			return true;
+		if (player == id){
+			switch (mode){
+				case "bullet":
+					if (players[player].bTime >= 85){
+						players[player].bTime = 0;
+						return true;					
+					}
+				break;
+				case "block":
+					if(players[player].pTime >= 85){
+						players[player].pTime = 0;
+						return true;
+					}
+				break;
+			}
 		}
+	}
+}
+
+function checkPlacement(info){
+	info.width = 50;
+	info.height = 50;
+
+	function cirToRectCollision(cir, rect){
+		const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
+		const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
+
+		if (distX > (rect.width / 2 + cir.radius)) return false;
+		if (distY > (rect.height / 2 + cir.radius)) return false;
+
+		if (distX <= (rect.width / 2 + cir.radius)) return true;
+		if (distY <= (rect.height / 2 + cir.radius)) return true;
+	}
+
+	function rectangleCollision(rectOne, rectTwo){
+		if (rectOne.coords.x < rectTwo.coords.x + rectTwo.width){
+			if (rectOne.coords.x + rectOne.width > rectTwo.coords.x){
+				if (rectOne.coords.y < rectTwo.coords.y + rectTwo.height){
+					if (rectOne.coords.y + rectOne.height > rectTwo.coords.y){
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	for (var player in players){
+		if (cirToRectCollision(players[player], info)) return true;
+	}
+	for (var bullet in bullets){
+		for (var i = 0; i < bullets[bullet].length; i++){
+			if (cirToRectCollision(bullets[bullet][i], info)) return true;
+		}
+	}
+	for (var healthDrop in healthDrops){
+		if (rectangleCollision(healthDrops[healthDrop], info)) return true;
+	}
+	for (var bot in ramBots){
+		if (cirToRectCollision(ramBots[bot], info)) return true;
 	}
 }
 
@@ -78,7 +134,8 @@ function emit(type, data){
 //timer
 setInterval(() => {
 	for (var player in players){
-		players[player].bTime += 1;
+		players[player].bTime++;
+		players[player].pTime++;
 		players[player].time -= 1;
 		if (players[player].time <= 0){
 			io.sockets.sockets.forEach(socket => {
@@ -443,6 +500,27 @@ setInterval(() => {
 	}
 }, tickrate);
 
+//block emit
+setInterval(() => {
+	for (var block in blocks){
+		for (var i = 0; i < blocks[block].length; i++){
+			const chunk = blocks[block][i];
+
+			emit('blo-update', {
+				playerId: chunk.playerId,
+				blockId: chunk.blockId,
+				width: chunk.width,
+				height: chunk.height,
+				color: chunk.color,
+				coords: {
+					x: chunk.coords.x,
+					y: chunk.coords.y
+				}
+			});
+		}
+	}
+}, tickrate);
+
 //bullet emit
 setInterval(() => {
 	for (var bullet in bullets){
@@ -584,11 +662,31 @@ io.on('connection', socket => {
 			}
 		});
 
+		socket.on("place", info => {
+			info.coords.x = players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34;
+			info.coords.y = players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25;
+			if (blocks[socket.id].length < 30 && checkDelay(socket.id, "block") && checkPlacement(info) == undefined && !players[socket.id].dead){
+				players[socket.id].time = 60000;
+				blocks[socket.id].push({
+					playerId: socket.id,
+					blockId: randomstring.generate(),
+					width: 50,
+					height: 50,
+					color: "white",
+					coords: {
+						x: info.coords.x,
+						y: info.coords.y
+					}
+				});
+			}
+		});
+
 		socket.on("shoot", info => {
-			if (bullets[socket.id].length <= 30 && checkShooting(socket.id) && !players[socket.id].dead){
+			if (bullets[socket.id].length < 30 && checkDelay(socket.id, "bullet") && !players[socket.id].dead){
 				players[socket.id].time = 60000;
 				bullets[socket.id].push({
 					playerId: socket.id,
+					radius: 6,
 					bulletId: randomstring.generate(),
 					speed: 30,
 					time: 800,
@@ -648,9 +746,11 @@ io.on('connection', socket => {
 				running: false,
 				burntOut: false,
 				time: 60000,
-				bTime: 0
+				bTime: 0,
+				pTime: 0
 			};
 			bullets[socket.id] = [];
+			blocks[socket.id] = [];
 			setup();
 			socket.emit('joining');
 			emit('plr-joined', {
@@ -686,6 +786,8 @@ io.on('connection', socket => {
 	socket.on('disconnect', () => {
 		emit("leave", socket.id);
 		delete players[socket.id];
+		delete bullets[socket.id];
+		delete blocks[socket.id];
 	});
 });
 
