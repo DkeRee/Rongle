@@ -57,28 +57,34 @@ function checkDelay(id, mode){
 }
 
 function cirToCirCollision(cirOne, cirTwo){
-	const distX = cirOne.coords.x - cirTwo.coords.x;
-	const distY = cirOne.coords.y - cirTwo.coords.y;
+	if (cirOne && cirTwo){
+		const distX = cirOne.coords.x - cirTwo.coords.x;
+		const distY = cirOne.coords.y - cirTwo.coords.y;
 
-	if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < cirOne.radius + cirTwo.radius) return true;
+		if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < cirOne.radius + cirTwo.radius) return true;
+	}
 }
 
 function cirToRectCollision(cir, rect){
-	const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
-	const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
-	if (distX > (rect.width / 2 + cir.radius)) return false;
-	if (distY > (rect.height / 2 + cir.radius)) return false;
-	
-	if (distX <= (rect.width / 2 + cir.radius)) return true;
-	if (distY <= (rect.height / 2 + cir.radius)) return true;
+	if (cir && rect){
+		const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
+		const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
+		if (distX > (rect.width / 2 + cir.radius)) return false;
+		if (distY > (rect.height / 2 + cir.radius)) return false;
+		
+		if (distX <= (rect.width / 2 + cir.radius)) return true;
+		if (distY <= (rect.height / 2 + cir.radius)) return true;
+	}
 }
 
 function rectangleCollision(rectOne, rectTwo){
-	if (rectOne.coords.x < rectTwo.coords.x + rectTwo.width){
-		if (rectOne.coords.x + rectOne.width > rectTwo.coords.x){
-			if (rectOne.coords.y < rectTwo.coords.y + rectTwo.height){
-				if (rectOne.coords.y + rectOne.height > rectTwo.coords.y){
-					return true;
+	if (rectOne && rectTwo){
+		if (rectOne.coords.x < rectTwo.coords.x + rectTwo.width){
+			if (rectOne.coords.x + rectOne.width > rectTwo.coords.x){
+				if (rectOne.coords.y < rectTwo.coords.y + rectTwo.height){
+					if (rectOne.coords.y + rectOne.height > rectTwo.coords.y){
+						return true;
+					}
 				}
 			}
 		}
