@@ -734,35 +734,36 @@ function bulletToRambot(projectile, player, bullet, i){
 //bullet emit
 setInterval(() => {
 	for (var bullet in bullets){
-		for (var i = 0; i < bullets[bullet].length; i++){
-			const projectile = bullets[bullet][i];
-			const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+		if (bullets[bullet]){
+			for (var i = 0; i < bullets[bullet].length; i++){
+				const projectile = bullets[bullet][i];
+				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
 
-			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-			projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
 
-			emit('bupdate', {
-				playerId: projectile.playerId,
-				bulletId: projectile.bulletId,
-				coords: {
-					x: projectile.bulletCoords.x,
-					y: projectile.bulletCoords.y
-				},
-				color: projectile.color
-			});
+				emit('bupdate', {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId,
+					coords: {
+						x: projectile.bulletCoords.x,
+						y: projectile.bulletCoords.y
+					},
+					color: projectile.color
+				});
 
-			//detect hits
+				//detect hits
 
-			projectile.coords = projectile.bulletCoords;
+				projectile.coords = projectile.bulletCoords;
 
-			for (var player in players){
-				if (!players[player].dead){
-					bulletToWall(projectile, player, bullet, i);
-					bulletToPlayer(projectile, player, bullet, i);
-					bulletToRambot(projectile, player, bullet, i);
+				for (var player in players){
+					if (!players[player].dead){
+						bulletToWall(projectile, player, bullet, i);
+						bulletToPlayer(projectile, player, bullet, i);
+						bulletToRambot(projectile, player, bullet, i);
+					}
 				}
 			}
-
 		}
 	}
 }, tickrate);
