@@ -23,6 +23,7 @@
 	const staminaContainer = document.getElementById("stamina-container");
 	const staminaBar = document.getElementById("stamina-bar");
 	const warningContainer = document.getElementById("warning-container");
+	const toggleUI = document.getElementById("toggle-container");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
@@ -108,6 +109,7 @@
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
 		warningContainer.style.display = 'none';
+		toggleUI.style.display = 'block';
 
 		toggle("shooting-container");
 
