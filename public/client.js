@@ -34,6 +34,7 @@
 		myY: "N/A",
 		lerpX: null,
 		lerpY: null,
+		blocksUsed: 0,
 		bulletCount: null,
 		stamina: 100,
 		burntOut: false,
@@ -42,12 +43,15 @@
 	var mode = "shooting";
 
 	function toggle(id){
+		const blockCounter = document.getElementById("block-counter");
 		if (id == "shooting-container"){
 			document.getElementById("building-container").style.borderColor = "#7f7f7f";
+			blockCounter.style.display = 'none';
 		}
 
 		if (id == "building-container"){
 			document.getElementById("shooting-container").style.borderColor = "#7f7f7f";
+			blockCounter.style.display = 'block';
 		}
 
 		document.getElementById(id).style.borderColor = "#72bcd4";
@@ -151,10 +155,12 @@
 		var render = function(){			
 			const borderX = -1800;
 			const borderY = -1800;
+			const blockCounter = document.getElementById("block-counter");
 			ctx.lineWidth = 5;
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
 
+			blockCounter.innerText = `${me.blocksUsed}/60`;
 			staminaBar.style.width = `${me.stamina}%`;
 
 			if (!me.burntOut){
@@ -391,6 +397,7 @@
 					me.myY = players[info.id].coords.y;
 					me.lerpX = lerp(players[info.id].coords.x, info.coords.x, 0.45);
 					me.lerpY = lerp(players[info.id].coords.y, info.coords.y, 0.45);
+					me.blocksUsed = info.blocksUsed;
 					me.stamina = info.stamina;
 					me.burntOut = info.burntOut;
 				}
@@ -401,6 +408,7 @@
 					coords: info.coords,
 					username: info.username,
 					health: info.health,
+					blocksUsed: info.blocksUsed,
 					color: info.color,
 					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius)
 				};

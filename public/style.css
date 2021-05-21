@@ -354,6 +354,15 @@ body {
 	margin-left: 18px;
 }
 
+#block-counter-wrapper {
+	margin: auto;
+	text-align: center;
+}
+
+#block-counter {
+	display: none;
+}
+
 ::-webkit-scrollbar {
 	width: 10px;
 }

@@ -459,6 +459,7 @@ setInterval(() => {
 			health: players[player].health,
 			stamina: players[player].stamina,
 			burntOut: players[player].burntOut,
+			blocksUsed: blocks[player].length,
 			radius: players[player].radius,
 			color: players[player].color
 		});
