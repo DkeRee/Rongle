@@ -235,8 +235,7 @@ setInterval(() => {
 	}
 }, 1000);
 
-//ramBot emit
-setInterval(() => {
+function ramBotEmit(){
 	for (var bot in ramBots){
 		var ramBotX = 0;
 		var ramBotY = 0;
@@ -446,11 +445,10 @@ setInterval(() => {
 		}
 		ramBots[bot].coords.x += ramBotX;
 		ramBots[bot].coords.y += ramBotY;
-	}
-}, tickrate);
+	}	
+}
 
-//player emit
-setInterval(() => {
+function playerEmit(){
 	for (var player in players){
 		emit('pupdate', {
 			id: players[player].id,
@@ -636,10 +634,9 @@ setInterval(() => {
 			}
 		}
 	}
-}, tickrate);
+}
 
-//block emit
-setInterval(() => {
+function blockEmit(){
 	for (var player in blocks){
 		for (var i = 0; i < blocks[player].length; i++){
 			const chunk = blocks[player][i];
@@ -665,8 +662,74 @@ setInterval(() => {
 				}
 			}
 		}
-	}
-}, tickrate);
+	}	
+}
+
+function bulletEmit(){
+	for (var bullet in bullets){
+		if (bullets[bullet]){
+			for (var i = 0; i < bullets[bullet].length; i++){
+				const projectile = bullets[bullet][i];
+				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+
+				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+
+				emit('bupdate', {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId,
+					coords: {
+						x: projectile.bulletCoords.x,
+						y: projectile.bulletCoords.y
+					},
+					color: projectile.color
+				});
+
+				//detect hits
+
+				projectile.coords = projectile.bulletCoords;
+
+				for (var player in players){
+					if (!players[player].dead){
+						bulletToWall(projectile, player, bullet, i);
+						bulletToPlayer(projectile, player, bullet, i);
+						bulletToRambot(projectile, player, bullet, i);
+					}
+				}
+			}
+		}
+	}	
+}
+
+function healthDropEmit(){
+	for (var healthDrop in healthDrops){
+		emit('hdupdate', {
+			dropId: healthDrops[healthDrop].dropId,
+			width: healthDrops[healthDrop].width,
+			height: healthDrops[healthDrop].height,
+			coords: {
+				x: healthDrops[healthDrop].coords.x,
+				y: healthDrops[healthDrop].coords.y
+			},
+			color: healthDrops[healthDrop].color
+		});
+		for (var player in players){
+			if (!players[player].dead && healthDrops[healthDrop]){
+				if (cirToRectCollision(players[player], healthDrops[healthDrop])){
+					emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
+					delete healthDrops[healthDrops[healthDrop].dropId]; //healthDrops destroy
+					if (players[player].health + 10 > 100){
+						const subtractedAmount = players[player].health + 10 - 100;
+						const newAmount = 10 - subtractedAmount;
+						players[player].health += newAmount;
+					} else {
+						players[player].health += 10;
+					}
+				}
+			}
+		}
+	}	
+}
 
 function bulletToWall(projectile, player, bullet, i){
 	for (var o = 0; o < blocks[player].length; o++){
@@ -731,72 +794,13 @@ function bulletToRambot(projectile, player, bullet, i){
 	}
 }
 
-//bullet emit
+//main emit
 setInterval(() => {
-	for (var bullet in bullets){
-		if (bullets[bullet]){
-			for (var i = 0; i < bullets[bullet].length; i++){
-				const projectile = bullets[bullet][i];
-				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
-
-				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
-
-				emit('bupdate', {
-					playerId: projectile.playerId,
-					bulletId: projectile.bulletId,
-					coords: {
-						x: projectile.bulletCoords.x,
-						y: projectile.bulletCoords.y
-					},
-					color: projectile.color
-				});
-
-				//detect hits
-
-				projectile.coords = projectile.bulletCoords;
-
-				for (var player in players){
-					if (!players[player].dead){
-						bulletToWall(projectile, player, bullet, i);
-						bulletToPlayer(projectile, player, bullet, i);
-						bulletToRambot(projectile, player, bullet, i);
-					}
-				}
-			}
-		}
-	}
-}, tickrate);
-
-//healthdrop emit
-setInterval(() => {
-	for (var healthDrop in healthDrops){
-		emit('hdupdate', {
-			dropId: healthDrops[healthDrop].dropId,
-			width: healthDrops[healthDrop].width,
-			height: healthDrops[healthDrop].height,
-			coords: {
-				x: healthDrops[healthDrop].coords.x,
-				y: healthDrops[healthDrop].coords.y
-			},
-			color: healthDrops[healthDrop].color
-		});
-		for (var player in players){
-			if (!players[player].dead && healthDrops[healthDrop]){
-				if (cirToRectCollision(players[player], healthDrops[healthDrop])){
-					emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
-					delete healthDrops[healthDrops[healthDrop].dropId]; //healthDrops destroy
-					if (players[player].health + 10 > 100){
-						const subtractedAmount = players[player].health + 10 - 100;
-						const newAmount = 10 - subtractedAmount;
-						players[player].health += newAmount;
-					} else {
-						players[player].health += 10;
-					}
-				}
-			}
-		}
-	}
+	ramBotEmit();
+	playerEmit();
+	blockEmit();
+	bulletEmit();
+	healthDropEmit();
 }, tickrate);
 
 io.on('connection', socket => {
