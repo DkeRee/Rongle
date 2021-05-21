@@ -647,18 +647,20 @@ setInterval(() => {
 				if (blocks[player]){
 					const chunk = blocks[player][i];
 
-					emit('blo-update', {
-						playerId: chunk.playerId,
-						blockId: chunk.blockId,
-						width: chunk.width,
-						height: chunk.height,
-						health: chunk.health,
-						color: chunk.color,
-						coords: {
-							x: chunk.coords.x,
-							y: chunk.coords.y
-						}
-					});
+					if (chunk){
+						emit('blo-update', {
+							playerId: chunk.playerId,
+							blockId: chunk.blockId,
+							width: chunk.width,
+							height: chunk.height,
+							health: chunk.health,
+							color: chunk.color,
+							coords: {
+								x: chunk.coords.x,
+								y: chunk.coords.y
+							}
+						});
+					}
 				}
 			}
 		}
