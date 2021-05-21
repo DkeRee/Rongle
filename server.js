@@ -307,13 +307,6 @@ setInterval(() => {
 								ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
 								blocks[plr][i].health -= 8;
 								blocks[plr][i].health = Math.round(blocks[plr][i].health);
-								if (blocks[plr][i].health <= 0){
-									emit("block-destroy", {
-										playerId: blocks[plr][i].playerId,
-										blockId: blocks[plr][i].blockId
-									});
-									delete blocks[plr][i];
-								}
 							}
 						}
 					}
@@ -642,26 +635,26 @@ setInterval(() => {
 //block emit
 setInterval(() => {
 	for (var player in blocks){
-		if (blocks[player]){
-			for (var i = 0; i < blocks[player].length; i++){
-				if (blocks[player]){
-					const chunk = blocks[player][i];
-
-					if (chunk){
-						emit('blo-update', {
-							playerId: chunk.playerId,
-							blockId: chunk.blockId,
-							width: chunk.width,
-							height: chunk.height,
-							health: chunk.health,
-							color: chunk.color,
-							coords: {
-								x: chunk.coords.x,
-								y: chunk.coords.y
-							}
-						});
-					}
+		for (var i = 0; i < blocks[player].length; i++){
+			const chunk = blocks[player][i];
+			emit('blo-update', {
+				playerId: chunk.playerId,
+				blockId: chunk.blockId,
+				width: chunk.width,
+				height: chunk.height,
+				health: chunk.health,
+				color: chunk.color,
+				coords: {
+					x: chunk.coords.x,
+					y: chunk.coords.y
 				}
+			});
+			if (blocks[player][i].health <= 0){
+				emit("block-destroy", {
+					playerId: blocks[plr][i].playerId,
+					blockId: blocks[plr][i].blockId
+				});
+				delete blocks[player][i];
 			}
 		}
 	}
@@ -678,13 +671,6 @@ function bulletToWall(projectile, player, bullet, i){
 					playerId: projectile.playerId,
 					bulletId: projectile.bulletId
 				});
-				if (blocks[player][o].health <= 0){
-					emit("block-destroy", {
-						playerId: blocks[player][o].playerId,
-						blockId: blocks[player][o].blockId
-					});
-					delete blocks[player][o];
-				}
 			}
 		}
 	}
@@ -731,7 +717,7 @@ function bulletToRambot(projectile, player, bullet, i){
 			});
 			if (ramBots[bot].health <= 0){
 				emit("rambot-destroy", ramBots[bot].botId);
-				delete ramBots[bot];
+				delete ramBots[bot]; //rambots destroy
 			}
 		}
 	}
@@ -790,7 +776,7 @@ setInterval(() => {
 			if (!players[player].dead && healthDrops[healthDrop]){
 				if (cirToRectCollision(players[player], healthDrops[healthDrop])){
 					emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
-					delete healthDrops[healthDrops[healthDrop].dropId];
+					delete healthDrops[healthDrops[healthDrop].dropId]; //healthDrops destroy
 					if (players[player].health + 10 > 100){
 						const subtractedAmount = players[player].health + 10 - 100;
 						const newAmount = 10 - subtractedAmount;
