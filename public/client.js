@@ -38,7 +38,7 @@
 		burntOut: false,
 	};
 
-	var mode = "placing";
+	var mode = "shooting";
 
 	$("#html").bind('contextmenu', () => {
 		return false;
@@ -327,8 +327,9 @@
 
 		Block.prototype.render = function(){
 			ctx.beginPath();
+			ctx.direction = "inherit";
 			ctx.fillStyle = "#424549";
-			ctx.fillRect(this.x, this.y, this.health, this.health);
+			ctx.fillRect(this.x - this.health / 2 + 25, this.y - this.health / 2 + 25, this.health, this.health);
 
 			ctx.lineWidth = 3;
 			ctx.strokeStyle = this.color;
@@ -657,6 +658,12 @@
 
 	window.addEventListener("keypress", e => {
 		if (me.loggedIn){
+			if (e.keyCode == 49 || e.which == 49){
+				mode = "shooting";
+			}
+			if (e.keyCode == 50 || e.which == 50){
+				mode = "placing";
+			}
 			if (!$(chatbar).is(':focus')){
 				if (e.keyCode == 13 || e.which == 13){
 					setTimeout(() => {

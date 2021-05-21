@@ -306,6 +306,7 @@ setInterval(() => {
 								ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
 								ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
 								blocks[plr][i].health -= 8;
+								blocks[plr][i].health = Math.round(blocks[plr][i].health);
 								if (blocks[plr][i].health <= 0){
 									emit("block-destroy", {
 										playerId: blocks[plr][i].playerId,
@@ -662,6 +663,76 @@ setInterval(() => {
 	}
 }, tickrate);
 
+function bulletToWall(projectile, player, bullet, i){
+	for (var o = 0; o < blocks[player].length; o++){
+		if (blocks[player][o]){
+			if (cirToRectCollision(projectile, blocks[player][o])){
+				blocks[player][o].health -= 10;
+				blocks[player][o].health = Math.round(blocks[player][o].health);
+				bullets[bullet].splice(i, 1);
+				emit("bullet-destroy", {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId
+				});
+				if (blocks[player][o].health <= 0){
+					emit("block-destroy", {
+						playerId: blocks[player][o].playerId,
+						blockId: blocks[player][o].blockId
+					});
+					delete blocks[player][o];
+				}
+			}
+		}
+	}
+}
+
+function bulletToPlayer(projectile, player, bullet, i){
+	if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
+		players[player].health -= 10;
+		players[player].health = Math.round(players[player].health);
+		bullets[bullet].splice(i, 1);
+		emit("bullet-destroy", {
+			playerId: projectile.playerId,
+			bulletId: projectile.bulletId
+		});
+		if (players[player].health <= 0){
+			players[player].dead = true;
+			players[player].latestWinner.username = players[projectile.playerId].username;
+			players[player].latestWinner.color = players[projectile.playerId].color;
+				emit("plr-death", {
+				loser: {
+					username: players[player].username,
+					id: players[player].id,
+					color: players[player].color
+				},
+				winner: {
+					username: players[player].latestWinner.username,
+					color: players[player].latestWinner.color
+				},
+				type: "player"
+			});
+		}	
+	}
+}
+
+function bulletToRambot(projectile, player, bullet, i){
+	for (var bot in ramBots){
+		if (cirToCirCollision(projectile, ramBots[bot])){
+			ramBots[bot].health -= 10;
+			ramBots[bot].health = Math.round(ramBots[bot].health);
+			bullets[bullet].splice(i, 1);
+			emit("bullet-destroy", {
+				playerId: projectile.playerId,
+				bulletId: projectile.bulletId
+			});
+			if (ramBots[bot].health <= 0){
+				emit("rambot-destroy", ramBots[bot].botId);
+				delete ramBots[bot];
+			}
+		}
+	}
+}
+
 //bullet emit
 setInterval(() => {
 	for (var bullet in bullets){
@@ -688,63 +759,12 @@ setInterval(() => {
 
 			for (var player in players){
 				if (!players[player].dead){
-			
-					for (var i = 0; i < blocks[player].length; i++){
-						if (cirToRectCollision(projectile, blocks[plr][i])){
-							blocks[player][i].health -= 10;
-							if (blocks[player][i].health <= 0){
-								emit("block-destroy", {
-									playerId: blocks[player][i].playerId,
-									blockId: blocks[player][i].blockId
-								});
-								delete blocks[player][i];
-							}
-						}
-					}
+					bulletToWall(projectile, player, bullet, i);
+					bulletToPlayer(projectile, player, bullet, i);
+					bulletToRambot(projectile, player, bullet, i);
+				}
+			}
 
-					if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
-						players[player].health -= 10;
-						players[player].health = Math.round(players[player].health);
-						bullets[bullet].splice(i, 1);
-						emit("bullet-destroy", {
-							playerId: projectile.playerId,
-							bulletId: projectile.bulletId
-						});
-					}
-					if (players[player].health <= 0){
-						players[player].dead = true;
-						players[player].latestWinner.username = players[projectile.playerId].username;
-						players[player].latestWinner.color = players[projectile.playerId].color;
-						emit("plr-death", {
-							loser: {
-								username: players[player].username,
-								id: players[player].id,
-								color: players[player].color
-							},
-							winner: {
-								username: players[player].latestWinner.username,
-								color: players[player].latestWinner.color
-							},
-							type: "player"
-						});
-					}
-				}
-			}
-			for (var bot in ramBots){
-				if (cirToCirCollision(projectile, ramBots[bot])){
-					ramBots[bot].health -= 10;
-					ramBots[bot].health = Math.round(ramBots[bot].health);
-					bullets[bullet].splice(i, 1);
-					emit("bullet-destroy", {
-						playerId: projectile.playerId,
-						bulletId: projectile.bulletId
-					});
-					if (ramBots[bot].health <= 0){
-						emit("rambot-destroy", ramBots[bot].botId);
-						delete ramBots[bot];
-					}
-				}
-			}
 		}
 	}
 }, tickrate);
