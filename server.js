@@ -642,8 +642,8 @@ setInterval(() => {
 //block emit
 setInterval(() => {
 	for (var player in blocks){
-		for (var i = 0; i < blocks[player].length; i++){
-			if (blocks[player][i]){
+		if (blocks[player]){
+			for (var i = 0; i < blocks[player].length; i++){
 				const chunk = blocks[player][i];
 
 				emit('blo-update', {
