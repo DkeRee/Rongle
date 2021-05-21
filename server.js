@@ -102,6 +102,11 @@ function checkPlacement(info){
 			if (cirToRectCollision(bullets[bullet][i], info)) return true;
 		}
 	}
+	for (var player in blocks){
+		for (var i = 0; i < blocks[player].length; i++){
+			if (rectangleCollision(blocks[player][i], info)) return true;
+		}
+	}
 	for (var healthDrop in healthDrops){
 		if (rectangleCollision(healthDrops[healthDrop], info)) return true;
 	}
@@ -637,24 +642,26 @@ setInterval(() => {
 	for (var player in blocks){
 		for (var i = 0; i < blocks[player].length; i++){
 			const chunk = blocks[player][i];
-			emit('blo-update', {
-				playerId: chunk.playerId,
-				blockId: chunk.blockId,
-				width: chunk.width,
-				height: chunk.height,
-				health: chunk.health,
-				color: chunk.color,
-				coords: {
-					x: chunk.coords.x,
-					y: chunk.coords.y
-				}
-			});
-			if (blocks[player][i].health <= 0){
-				emit("block-destroy", {
-					playerId: blocks[plr][i].playerId,
-					blockId: blocks[plr][i].blockId
+			if (chunk){
+				emit('blo-update', {
+					playerId: chunk.playerId,
+					blockId: chunk.blockId,
+					width: chunk.width,
+					height: chunk.height,
+					health: chunk.health,
+					color: chunk.color,
+					coords: {
+						x: chunk.coords.x,
+						y: chunk.coords.y
+					}
 				});
-				delete blocks[player][i];
+				if (chunk.health <= 0){
+					emit("block-destroy", {
+						playerId: blocks[player][i].playerId,
+						blockId: blocks[player][i].blockId
+					});
+					blocks[player].splice(i, 1);
+				}
 			}
 		}
 	}
