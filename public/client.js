@@ -436,8 +436,10 @@
 		});
 
 		socket.on("bullet-destroy", info => {
-			bullets[info.playerId][info.bulletId].body.destroy();
-			delete bullets[info.playerId][info.bulletId];
+			if (bullets[info.playerId][info.bulletId]){
+				bullets[info.playerId][info.bulletId].body.destroy();
+				delete bullets[info.playerId][info.bulletId];
+			}
 		});
 
 		socket.on('blo-update', info => {
@@ -545,7 +547,7 @@
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
 	function serverMsg(info, message){
-		if (me.loggedIn){
+		if (me.loggedIn && players[info]){
 			if (typeof info == 'object'){
 				const msgContainer = document.createElement("div");
 				msgContainer.setAttribute("class", "msg-container");
