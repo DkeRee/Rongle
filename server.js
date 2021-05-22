@@ -26,6 +26,7 @@ function checkString(string){
 		}
 	}
 }
+
 function checkCopy(username){
 	for (var player in players){
 		if (username == players[player].username){
@@ -33,6 +34,7 @@ function checkCopy(username){
 		}
 	}
 }
+
 function checkDelay(id, mode){
 	for (var player in players){
 		if (player == id){
@@ -53,6 +55,7 @@ function checkDelay(id, mode){
 		}
 	}
 }
+
 function cirToCirCollision(cirOne, cirTwo){
 	if (cirOne && cirTwo){
 		const distX = cirOne.coords.x - cirTwo.coords.x;
@@ -60,6 +63,7 @@ function cirToCirCollision(cirOne, cirTwo){
 		if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < cirOne.radius + cirTwo.radius) return true;
 	}
 }
+
 function cirToRectCollision(cir, rect){
 	if (cir && rect){
 		if (cir.coords){
@@ -73,6 +77,7 @@ function cirToRectCollision(cir, rect){
 		}
 	}
 }
+
 function rectangleCollision(rectOne, rectTwo){
 	if (rectOne && rectTwo){
 		if (rectOne.coords.x < rectTwo.coords.x + rectTwo.width){
@@ -86,6 +91,7 @@ function rectangleCollision(rectOne, rectTwo){
 		}
 	}
 }
+
 function checkPlacement(info){
 	info.width = 50;
 	info.height = 50;
@@ -115,6 +121,7 @@ function checkPlacement(info){
 		if (cirToRectCollision(ramBots[bot], info)) return true;
 	}
 }
+
 function calculatePlayerSides(coord){
 	if (Math.sign(coord) == 1){
 		return coord + 30;
@@ -122,6 +129,7 @@ function calculatePlayerSides(coord){
 		return coord - 30;
 	}
 }
+
 function borderCheckX(coordX, coordY){
 	if (calculatePlayerSides(coordX) >= 1800){
 		return "right border";
@@ -130,6 +138,7 @@ function borderCheckX(coordX, coordY){
 		return "left border";
 	}
 }
+
 function borderCheckY(coordX, coordY){
 	if (calculatePlayerSides(coordY) >= 1800){
 		return "bottom border";
@@ -138,6 +147,7 @@ function borderCheckY(coordX, coordY){
 		return "top border";
 	}
 }
+
 function emit(type, data){
 	for (var player in players){
 		io.to(players[player].id).emit(type, data);
@@ -176,6 +186,7 @@ setInterval(() => {
 		}
 	}
 }, 1);
+
 //spawner
 setInterval(() => {
 	if (Object.keys(healthDrops).length < 10){
@@ -205,6 +216,7 @@ setInterval(() => {
 		};
 	}
 }, 20000);
+
 //player respawn check
 setInterval(() => {
 	for (var player in players){
@@ -422,6 +434,7 @@ function ramBotEmit(){
 		ramBots[bot].coords.y += ramBotY;
 	}	
 }
+
 function playerEmit(){
 	for (var player in players){
 		emit('pupdate', {
@@ -596,6 +609,7 @@ function playerEmit(){
 		}
 	}
 }
+
 function blockEmit(){
 	for (var player in blocks){
 		for (var i = 0; i < blocks[player].length; i++){
@@ -624,6 +638,7 @@ function blockEmit(){
 		}
 	}	
 }
+
 function bulletEmit(){
 	for (var bullet in bullets){
 		if (bullets[bullet]){
@@ -654,6 +669,7 @@ function bulletEmit(){
 		}
 	}	
 }
+
 function healthDropEmit(){
 	for (var healthDrop in healthDrops){
 		emit('hdupdate', {
@@ -683,6 +699,7 @@ function healthDropEmit(){
 		}
 	}	
 }
+
 function bulletToWall(projectile, player, bullet, i){
 	for (var o = 0; o < blocks[player].length; o++){
 		if (blocks[player][o]){
@@ -698,6 +715,7 @@ function bulletToWall(projectile, player, bullet, i){
 		}
 	}
 }
+
 function bulletToPlayer(projectile, player, bullet, i){
 	if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
 		players[player].health -= 10;
@@ -726,6 +744,7 @@ function bulletToPlayer(projectile, player, bullet, i){
 		}	
 	}
 }
+
 function bulletToRambot(projectile, player, bullet, i){
 	for (var bot in ramBots){
 		if (cirToCirCollision(projectile, ramBots[bot])){
@@ -743,6 +762,7 @@ function bulletToRambot(projectile, player, bullet, i){
 		}
 	}
 }
+
 //main emit
 setInterval(() => {
 	ramBotEmit();
@@ -751,6 +771,7 @@ setInterval(() => {
 	bulletEmit();
 	healthDropEmit();
 }, tickrate);
+
 io.on('connection', socket => {
 	var loggedIn = false;
 	socket.emit("setup");
@@ -885,10 +906,13 @@ io.on('connection', socket => {
 		delete blocks[socket.id];
 	});
 });
+
 app.use(express.static('public'));
+
 app.get('/', (req, res) => {
 	res.sendFile(path.resolve(__dirname, 'public/index.html'));
 });
+
 app.get('*', (req, res) => {
 	res.sendFile(path.resolve(__dirname, 'public/error.html'));
 });
