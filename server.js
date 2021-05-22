@@ -36,18 +36,19 @@ function checkCopy(username){
 }
 
 function checkDelay(id, mode){
+	const now = Date.now();
 	for (var player in players){
 		if (player == id){
 			switch (mode){
 				case "bullet":
-					if (players[player].bTime >= 85){
-						players[player].bTime = 0;
+					if (now - players[player].bTime >= 100){
+						players[player].bTime = now;
 						return true;					
 					}
 				break;
 				case "block":
-					if(players[player].pTime >= 85){
-						players[player].pTime = 0;
+					if(now - players[player].pTime >= 100){
+						players[player].pTime = now;
 						return true;
 					}
 				break;
@@ -158,8 +159,6 @@ function emit(type, data){
 //timer
 setInterval(() => {
 	for (var player in players){
-		players[player].bTime++;
-		players[player].pTime++;
 		players[player].time -= 1;
 		if (players[player].time <= 0){
 			io.sockets.sockets.forEach(socket => {
@@ -673,6 +672,42 @@ function blockEmit(){
 	}	
 }
 
+function bulletEmit(){
+	for (var bullet in bullets){
+		if (bullets[bullet]){
+			for (var i = 0; i < bullets[bullet].length; i++){
+				const projectile = bullets[bullet][i];
+				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+
+				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+
+				emit('bupdate', {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId,
+					coords: {
+						x: projectile.bulletCoords.x,
+						y: projectile.bulletCoords.y
+					},
+					color: projectile.color
+				});
+
+				//detect hits
+
+				projectile.coords = projectile.bulletCoords;
+
+				for (var player in players){
+					if (!players[player].dead){
+						bulletToWall(projectile, player, bullet, i);
+						bulletToPlayer(projectile, player, bullet, i);
+						bulletToRambot(projectile, player, bullet, i);
+					}
+				}
+			}
+		}
+	}
+}
+
 function healthDropEmit(){
 	for (var healthDrop in healthDrops){
 		emit('hdupdate', {
@@ -766,47 +801,12 @@ function bulletToRambot(projectile, player, bullet, i){
 	}
 }
 
-//side bullet emit
-setInterval(() => {
-	for (var bullet in bullets){
-		if (bullets[bullet]){
-			for (var i = 0; i < bullets[bullet].length; i++){
-				const projectile = bullets[bullet][i];
-				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
-
-				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
-
-				emit('bupdate', {
-					playerId: projectile.playerId,
-					bulletId: projectile.bulletId,
-					coords: {
-						x: projectile.bulletCoords.x,
-						y: projectile.bulletCoords.y
-					},
-					color: projectile.color
-				});
-
-				//detect hits
-
-				projectile.coords = projectile.bulletCoords;
-
-				for (var player in players){
-					if (!players[player].dead){
-						bulletToWall(projectile, player, bullet, i);
-						bulletToPlayer(projectile, player, bullet, i);
-						bulletToRambot(projectile, player, bullet, i);
-					}
-				}
-			}
-		}
-	}
-}, tickrate);
 
 //main emit
 setInterval(() => {
-	ramBotEmit();
+	bulletEmit();
 	playerEmit();
+	ramBotEmit();
 	blockEmit();
 	healthDropEmit();
 }, tickrate);
@@ -908,8 +908,8 @@ io.on('connection', socket => {
 				running: false,
 				burntOut: false,
 				time: 60000,
-				bTime: 0,
-				pTime: 0
+				bTime: Date.now(),
+				pTime: Date.now()
 			};
 			bullets[socket.id] = [];
 			blocks[socket.id] = [];
