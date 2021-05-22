@@ -143,6 +143,8 @@ function emit(type, data){
 		io.to(players[player].id).emit(type, data);
 	}
 }
+
+
 //timer
 setInterval(() => {
 	for (var player in players){
@@ -227,6 +229,7 @@ setInterval(() => {
 		}
 	}
 }, 1000);
+
 function ramBotEmit(){
 	for (var bot in ramBots){
 		var ramBotX = 0;
