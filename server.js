@@ -35,27 +35,6 @@ function checkCopy(username){
 	}
 }
 
-function checkDelay(id, mode){
-	for (var player in players){
-		if (player == id){
-			switch (mode){
-				case "bullet":
-					if (players[player].bTime >= 85){
-						players[player].bTime = 0;
-						return true;					
-					}
-				break;
-				case "block":
-					if(players[player].pTime >= 85){
-						players[player].pTime = 0;
-						return true;
-					}
-				break;
-			}
-		}
-	}
-}
-
 function cirToCirCollision(cirOne, cirTwo){
 	if (cirOne && cirTwo){
 		const distX = cirOne.coords.x - cirTwo.coords.x;
@@ -158,8 +137,6 @@ function emit(type, data){
 //timer
 setInterval(() => {
 	for (var player in players){
-		players[player].bTime++;
-		players[player].pTime++;
 		players[player].time -= 1;
 		if (players[player].time <= 0){
 			io.sockets.sockets.forEach(socket => {
@@ -785,7 +762,7 @@ io.on('connection', socket => {
 			info.playerId = socket.id;
 			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
 			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
-			if (blocks[socket.id].length < 60 && checkDelay(socket.id, "block") && checkPlacement(info) == undefined && !players[socket.id].dead){
+			if (blocks[socket.id].length < 60  && checkPlacement(info) == undefined && !players[socket.id].dead){
 				players[socket.id].time = 60000;
 				blocks[socket.id].push({
 					playerId: socket.id,
@@ -802,7 +779,7 @@ io.on('connection', socket => {
 			}
 		});
 		socket.on("shoot", info => {
-			if (bullets[socket.id].length < 30 && checkDelay(socket.id, "bullet") && !players[socket.id].dead){
+			if (bullets[socket.id].length < 30 && !players[socket.id].dead){
 				players[socket.id].time = 60000;
 				bullets[socket.id].push({
 					playerId: socket.id,
@@ -864,8 +841,6 @@ io.on('connection', socket => {
 				running: false,
 				burntOut: false,
 				time: 60000,
-				bTime: 0,
-				pTime: 0
 			};
 			bullets[socket.id] = [];
 			blocks[socket.id] = [];
