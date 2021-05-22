@@ -162,7 +162,6 @@ setInterval(() => {
 	}
 }, 1);
 
-/*
 //spawner
 setInterval(() => {
 	if (Object.keys(healthDrops).length < 10){
@@ -192,7 +191,6 @@ setInterval(() => {
 		};
 	}
 }, 20000);
-*/
 
 //player respawn check
 setInterval(() => {
