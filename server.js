@@ -175,8 +175,8 @@ setInterval(() => {
 	for (var bullet in bullets){
 		for (var i = 0; i < bullets[bullet].length; i++){
 			const projectile = bullets[bullet][i];
-			projectile.time -= 1;
-			if (projectile.time <= 0){
+			const now = Date.now();
+			if (now - projectile.time >= 500){
 				bullets[bullet].splice(i, 1);
 				emit("bullet-destroy", {
 					playerId: projectile.playerId,
@@ -851,7 +851,7 @@ io.on('connection', socket => {
 					radius: 6,
 					bulletId: randomstring.generate(),
 					speed: 30,
-					time: 800,
+					time: Date.now(),
 					screen: {
 						width: info.screen.width,
 						height: info.screen.height
