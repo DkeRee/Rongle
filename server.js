@@ -807,8 +807,12 @@ setInterval(() => {
 	ramBotEmit();
 	playerEmit();
 	blockEmit();
-	bulletEmit();
 	healthDropEmit();
+}, tickrate);
+
+//side shooting emit
+setInterval(() => {
+	bulletEmit();
 }, tickrate);
 
 io.on('connection', socket => {
