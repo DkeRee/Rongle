@@ -640,6 +640,7 @@ function healthDropEmit(){
 					} else {
 						players[player].health += 10;
 					}
+					break;
 				}
 			}
 		}
