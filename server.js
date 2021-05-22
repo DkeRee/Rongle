@@ -97,8 +97,8 @@ function checkPlacement(info){
 
 	if (Math.sqrt(Math.pow(info.coords.x - players[info.playerId].coords.x, 2) + Math.pow(info.coords.y - players[info.playerId].coords.y, 2)) > 500) return true;
 
-	if (info.coords.x < -1800 || info.coords.x > 1800) return true;
-	if (info.coords.y < -1800 || info.coords.y > 1800) return true;
+	if (info.coords.x < -1800 || info.coords.x > 1750) return true;
+	if (info.coords.y < -1800 || info.coords.y > 1750) return true;
 
 	for (var player in players){
 		if (cirToRectCollision(players[player], info)) return true;
