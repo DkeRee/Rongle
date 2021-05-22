@@ -285,6 +285,7 @@ function ramBotEmit(){
 								ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
 								blocks[plr][i].health -= 8;
 								blocks[plr][i].health = Math.round(blocks[plr][i].health);
+								break;
 							}
 						}
 					}
@@ -404,6 +405,7 @@ function ramBotEmit(){
 							type: "bot"
 						});					
 					}
+					break;
 				}
 			}
 		}
