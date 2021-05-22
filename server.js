@@ -67,13 +67,15 @@ function cirToCirCollision(cirOne, cirTwo){
 
 function cirToRectCollision(cir, rect){
 	if (cir && rect){
-		const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
-		const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
-		if (distX > (rect.width / 2 + cir.radius)) return false;
-		if (distY > (rect.height / 2 + cir.radius)) return false;
-		
-		if (distX <= (rect.width / 2 + cir.radius)) return true;
-		if (distY <= (rect.height / 2 + cir.radius)) return true;
+		if (cir.coords){
+			const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
+			const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
+			if (distX > (rect.width / 2 + cir.radius)) return false;
+			if (distY > (rect.height / 2 + cir.radius)) return false;
+			
+			if (distX <= (rect.width / 2 + cir.radius)) return true;
+			if (distY <= (rect.height / 2 + cir.radius)) return true;
+		}
 	}
 }
 

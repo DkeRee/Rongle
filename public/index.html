@@ -43,21 +43,6 @@
 					</div>
 				</div>
 			</div>
-			<div id = "chat-container" class = "unselectable">
-				<div id = "chat-wrapper">
-					<div id = "chat-inner-wrapper"></div>
-				</div>
-				<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "100" autocomplete = "off" placeholder = "Hit ENTER to begin typing"></textarea>
-				<script>
-					$("#chatbar").on("input", () => {
-						chatbar.style.height = "auto";
-						chatbar.style.height = `${chatbar.scrollHeight - 10}px`;
-					});
-				</script>
-			</div>
-			<div id = "server-msg-container">
-				<div id = "server-msg-inner-wrapper"></div>
-			</div>
 			<div id = "toggle-container">
 				<div id = "block-counter-wrapper">
 					<h2 class = "info" id = "block-counter">hi</h2>
@@ -74,6 +59,21 @@
 						</svg>
 					</div>
 				</div>
+			</div>
+			<div id = "chat-container" class = "unselectable">
+				<div id = "chat-wrapper">
+					<div id = "chat-inner-wrapper"></div>
+				</div>
+				<textarea id = "chatbar" rows = "1" spellcheck = "off" maxlength = "100" autocomplete = "off" placeholder = "Hit ENTER to begin typing"></textarea>
+				<script>
+					$("#chatbar").on("input", () => {
+						chatbar.style.height = "auto";
+						chatbar.style.height = `${chatbar.scrollHeight - 10}px`;
+					});
+				</script>
+			</div>
+			<div id = "server-msg-container">
+				<div id = "server-msg-inner-wrapper"></div>
 			</div>
 			<div id = "player-list-container">
 				<h1 id = "player-list">Player List</h1>
