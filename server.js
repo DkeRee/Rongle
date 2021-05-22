@@ -41,13 +41,13 @@ function checkDelay(id, mode){
 		if (player == id){
 			switch (mode){
 				case "bullet":
-					if (now - players[player].bTime >= 100){
+					if (now - players[player].bTime >= 125){
 						players[player].bTime = now;
 						return true;					
 					}
 				break;
 				case "block":
-					if(now - players[player].pTime >= 100){
+					if(now - players[player].pTime >= 125){
 						players[player].pTime = now;
 						return true;
 					}
@@ -170,8 +170,7 @@ setInterval(() => {
 	}
 }, 1);
 
-//bullet timer
-setInterval(() => {
+function bTimer(){
 	for (var bullet in bullets){
 		for (var i = 0; i < bullets[bullet].length; i++){
 			const projectile = bullets[bullet][i];
@@ -185,7 +184,10 @@ setInterval(() => {
 			}
 		}
 	}
-}, 1);
+}
+
+//bullet timer
+setInterval(bTimer, 500);
 
 //spawner
 setInterval(() => {
