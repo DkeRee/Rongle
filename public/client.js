@@ -436,10 +436,8 @@
 		});
 
 		socket.on("bullet-destroy", info => {
-			if (bullets[info.playerId][info.bulletId]){
-				bullets[info.playerId][info.bulletId].body.destroy();
-				delete bullets[info.playerId][info.bulletId];
-			}
+			bullets[info.playerId][info.bulletId].body.destroy();
+			delete bullets[info.playerId][info.bulletId];
 		});
 
 		socket.on('blo-update', info => {

@@ -44,16 +44,14 @@ function cirToCirCollision(cirOne, cirTwo){
 }
 
 function cirToRectCollision(cir, rect){
-	if (cir && rect){
-		if (cir.coords){
-			const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
-			const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
-			if (distX > (rect.width / 2 + cir.radius)) return false;
-			if (distY > (rect.height / 2 + cir.radius)) return false;
-			
-			if (distX <= (rect.width / 2 + cir.radius)) return true;
-			if (distY <= (rect.height / 2 + cir.radius)) return true;
-		}
+	if (cir && rect && cir.coords){
+		const distX = Math.abs(cir.coords.x - rect.coords.x - rect.width / 2);
+		const distY = Math.abs(cir.coords.y - rect.coords.y - rect.height / 2);
+		if (distX > (rect.width / 2 + cir.radius)) return false;
+		if (distY > (rect.height / 2 + cir.radius)) return false;
+		
+		if (distX <= (rect.width / 2 + cir.radius)) return true;
+		if (distY <= (rect.height / 2 + cir.radius)) return true;
 	}
 }
 
@@ -154,16 +152,17 @@ setInterval(() => {
 			const projectile = bullets[bullet][i];
 			projectile.time -= 1;
 			if (projectile.time <= 0){
-				bullets[bullet].splice(i, 1);
 				emit("bullet-destroy", {
 					playerId: projectile.playerId,
 					bulletId: projectile.bulletId
 				});
+				bullets[bullet].splice(i, 1);
 			}
 		}
 	}
 }, 1);
 
+/*
 //spawner
 setInterval(() => {
 	if (Object.keys(healthDrops).length < 10){
@@ -193,6 +192,7 @@ setInterval(() => {
 		};
 	}
 }, 20000);
+*/
 
 //player respawn check
 setInterval(() => {
@@ -616,37 +616,6 @@ function blockEmit(){
 	}	
 }
 
-function bulletEmit(){
-	for (var bullet in bullets){
-		if (bullets[bullet]){
-			for (var i = 0; i < bullets[bullet].length; i++){
-				const projectile = bullets[bullet][i];
-				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
-				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
-				emit('bupdate', {
-					playerId: projectile.playerId,
-					bulletId: projectile.bulletId,
-					coords: {
-						x: projectile.bulletCoords.x,
-						y: projectile.bulletCoords.y
-					},
-					color: projectile.color
-				});
-				//detect hits
-				projectile.coords = projectile.bulletCoords;
-				for (var player in players){
-					if (!players[player].dead){
-						bulletToWall(projectile, player, bullet, i);
-						bulletToPlayer(projectile, player, bullet, i);
-						bulletToRambot(projectile, player, bullet, i);
-					}
-				}
-			}
-		}
-	}	
-}
-
 function healthDropEmit(){
 	for (var healthDrop in healthDrops){
 		emit('hdupdate', {
@@ -677,65 +646,99 @@ function healthDropEmit(){
 	}	
 }
 
-function bulletToWall(projectile, player, bullet, i){
-	for (var o = 0; o < blocks[player].length; o++){
-		if (blocks[player][o]){
-			if (cirToRectCollision(projectile, blocks[player][o])){
-				blocks[player][o].health -= 10;
-				blocks[player][o].health = Math.round(blocks[player][o].health);
-				bullets[bullet].splice(i, 1);
+function bulletEmit(){
+	for (var plr in bullets){
+		if (bullets[plr]){
+			for (var i = 0; i < bullets[plr].length; i++){
+				const projectile = bullets[plr][i];
+				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+				emit('bupdate', {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId,
+					coords: {
+						x: projectile.bulletCoords.x,
+						y: projectile.bulletCoords.y
+					},
+					color: projectile.color
+				});
+				//detect hits
+				projectile.coords = projectile.bulletCoords;
+				if (!players[plr].dead){
+					bulletToPlayer(projectile, plr, i);
+					bulletToWall(projectile, plr, i);
+					bulletToRambot(projectile, plr, i);
+				}
+			}
+		}
+	}	
+}
+
+function bulletToWall(projectile, plr, i){
+	for (var o = 0; o < blocks[plr].length; o++){
+		if (blocks[plr][o]){
+			if (cirToRectCollision(projectile, blocks[plr][o])){
+				blocks[plr][o].health -= 10;
+				blocks[plr][o].health = Math.round(blocks[plr][o].health);
 				emit("bullet-destroy", {
 					playerId: projectile.playerId,
 					bulletId: projectile.bulletId
 				});
+				bullets[plr].splice(i, 1);
+				break;
 			}
 		}
 	}
 }
 
-function bulletToPlayer(projectile, player, bullet, i){
-	if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
-		players[player].health -= 10;
-		players[player].health = Math.round(players[player].health);
-		bullets[bullet].splice(i, 1);
-		emit("bullet-destroy", {
-			playerId: projectile.playerId,
-			bulletId: projectile.bulletId
-		});
-		if (players[player].health <= 0){
-			players[player].dead = true;
-			players[player].latestWinner.username = players[projectile.playerId].username;
-			players[player].latestWinner.color = players[projectile.playerId].color;
-				emit("plr-death", {
-				loser: {
-					username: players[player].username,
-					id: players[player].id,
-					color: players[player].color
-				},
-				winner: {
-					username: players[player].latestWinner.username,
-					color: players[player].latestWinner.color
-				},
-				type: "player"
-			});
-		}	
-	}
-}
-
-function bulletToRambot(projectile, player, bullet, i){
-	for (var bot in ramBots){
-		if (cirToCirCollision(projectile, ramBots[bot])){
-			ramBots[bot].health -= 10;
-			ramBots[bot].health = Math.round(ramBots[bot].health);
-			bullets[bullet].splice(i, 1);
+function bulletToPlayer(projectile, plr, i){
+	for (var player in players){
+		if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
+			players[player].health -= 10;
+			players[player].health = Math.round(players[player].health);
 			emit("bullet-destroy", {
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId
 			});
+			bullets[plr].splice(i, 1);
+			if (players[player].health <= 0){
+				players[player].dead = true;
+				players[player].latestWinner.username = players[projectile.playerId].username;
+				players[player].latestWinner.color = players[projectile.playerId].color;
+					emit("plr-death", {
+					loser: {
+						username: players[player].username,
+						id: players[player].id,
+						color: players[player].color
+					},
+					winner: {
+						username: players[player].latestWinner.username,
+						color: players[player].latestWinner.color
+					},
+					type: "player"
+				});
+			}
+		}
+		break;
+	}
+}
+
+function bulletToRambot(projectile, plr, i){
+	for (var bot in ramBots){
+		if (cirToCirCollision(projectile, ramBots[bot])){
+			ramBots[bot].health -= 10;
+			ramBots[bot].health = Math.round(ramBots[bot].health);
+			emit("bullet-destroy", {
+				playerId: projectile.playerId,
+				bulletId: projectile.bulletId
+			});
+			bullets[plr].splice(i, 1);
 			if (ramBots[bot].health <= 0){
 				emit("rambot-destroy", ramBots[bot].botId);
-				delete ramBots[bot]; //rambots destroy
+				delete ramBots[bot];
 			}
+			break;
 		}
 	}
 }
