@@ -131,20 +131,6 @@ function emit(type, data){
 	}
 }
 
-
-//timer
-setInterval(() => {
-	for (var player in players){
-		players[player].time -= 1;
-		if (players[player].time <= 0){
-			io.sockets.sockets.forEach(socket => {
-				if (players[player] && socket.id == players[player].id){
-					socket.disconnect();
-				}
-			});
-		}
-	}
-}, 1);
 //bullet timer
 setInterval(() => {
 	for (var bullet in bullets){
@@ -426,6 +412,25 @@ function playerEmit(){
 			color: players[player].color
 		});
 		if (players[player]){
+
+			players[player].time -= 1;
+			players[player].bTime -= 1;
+			players[player].pTime -= 1;
+
+			if (players[player].time <= 0){
+				io.sockets.sockets.forEach(socket => {
+					if (players[player] && socket.id == players[player].id){
+						socket.disconnect();
+					}
+				});
+			}
+			if (players[player].bTime <= 0){
+				players[player].canShoot = true;
+			}
+			if (players[player].pTime <= 0){
+				players[player].canPlace = true;
+			}
+
 			const keys = players[player].keys;
 			//death update
 			if (players[player].dead){
@@ -766,8 +771,10 @@ io.on('connection', socket => {
 			info.playerId = socket.id;
 			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
 			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
-			if (blocks[socket.id].length < 60  && checkPlacement(info) == undefined && !players[socket.id].dead){
+			if (blocks[socket.id].length < 60  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
 				players[socket.id].time = 60000;
+				players[socket.id].pTime = 3;
+				players[socket.id].canPlace = false;
 				blocks[socket.id].push({
 					playerId: socket.id,
 					blockId: randomstring.generate(),
@@ -783,8 +790,10 @@ io.on('connection', socket => {
 			}
 		});
 		socket.on("shoot", info => {
-			if (bullets[socket.id].length < 30 && !players[socket.id].dead){
+			if (bullets[socket.id].length < 30 && players[socket.id].canShoot && !players[socket.id].dead){
 				players[socket.id].time = 60000;
+				players[socket.id].bTime = 3;
+				players[socket.id].canShoot = false;
 				bullets[socket.id].push({
 					playerId: socket.id,
 					radius: 6,
@@ -845,6 +854,10 @@ io.on('connection', socket => {
 				running: false,
 				burntOut: false,
 				time: 60000,
+				bTime: 3,
+				pTime: 3,
+				canShoot: true,
+				canPlace: true
 			};
 			bullets[socket.id] = [];
 			blocks[socket.id] = [];
