@@ -131,23 +131,6 @@ function emit(type, data){
 	}
 }
 
-//bullet timer
-setInterval(() => {
-	for (var bullet in bullets){
-		for (var i = 0; i < bullets[bullet].length; i++){
-			const projectile = bullets[bullet][i];
-			projectile.time -= 1;
-			if (projectile.time <= 0){
-				emit("bullet-destroy", {
-					playerId: projectile.playerId,
-					bulletId: projectile.bulletId
-				});
-				bullets[bullet].splice(i, 1);
-			}
-		}
-	}
-}, 1);
-
 //spawner
 setInterval(() => {
 	if (Object.keys(healthDrops).length < 10){
@@ -501,75 +484,75 @@ function playerEmit(){
 				if (borderY !== "top border" && keys[87] && keys[16]){
 					players[player].coords.y -= 5;
 					players[player].running = true;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//running down
 				if (borderY !== "bottom border" && keys[83] && keys[16]){
 					players[player].coords.y += 5;
 					players[player].running = true;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//running right
 				if (borderX !== "right border" && keys[68] && keys[16]){
 					players[player].coords.x += 5;
 					players[player].running = true;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//running left
 				if (borderX !== "left border" && keys[65] && keys[16]){
 					players[player].coords.x -= 5;
 					players[player].running = true;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 		
 				//with stamina up
 				if (borderY !== "top border" && keys[87] && !keys[16]){
 					players[player].coords.y -= 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//with stamina down
 				if (borderY !== "bottom border" && keys[83] && !keys[16]){
 					players[player].coords.y += 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//with stamina right
 				if (borderX !== "right border" && keys[68] && !keys[16]){
 					players[player].coords.x += 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//with stamina down
 				if (borderX !== "left border" && keys[65] && !keys[16]){
 					players[player].coords.x -= 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 			} else {
 				//without stamina up
 				if (borderY !== "top border" && keys[87]){
 					players[player].coords.y -= 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//without stamina down
 				if (borderY !== "bottom border" && keys[83]){
 					players[player].coords.y += 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//without stamina right
 				if (borderX !== "right border" && keys[68]){
 					players[player].coords.x += 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}
 				//without stamina down
 				if (borderX !== "left border" && keys[65]){
 					players[player].coords.x -= 3;
 					players[player].running = false;
-					players[player].time = 60000;
+					players[player].time = 5000;
 				}				
 			}
 			//stamina update
@@ -657,6 +640,8 @@ function bulletEmit(){
 		if (bullets[plr]){
 			for (var i = 0; i < bullets[plr].length; i++){
 				const projectile = bullets[plr][i];
+				projectile.time -= 1;
+				
 				const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
 				projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
 				projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
@@ -675,6 +660,14 @@ function bulletEmit(){
 					bulletToPlayer(projectile, plr, i);
 					bulletToWall(projectile, plr, i);
 					bulletToRambot(projectile, plr, i);
+				}
+				if (projectile.time <= 0){
+					emit("bullet-destroy", {
+						playerId: projectile.playerId,
+						bulletId: projectile.bulletId
+					});
+					bullets[plr].splice(i, 1);
+					projectile.time = 10;
 				}
 			}
 		}
@@ -772,7 +765,7 @@ io.on('connection', socket => {
 			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
 			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
 			if (blocks[socket.id].length < 60  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
-				players[socket.id].time = 60000;
+				players[socket.id].time = 5000;
 				players[socket.id].pTime = 3;
 				players[socket.id].canPlace = false;
 				blocks[socket.id].push({
@@ -791,7 +784,7 @@ io.on('connection', socket => {
 		});
 		socket.on("shoot", info => {
 			if (bullets[socket.id].length < 30 && players[socket.id].canShoot && !players[socket.id].dead){
-				players[socket.id].time = 60000;
+				players[socket.id].time = 5000;
 				players[socket.id].bTime = 3;
 				players[socket.id].canShoot = false;
 				bullets[socket.id].push({
@@ -799,7 +792,7 @@ io.on('connection', socket => {
 					radius: 6,
 					bulletId: randomstring.generate(),
 					speed: 30,
-					time: 800,
+					time: 50,
 					screen: {
 						width: info.screen.width,
 						height: info.screen.height
@@ -819,7 +812,7 @@ io.on('connection', socket => {
 		socket.on("send", msg => {
 			const message = xss(msg.trim());
 			if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
-				players[socket.id].time = 60000;
+				players[socket.id].time = 5000;
 				emit("recieve", {
 					msg: message,
 					username: players[socket.id].username,
@@ -853,7 +846,7 @@ io.on('connection', socket => {
 				stamina: 100,
 				running: false,
 				burntOut: false,
-				time: 60000,
+				time: 5000,
 				bTime: 3,
 				pTime: 3,
 				canShoot: true,
