@@ -559,20 +559,18 @@ function playerEmit(){
 				players[player].running = false;
 			}
 
-			if (players[player]){
-				if (players[player].time <= 0){
-					io.sockets.sockets.forEach(socket => {
-						if (players[player] && socket.id == players[player].id){
-							socket.disconnect();
-						}
-					});
-				}
-				if (players[player].bTime <= 0){
-					players[player].canShoot = true;
-				}
-				if (players[player].pTime <= 0){
-					players[player].canPlace = true;
-				}
+			if (players[player].bTime <= 0){
+				players[player].canShoot = true;
+			}
+			if (players[player].pTime <= 0){
+				players[player].canPlace = true;
+			}
+			if (players[player].time <= 0){
+				io.sockets.sockets.forEach(socket => {
+					if (players[player] && socket.id == players[player].id){
+						socket.disconnect();
+					}
+				});
 			}
 		}
 	}
