@@ -400,20 +400,6 @@ function playerEmit(){
 			players[player].bTime -= 1;
 			players[player].pTime -= 1;
 
-			if (players[player].time <= 0 && players[player]){
-				io.sockets.sockets.forEach(socket => {
-					if (players[player] && socket.id == players[player].id){
-						socket.disconnect();
-					}
-				});
-			}
-			if (players[player].bTime <= 0 && players[player]){
-				players[player].canShoot = true;
-			}
-			if (players[player].pTime <= 0 && players[player]){
-				players[player].canPlace = true;
-			}
-
 			const keys = players[player].keys;
 			//death update
 			if (players[player].dead){
@@ -567,9 +553,24 @@ function playerEmit(){
 					}
 				}
 			}
+
 			if (players[player].stamina <= 0){
 				players[player].burntOut = true;
 				players[player].running = false;
+			}
+
+			if (players[player].time <= 0){
+				io.sockets.sockets.forEach(socket => {
+					if (players[player] && socket.id == players[player].id){
+						socket.disconnect();
+					}
+				});
+			}
+			if (players[player].bTime <= 0){
+				players[player].canShoot = true;
+			}
+			if (players[player].pTime <= 0){
+				players[player].canPlace = true;
 			}
 		}
 	}
