@@ -342,6 +342,7 @@ body {
 	float: left;
 	border: 3px solid #7f7f7f;
 	background-color: #3f3f3f;
+	margin-top: 2px;
 }
 
 #building-container {
@@ -352,6 +353,7 @@ body {
 	border: 3px solid #7f7f7f;
 	background-color: #3f3f3f;
 	margin-left: 18px;
+	margin-top: 2px;
 }
 
 #block-counter-wrapper {
