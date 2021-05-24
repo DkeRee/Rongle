@@ -349,7 +349,7 @@
 
 		Block.prototype.render = function(){
 			ctx.beginPath();
-			ctx.fillStyle = "#424549";
+			ctx.fillStyle = "rgb(173, 173, 173)";
 			ctx.fillRect(this.x - this.health / 2 + 25, this.y - this.health / 2 + 25, this.health, this.health);
 
 			ctx.lineWidth = 3;
