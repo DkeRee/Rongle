@@ -719,8 +719,8 @@ function bulletToPlayer(projectile, plr, i){
 					type: "player"
 				});
 			}
+			break;
 		}
-		break;
 	}
 }
 
