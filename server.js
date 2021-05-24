@@ -676,17 +676,19 @@ function bulletEmit(){
 }
 
 function bulletToWall(projectile, plr, i){
-	for (var o = 0; o < blocks[plr].length; o++){
-		if (blocks[plr][o]){
-			if (cirToRectCollision(projectile, blocks[plr][o])){
-				blocks[plr][o].health -= 10;
-				blocks[plr][o].health = Math.round(blocks[plr][o].health);
-				emit("bullet-destroy", {
-					playerId: projectile.playerId,
-					bulletId: projectile.bulletId
-				});
-				bullets[plr].splice(i, 1);
-				break;
+	for (var player in players){
+		for (var o = 0; o < blocks[player].length; o++){
+			if (blocks[player][o]){
+				if (cirToRectCollision(projectile, blocks[player][o])){
+					blocks[player][o].health -= 10;
+					blocks[player][o].health = Math.round(blocks[player][o].health);
+					emit("bullet-destroy", {
+						playerId: projectile.playerId,
+						bulletId: projectile.bulletId
+					});
+					bullets[plr].splice(i, 1);
+					break;
+				}
 			}
 		}
 	}
