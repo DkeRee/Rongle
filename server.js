@@ -679,7 +679,7 @@ function bulletToWall(projectile, plr, i){
 	for (var player in players){
 		for (var o = 0; o < blocks[player].length; o++){
 			if (blocks[player][o]){
-				if (cirToRectCollision(projectile, blocks[player][o])){
+				if (cirToRectCollision(projectile, blocks[player][o]) && blocks[player][o]){
 					blocks[player][o].health -= 10;
 					blocks[player][o].health = Math.round(blocks[player][o].health);
 					emit("bullet-destroy", {
@@ -696,7 +696,7 @@ function bulletToWall(projectile, plr, i){
 
 function bulletToPlayer(projectile, plr, i){
 	for (var player in players){
-		if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead){
+		if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead && players[player]){
 			players[player].health -= 10;
 			players[player].health = Math.round(players[player].health);
 			emit("bullet-destroy", {
@@ -728,7 +728,7 @@ function bulletToPlayer(projectile, plr, i){
 
 function bulletToRambot(projectile, plr, i){
 	for (var bot in ramBots){
-		if (cirToCirCollision(projectile, ramBots[bot])){
+		if (cirToCirCollision(projectile, ramBots[bot]) && ramBots[bot]){
 			ramBots[bot].health -= 10;
 			ramBots[bot].health = Math.round(ramBots[bot].health);
 			emit("bullet-destroy", {
