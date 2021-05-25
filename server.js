@@ -12,12 +12,14 @@ const tickrate = 1000/60;
 
 const randomstring = require('randomstring');
 
-const players = {};
-const bullets = {};
-const blocks = {};
-const healthDrops = {};
-const ramBots = {};
-const colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
+var players = {};
+var bullets = {};
+var blocks = {};
+var healthDrops = {};
+var ramBots = {};
+var colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
+
+var arePlayers = false;
 
 function checkString(string){
 	for (var i = 0; i < string.length; i++){
@@ -133,31 +135,33 @@ function emit(type, data){
 
 //spawner
 setInterval(() => {
-	if (Object.keys(healthDrops).length < 10){
-		const id = randomstring.generate();
-		healthDrops[id] = {
-			dropId: id,
-			width: 30,
-			height: 30,
-			coords: {
-				x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-				y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-			},
-			color: "#4ee44e"
-		};
-	}
-	if (Object.keys(ramBots).length < 6){
-		const id = randomstring.generate();
-		ramBots[id] = {
-			botId: id,
-			health: 30,
-			radius: 15,
-			coords: {
-				x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-				y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-			},
-			color: "#DF362D"
-		};
+	if (arePlayers){
+		if (Object.keys(healthDrops).length < 10){
+			const id = randomstring.generate();
+			healthDrops[id] = {
+				dropId: id,
+				width: 30,
+				height: 30,
+				coords: {
+					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+				},
+				color: "#4ee44e"
+			};
+		}
+		if (Object.keys(ramBots).length < 6){
+			const id = randomstring.generate();
+			ramBots[id] = {
+				botId: id,
+				health: 30,
+				radius: 15,
+				coords: {
+					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+				},
+				color: "#DF362D"
+			};
+		}
 	}
 }, 20000);
 
@@ -748,11 +752,19 @@ function bulletToRambot(projectile, plr, i){
 
 //main emit
 setInterval(() => {
-	ramBotEmit();
-	playerEmit();
-	blockEmit();
-	bulletEmit();
-	healthDropEmit();
+	if (Object.keys(players).length > 0){
+		arePlayers = true;
+		ramBotEmit();
+		playerEmit();
+		blockEmit();
+		bulletEmit();
+		healthDropEmit();
+	} else {
+		arePlayers = false;
+		healthDrops = {};
+		ramBots = {};
+		bullets = {};
+	}
 }, tickrate);
 
 io.on('connection', socket => {
