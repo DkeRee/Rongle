@@ -207,35 +207,6 @@ function ramBotEmit(){
 			//shake bots
 			ramBots[bot].coords.x += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
 			ramBots[bot].coords.y += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
-			//bot and block collision
-			for (var plr in blocks){
-				for (var i = 0; i < blocks[plr].length; i++){
-					if (blocks[plr][i]){
-						if (cirToRectCollision(ramBots[bot], blocks[plr][i])){
-							var kbX = 80;
-							var kbY = 80;
-							const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[plr][i].coords.x, (ramBots[bot].coords.y - 80) - blocks[plr][i].coords.y);
-							if (Math.sign(ramBotX) == 1){
-								kbX = kbX;
-							}
-							if (Math.sign(ramBotX) == -1){
-								kbX = -kbX;
-							}
-							if (Math.sign(ramBotY) == 1){
-									kbY = kbY;
-							}
-							if (Math.sign(ramBotY) == -1){
-								kbY = -kbY;
-							}
-							ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
-							ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
-							blocks[plr][i].health -= 8;
-							blocks[plr][i].health = Math.round(blocks[plr][i].health);
-							break;
-						}
-					}
-				}
-			}
 			//calculate closest player
 			const playerInfo = [];
 			for (var player in players){
@@ -263,6 +234,35 @@ function ramBotEmit(){
 						}
 						if (targetPlayer.coords.y > ramBots[bot].coords.y){
 							ramBotY = 3.5;
+						}
+					}
+					//bot and block collision
+					for (var plr in blocks){
+						for (var i = 0; i < blocks[plr].length; i++){
+							if (blocks[plr][i]){
+								if (cirToRectCollision(ramBots[bot], blocks[plr][i])){
+									var kbX = 80;
+									var kbY = 80;
+									const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[plr][i].coords.x, (ramBots[bot].coords.y - 80) - blocks[plr][i].coords.y);
+									if (Math.sign(ramBotX) == 1){
+										kbX = kbX;
+									}
+									if (Math.sign(ramBotX) == -1){
+										kbX = -kbX;
+									}
+									if (Math.sign(ramBotY) == 1){
+										kbY = kbY;
+									}
+									if (Math.sign(ramBotY) == -1){
+										kbY = -kbY;
+									}
+									ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
+									ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
+									blocks[plr][i].health -= 8;
+									blocks[plr][i].health = Math.round(blocks[plr][i].health);
+									break;
+								}
+							}
 						}
 					}
 					if (cirToCirCollision(ramBots[bot], players[player])){
@@ -313,7 +313,7 @@ function ramBotEmit(){
 									if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[plr][i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[plr][i].coords.y, 2)) <= 155){
 										if (Math.sign(players[player].coords.x) == 1){
 											if (blocks[plr][i].coords.x - players[player].coords.x < 0){
-													pkbX = 0;
+												pkbX = 0;
 											} else {
 												pkbX = blocks[plr][i].coords.x - players[player].coords.x;
 											}				
