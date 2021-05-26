@@ -764,11 +764,13 @@ function bulletToRambot(projectile, plr, i){
 
 //main emit
 setInterval(() => {
-	ramBotEmit();
-	playerEmit();
-	blockEmit();
-	bulletEmit();
-	healthDropEmit();
+	if (arePlayers){
+		ramBotEmit();
+		playerEmit();
+		blockEmit();
+		bulletEmit();
+		healthDropEmit();
+	}
 }, tickrate);
 
 io.on('connection', socket => {
