@@ -160,7 +160,7 @@
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
 
-			blockCounter.innerText = `${me.blocksUsed}/20`;
+			blockCounter.innerText = `${me.blocksUsed}/40`;
 			staminaBar.style.width = `${me.stamina}%`;
 
 			if (!me.burntOut){
