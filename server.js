@@ -237,157 +237,161 @@ function ramBotEmit(){
 				}
 			}
 			//calculate closest player
-			const playerInfo = [];
-			for (var player in players){
-				const distX = ramBots[bot].coords.x - players[player].coords.x;
-				const distY = ramBots[bot].coords.y - players[player].coords.y;
-				const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-				if (!players[player].dead){
-					playerInfo.push({
-						playerId: players[player].id,
-						dist: dist
-					});
-					const playerDist = playerInfo.map(player => player.dist);
-					const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
-					if (playerInfo[index]){
-						const targetPlayer = players[playerInfo[index].playerId];
-						//follow closest player
-						if (targetPlayer.coords.x < ramBots[bot].coords.x){
-							ramBotX = -3.5;
-						}
-						if (targetPlayer.coords.x > ramBots[bot].coords.x){
-							ramBotX = 3.5;
-						}
-						if (targetPlayer.coords.y < ramBots[bot].coords.y){
-							ramBotY = -3.5;
-						}
-						if (targetPlayer.coords.y > ramBots[bot].coords.y){
-							ramBotY = 3.5;
-						}
-					}
-					if (cirToCirCollision(ramBots[bot], players[player])){
-						var bkbX = 80;
-						var bkbY = 80;
-						var pkbX = 80;
-						var pkbY = 80;
-						//calculate knockback
-						//prevent knocking outside of arena
-						if (Math.sign(players[player].coords.x) == 1){
-							if (1771 - players[player].coords.x <= 80){
-								if (1771 - players[player].coords.x < 0){
-									pkbX = 0;
-								} else {
-									pkbX = 1771 - players[player].coords.x;
-								}
-							}
-						} else {
-							if (-1771 - players[player].coords.x >= -80){
-								if (-1771 - players[player].coords.x > 0){
-									pkbX = 0;
-								} else {
-									pkbX = -1771 - players[player].coords.x;
-								}
-							}
-						}
-						if (Math.sign(players[player].coords.y) == 1){
-							if (1771 - players[player].coords.y <= 80){
-								if (1771 - players[player].coords.y < 0){
-									pkbY = 0;
-								} else {
-									pkbY = 1771 - players[player].coords.y;
-								}
-							}
-						} else {
-							if (-1771 - players[player].coords.y >= -80){
-								if (-1771 - players[player].coords.y > 0){
-									pkbY = 0;
-								} else {
-									pkbY = -1771 - players[player].coords.y;
-								}
-							}
-						}
-						//prevent knocking into wall
-						for (var plr in blocks){
-							for (var i = 0; i < blocks[plr].length; i++){
-								if (blocks[plr][i]){
-									if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[plr][i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[plr][i].coords.y, 2)) <= 155){
-										if (Math.sign(players[player].coords.x) == 1){
-											if (blocks[plr][i].coords.x - players[player].coords.x < 0){
-													pkbX = 0;
-											} else {
-												pkbX = blocks[plr][i].coords.x - players[player].coords.x;
-											}				
-										} else {
-											if (-blocks[plr][i].coords.x - players[player].coords.x > 0){
-												pkbX = 0;
-											} else {
-												pkbX = -blocks[plr][i].coords.x - players[player].coords.x;
-											}				
-										}
-										if (Math.sign(players[player].coords.y) == 1){
-											if (blocks[plr][i].coords.y - players[player].coords.y < 0){
-												pkbY = 0;
-											} else {
-												pkbY = blocks[plr][i].coords.y - players[player].coords.y;
-											}				
-										} else {
-											if (-blocks[plr][i].coords.y - players[player].coords.y > 0){
-												pkbY = 0;
-											} else {
-												pkbY = -blocks[plr][i].coords.y - players[player].coords.y;
-											}				
-										}
-									}
-								}
-							}
-						}
-						const dir = Math.atan2((ramBots[bot].coords.x - 80) - players[player].coords.x, (ramBots[bot].coords.y - 80) - players[player].coords.y);
-						//calculate direction
-						if (Math.sign(ramBotX) == 1){
-							pkbX = -pkbX;
-							bkbX = bkbX;
-						}
-						if (Math.sign(ramBotX) == -1){
-							pkbX = pkbX;
-							bkbX = -bkbX;
-						}
-						if (Math.sign(ramBotY) == 1){
-							pkbY = -pkbY;
-							bkbY = bkbY;
-						}
-						if (Math.sign(ramBotY) == -1){
-							pkbY = pkbY;
-							bkbY = -bkbY;
-						}
-						//hit
-						ramBots[bot].coords.x += Math.round(bkbX * Math.cos(dir));
-						ramBots[bot].coords.y += Math.round(bkbY * Math.sin(dir));
-						players[player].coords.x += Math.round(pkbX * Math.cos(dir));
-						players[player].coords.y += Math.round(pkbY * Math.sin(dir));
-						players[player].health -= 8;
-						if (players[player].health <= 0){
-							players[player].dead = true;
-							emit("plr-death", {
-								loser: {
-									username: players[player].username,
-									id: players[player].id,
-									color: players[player].color
-								},
-								winner: {
-									username: "A RamBot",
-									color: "#DF362D"
-								},
-								type: "bot"
-							});					
-						}
-						break;
-					}
-				}
-			}
-			ramBots[bot].coords.x += ramBotX;
-			ramBots[bot].coords.y += ramBotY;
+			rambotCollidesWithPlayer(bot);
 		}
 	}
+}
+
+function rambotCollidesWithPlayer(bot){
+	const playerInfo = [];
+	for (var player in players){
+		const distX = ramBots[bot].coords.x - players[player].coords.x;
+		const distY = ramBots[bot].coords.y - players[player].coords.y;
+		const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+		if (!players[player].dead){
+			playerInfo.push({
+				playerId: players[player].id,
+				dist: dist
+			});
+			const playerDist = playerInfo.map(player => player.dist);
+			const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
+			if (playerInfo[index]){
+				const targetPlayer = players[playerInfo[index].playerId];
+				//follow closest player
+				if (targetPlayer.coords.x < ramBots[bot].coords.x){
+					ramBotX = -3.5;
+				}
+				if (targetPlayer.coords.x > ramBots[bot].coords.x){
+					ramBotX = 3.5;
+				}
+					if (targetPlayer.coords.y < ramBots[bot].coords.y){
+					ramBotY = -3.5;
+				}
+				if (targetPlayer.coords.y > ramBots[bot].coords.y){
+					ramBotY = 3.5;
+				}
+			}
+			if (cirToCirCollision(ramBots[bot], players[player])){
+				var bkbX = 80;
+				var bkbY = 80;
+				var pkbX = 80;
+				var pkbY = 80;
+				//calculate knockback
+				//prevent knocking outside of arena
+				if (Math.sign(players[player].coords.x) == 1){
+					if (1771 - players[player].coords.x <= 80){
+						if (1771 - players[player].coords.x < 0){
+							pkbX = 0;
+						} else {
+							pkbX = 1771 - players[player].coords.x;
+						}
+					}
+				} else {
+					if (-1771 - players[player].coords.x >= -80){
+						if (-1771 - players[player].coords.x > 0){
+							pkbX = 0;
+						} else {
+							pkbX = -1771 - players[player].coords.x;
+						}
+					}
+				}
+				if (Math.sign(players[player].coords.y) == 1){
+					if (1771 - players[player].coords.y <= 80){
+						if (1771 - players[player].coords.y < 0){
+							pkbY = 0;
+						} else {
+							pkbY = 1771 - players[player].coords.y;
+						}
+					}
+				} else {
+					if (-1771 - players[player].coords.y >= -80){
+						if (-1771 - players[player].coords.y > 0){
+							pkbY = 0;
+						} else {
+							pkbY = -1771 - players[player].coords.y;
+						}
+					}
+				}
+				//prevent knocking into wall
+				for (var plr in blocks){
+					for (var i = 0; i < blocks[plr].length; i++){
+						if (blocks[plr][i]){
+							if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[plr][i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[plr][i].coords.y, 2)) <= 155){
+								if (Math.sign(players[player].coords.x) == 1){
+									if (blocks[plr][i].coords.x - players[player].coords.x < 0){
+											pkbX = 0;
+								} else {
+										pkbX = blocks[plr][i].coords.x - players[player].coords.x;
+									}				
+								} else {
+									if (-blocks[plr][i].coords.x - players[player].coords.x > 0){
+										pkbX = 0;
+									} else {
+										pkbX = -blocks[plr][i].coords.x - players[player].coords.x;
+									}				
+								}
+								if (Math.sign(players[player].coords.y) == 1){
+									if (blocks[plr][i].coords.y - players[player].coords.y < 0){
+										pkbY = 0;
+								} else {
+										pkbY = blocks[plr][i].coords.y - players[player].coords.y;
+									}				
+								} else {
+									if (-blocks[plr][i].coords.y - players[player].coords.y > 0){
+										pkbY = 0;
+									} else {
+										pkbY = -blocks[plr][i].coords.y - players[player].coords.y;
+									}				
+								}
+							}
+						}
+					}
+				}
+				const dir = Math.atan2((ramBots[bot].coords.x - 80) - players[player].coords.x, (ramBots[bot].coords.y - 80) - players[player].coords.y);
+				//calculate direction
+				if (Math.sign(ramBotX) == 1){
+					pkbX = -pkbX;
+					bkbX = bkbX;
+				}
+				if (Math.sign(ramBotX) == -1){
+					pkbX = pkbX;
+					bkbX = -bkbX;
+				}
+				if (Math.sign(ramBotY) == 1){
+					pkbY = -pkbY;
+					bkbY = bkbY;
+				}
+				if (Math.sign(ramBotY) == -1){
+					pkbY = pkbY;
+					bkbY = -bkbY;
+				}
+				//hit
+				ramBots[bot].coords.x += Math.round(bkbX * Math.cos(dir));
+				ramBots[bot].coords.y += Math.round(bkbY * Math.sin(dir));
+				players[player].coords.x += Math.round(pkbX * Math.cos(dir));
+				players[player].coords.y += Math.round(pkbY * Math.sin(dir));
+				players[player].health -= 8;
+				if (players[player].health <= 0){
+					players[player].dead = true;
+					emit("plr-death", {
+						loser: {
+							username: players[player].username,
+							id: players[player].id,
+							color: players[player].color
+						},
+						winner: {
+							username: "A RamBot",
+							color: "#DF362D"
+						},
+						type: "bot"
+					});					
+				}
+				break;
+			}
+		}
+	}
+	ramBots[bot].coords.x += ramBotX;
+	ramBots[bot].coords.y += ramBotY;
 }
 
 function playerEmit(){
@@ -631,81 +635,93 @@ function healthDropEmit(){
 				},
 				color: healthDrops[healthDrop].color
 			});
-			for (var player in players){
-				if (!players[player].dead && healthDrops[healthDrop]){
-					if (cirToRectCollision(players[player], healthDrops[healthDrop])){
-						emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
-						delete healthDrops[healthDrops[healthDrop].dropId]; //healthDrops destroy
-						if (players[player].health + 10 > 100){
-							const subtractedAmount = players[player].health + 10 - 100;
-							const newAmount = 10 - subtractedAmount;
-							players[player].health += newAmount;
-						} else {
-							players[player].health += 10;
-						}
-						break;
-					}
-				}
-			}
+			healthDropLoop(healthDrop);
 		}	
 	}
+}
+
+function healthDropLoop(healthDrop){
+	for (var player in players){
+		if (!players[player].dead && healthDrops[healthDrop]){
+			if (cirToRectCollision(players[player], healthDrops[healthDrop])){
+				emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
+				delete healthDrops[healthDrops[healthDrop].dropId]; //healthDrops destroy
+				if (players[player].health + 10 > 100){
+					const subtractedAmount = players[player].health + 10 - 100;
+					const newAmount = 10 - subtractedAmount;
+					players[player].health += newAmount;
+				} else {
+					players[player].health += 10;
+				}
+				break;
+			}
+		}
+	}	
 }
 
 function bulletEmit(){
 	if (arePlayers){
 		for (var plr in bullets){
 			if (bullets[plr]){
-				for (var i = 0; i < bullets[plr].length; i++){
-					const projectile = bullets[plr][i];
-					projectile.time -= 1;
-					
-					const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
-					projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-					projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
-					emit('bupdate', {
-						playerId: projectile.playerId,
-						bulletId: projectile.bulletId,
-						coords: {
-							x: projectile.bulletCoords.x,
-							y: projectile.bulletCoords.y
-						},
-						color: projectile.color
-					});
-					//detect hits
-					projectile.coords = projectile.bulletCoords;
-					if (!players[plr].dead){
-						bulletToPlayer(projectile, plr, i);
-						bulletToWall(projectile, plr, i);
-						bulletToRambot(projectile, plr, i);
-					}
-					if (projectile.time <= 0){
-						emit("bullet-destroy", {
-							playerId: projectile.playerId,
-							bulletId: projectile.bulletId
-						});
-						bullets[plr].splice(i, 1);
-						projectile.time = 10;
-					}
-				}
+				bulletLoop(plr);
 			}
+		}
+	}
+}
+
+function bulletLoop(plr){
+	for (var i = 0; i < bullets[plr].length; i++){
+		const projectile = bullets[plr][i];
+		projectile.time -= 1;
+					
+		const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+		projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+		projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+		emit('bupdate', {
+			playerId: projectile.playerId,
+			bulletId: projectile.bulletId,
+			coords: {
+				x: projectile.bulletCoords.x,
+				y: projectile.bulletCoords.y
+			},
+			color: projectile.color
+		});
+		//detect hits
+		projectile.coords = projectile.bulletCoords;
+		if (!players[plr].dead){
+			bulletToPlayer(projectile, plr, i);
+			bulletToWall(projectile, plr, i);
+			bulletToRambot(projectile, plr, i);
+		}
+		if (projectile.time <= 0){
+			emit("bullet-destroy", {
+				playerId: projectile.playerId,
+				bulletId: projectile.bulletId
+			});
+			bullets[plr].splice(i, 1);
+			projectile.time = 10;
 		}
 	}
 }
 
 function bulletToWall(projectile, plr, i){
 	for (var player in players){
-		for (var o = 0; o < blocks[player].length; o++){
-			if (blocks[player][o]){
-				if (cirToRectCollision(projectile, blocks[player][o]) && blocks[player][o]){
-					blocks[player][o].health -= 10;
-					blocks[player][o].health = Math.round(blocks[player][o].health);
-					emit("bullet-destroy", {
-						playerId: projectile.playerId,
-						bulletId: projectile.bulletId
-					});
-					bullets[plr].splice(i, 1);
-					break;
-				}
+		bulletToWallLoop(player, projectile, i, plr);
+	}
+}
+
+function bulletToWallLoop(player, projectile, i, plr){
+	for (var o = 0; o < blocks[player].length; o++){
+		if (blocks[player][o]){
+			if (cirToRectCollision(projectile, blocks[player][o]) && blocks[player][o]){
+				blocks[player][o].health -= 10;
+				blocks[player][o].health = Math.round(blocks[player][o].health);
+				emit("bullet-destroy", {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId
+				});
+				bullets[plr].splice(i, 1);
+				break;
 			}
 		}
 	}
@@ -775,8 +791,8 @@ function checkPlayers(){
 
 //main emit
 setInterval(() => {
-	ramBotEmit();
 	playerEmit();
+	ramBotEmit();
 	blockEmit();
 	bulletEmit();
 	healthDropEmit();
