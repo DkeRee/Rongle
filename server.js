@@ -762,20 +762,29 @@ function bulletToRambot(projectile, plr, i){
 	}
 }
 
+function checkPlayers(){
+	if (Object.keys(players).length > 0){
+		arePlayers = true;
+	} else {
+		arePlayers = false;
+		healthDrops = {};
+		ramBots = {};
+		bullets = {};
+	}	
+}
+
 //main emit
 setInterval(() => {
-	if (arePlayers){
-		ramBotEmit();
-		playerEmit();
-		blockEmit();
-		bulletEmit();
-		healthDropEmit();
-	}
+	ramBotEmit();
+	playerEmit();
+	blockEmit();
+	bulletEmit();
+	healthDropEmit();
+	checkPlayers();
 }, tickrate);
 
 io.on('connection', socket => {
 	var loggedIn = false;
-	arePlayers = true;
 	socket.emit("setup");
 	function setup(){
 		socket.on('movement', keys => {
@@ -911,14 +920,7 @@ io.on('connection', socket => {
 		emit("leave", socket.id);
 		delete players[socket.id];
 		delete bullets[socket.id];
-		delete blocks[socket.id];
-
-		if (Object.keys(players).length == 0){
-			arePlayers = false;
-			healthDrops = {};
-			ramBots = {};
-			bullets = {};
-		}		
+		delete blocks[socket.id];	
 	});
 });
 
