@@ -785,7 +785,7 @@ io.on('connection', socket => {
 			info.playerId = socket.id;
 			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
 			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
-			if (blocks[socket.id].length < 60  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
+			if (blocks[socket.id].length < 20  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
 				players[socket.id].time = 5000;
 				players[socket.id].pTime = 3;
 				players[socket.id].canPlace = false;
