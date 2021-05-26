@@ -167,24 +167,26 @@ setInterval(() => {
 
 //player respawn check
 setInterval(() => {
-	for (var player in players){
-		if (!players[player].dead && players[player].health < 100){
-			players[player].health++;
-			players[player].health = Math.round(players[player].health);
-		}
-		if (players[player].dead){
-			players[player].respawnTime -= 1;
-			//respawning section
-			if (players[player].respawnTime <= -1){
-				players[player].coords.x = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
-				players[player].coords.y = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
-				players[player].health = 100;
-				players[player].respawnTime = 5;
-				players[player].dead = false;
-				emit("plr-respawn", {
-					playerId: players[player].id,
-					playerColor: players[player].color
-				});
+	if (arePlayers){
+		for (var player in players){
+			if (!players[player].dead && players[player].health < 100){
+				players[player].health++;
+				players[player].health = Math.round(players[player].health);
+			}
+			if (players[player].dead){
+				players[player].respawnTime -= 1;
+				//respawning section
+				if (players[player].respawnTime <= -1){
+					players[player].coords.x = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
+					players[player].coords.y = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
+					players[player].health = 100;
+					players[player].respawnTime = 5;
+					players[player].dead = false;
+					emit("plr-respawn", {
+						playerId: players[player].id,
+						playerColor: players[player].color
+					});
+				}
 			}
 		}
 	}
