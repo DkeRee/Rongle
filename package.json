@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/DkeRee/Rongle#readme",
   "dependencies": {
+    "@timohausmann/quadtree-js": "^1.2.4",
     "express": "^4.17.1",
     "randomstring": "^1.1.5",
     "socket.io": "^4.0.0",

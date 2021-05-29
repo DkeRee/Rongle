@@ -15,8 +15,8 @@ const randomstring = require('randomstring');
 var players = {};
 var bullets = [];
 var blocks = [];
-var healthDrops = {};
-var ramBots = {};
+var healthDrops = [];
+var ramBots = [];
 var colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
 
 var arePlayers = false;
@@ -89,11 +89,11 @@ function checkPlacement(info){
 	for (var i = 0; i < blocks.length; i++){
 		if (rectangleCollision(blocks[i], info)) return true;
 	}
-	for (var healthDrop in healthDrops){
-		if (rectangleCollision(healthDrops[healthDrop], info)) return true;
+	for (var i = 0; i < healthDrops.length; i++){
+		if (rectangleCollision(healthDrops[i], info)) return true;
 	}
-	for (var bot in ramBots){
-		if (cirToRectCollision(ramBots[bot], info)) return true;
+	for (var i = 0; i < ramBots.length; i++){
+		if (cirToRectCollision(ramBots[i], info)) return true;
 	}
 }
 
@@ -132,10 +132,9 @@ function emit(type, data){
 //spawner
 setInterval(() => {
 	if (arePlayers){
-		if (Object.keys(healthDrops).length < 10){
-			const id = randomstring.generate();
-			healthDrops[id] = {
-				dropId: id,
+		if (healthDrops.length < 10){
+			healthDrops.push({
+				dropId: randomstring.generate(),
 				width: 30,
 				height: 30,
 				coords: {
@@ -143,20 +142,21 @@ setInterval(() => {
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
 				},
 				color: "#4ee44e"
-			};
+			});
 		}
-		if (Object.keys(ramBots).length < 6){
-			const id = randomstring.generate();
-			ramBots[id] = {
-				botId: id,
+		if (ramBots.length < 6){
+			ramBots.push({
+				botId: randomstring.generate(),
 				health: 30,
 				radius: 15,
+				width: 15,
+				height: 15,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
 				},
 				color: "#DF362D"
-			};
+			});
 		}
 	}
 }, 20000);
@@ -190,24 +190,24 @@ setInterval(() => {
 
 function ramBotEmit(){
 	if (arePlayers){
-		for (var bot in ramBots){
+		for (var i = 0; i < ramBots.length; i++){
 			var ramBotX = 0;
 			var ramBotY = 0;
 			emit("rbupdate", {
-				botId: ramBots[bot].botId,
-				radius: ramBots[bot].radius,
-				health: ramBots[bot].health,
-				coords: ramBots[bot].coords,
-				color: ramBots[bot].color
+				botId: ramBots[i].botId,
+				radius: ramBots[i].radius,
+				health: ramBots[i].health,
+				coords: ramBots[i].coords,
+				color: ramBots[i].color
 			});
 			//shake bots
-			ramBots[bot].coords.x += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
-			ramBots[bot].coords.y += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
+			ramBots[i].coords.x += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
+			ramBots[i].coords.y += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
 			//calculate closest player
 			const playerInfo = [];
 			for (var player in players){
-				const distX = ramBots[bot].coords.x - players[player].coords.x;
-				const distY = ramBots[bot].coords.y - players[player].coords.y;
+				const distX = ramBots[i].coords.x - players[player].coords.x;
+				const distY = ramBots[i].coords.y - players[player].coords.y;
 				const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 				if (!players[player].dead){
 					playerInfo.push({
@@ -219,26 +219,26 @@ function ramBotEmit(){
 					if (playerInfo[index]){
 						const targetPlayer = players[playerInfo[index].playerId];
 						//follow closest player
-						if (targetPlayer.coords.x < ramBots[bot].coords.x){
+						if (targetPlayer.coords.x < ramBots[i].coords.x){
 							ramBotX = -3.5;
 						}
-						if (targetPlayer.coords.x > ramBots[bot].coords.x){
+						if (targetPlayer.coords.x > ramBots[i].coords.x){
 							ramBotX = 3.5;
 						}
-						if (targetPlayer.coords.y < ramBots[bot].coords.y){
+						if (targetPlayer.coords.y < ramBots[i].coords.y){
 							ramBotY = -3.5;
 						}
-						if (targetPlayer.coords.y > ramBots[bot].coords.y){
+						if (targetPlayer.coords.y > ramBots[i].coords.y){
 							ramBotY = 3.5;
 						}
 					}
 					//bot and block collision
 					for (var i = 0; i < blocks.length; i++){
 						if (blocks[i]){
-							if (cirToRectCollision(ramBots[bot], blocks[i])){
+							if (cirToRectCollision(ramBots[i], blocks[i])){
 								var kbX = 80;
 								var kbY = 80;
-								const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[i].coords.x, (ramBots[bot].coords.y - 80) - blocks[i].coords.y);
+								const dir = Math.atan2((ramBots[i].coords.x - 80) - blocks[i].coords.x, (ramBots[i].coords.y - 80) - blocks[i].coords.y);
 								if (Math.sign(ramBotX) == 1){
 									kbX = kbX;
 								}
@@ -251,15 +251,15 @@ function ramBotEmit(){
 								if (Math.sign(ramBotY) == -1){
 									kbY = -kbY;
 								}
-								ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
-								ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
+								ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
+								ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
 								blocks[i].health -= 8;
 								blocks[i].health = Math.round(blocks[i].health);
 								break;
 							}
 						}
 					}
-					if (cirToCirCollision(ramBots[bot], players[player])){
+					if (cirToCirCollision(ramBots[i], players[player])){
 						var bkbX = 80;
 						var bkbY = 80;
 						var pkbX = 80;
@@ -303,7 +303,7 @@ function ramBotEmit(){
 						//prevent knocking into wall
 						for (var i = 0; i < blocks.length; i++){
 							if (blocks[i]){
-								if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[i].coords.y, 2)) <= 155){
+								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[i].coords.y, 2)) <= 155){
 									if (Math.sign(players[player].coords.x) == 1){
 										if (blocks[i].coords.x - players[player].coords.x < 0){
 											pkbX = 0;
@@ -333,7 +333,7 @@ function ramBotEmit(){
 								}
 							}
 						}
-						const dir = Math.atan2((ramBots[bot].coords.x - 80) - players[player].coords.x, (ramBots[bot].coords.y - 80) - players[player].coords.y);
+						const dir = Math.atan2((ramBots[i].coords.x - 80) - players[player].coords.x, (ramBots[i].coords.y - 80) - players[player].coords.y);
 						//calculate direction
 						if (Math.sign(ramBotX) == 1){
 							pkbX = -pkbX;
@@ -352,8 +352,8 @@ function ramBotEmit(){
 							bkbY = -bkbY;
 						}
 						//hit
-						ramBots[bot].coords.x += Math.round(bkbX * Math.cos(dir));
-						ramBots[bot].coords.y += Math.round(bkbY * Math.sin(dir));
+						ramBots[i].coords.x += Math.round(bkbX * Math.cos(dir));
+						ramBots[i].coords.y += Math.round(bkbY * Math.sin(dir));
 						players[player].coords.x += Math.round(pkbX * Math.cos(dir));
 						players[player].coords.y += Math.round(pkbY * Math.sin(dir));
 						players[player].health -= 8;
@@ -376,11 +376,11 @@ function ramBotEmit(){
 					}
 				}
 			}
-			ramBots[bot].coords.x += ramBotX;
-			ramBots[bot].coords.y += ramBotY;
-			if (ramBots[bot].health <= 0){
-				emit("rambot-destroy", ramBots[bot].botId);
-				delete ramBots[bot];
+			ramBots[i].coords.x += ramBotX;
+			ramBots[i].coords.y += ramBotY;
+			if (ramBots[i].health <= 0){
+				emit("rambot-destroy", ramBots[i].botId);
+				ramBots.splice(i, 1);
 			}
 		}
 	}
@@ -613,22 +613,22 @@ function blockEmit(){
 
 function healthDropEmit(){
 	if (arePlayers){
-		for (var healthDrop in healthDrops){
+		for (var i = 0; i < healthDrops.length; i++){
 			emit('hdupdate', {
-				dropId: healthDrops[healthDrop].dropId,
-				width: healthDrops[healthDrop].width,
-				height: healthDrops[healthDrop].height,
+				dropId: healthDrops[i].dropId,
+				width: healthDrops[i].width,
+				height: healthDrops[i].height,
 				coords: {
-					x: healthDrops[healthDrop].coords.x,
-					y: healthDrops[healthDrop].coords.y
+					x: healthDrops[i].coords.x,
+					y: healthDrops[i].coords.y
 				},
-				color: healthDrops[healthDrop].color
+				color: healthDrops[i].color
 			});
 			for (var player in players){
-				if (!players[player].dead && healthDrops[healthDrop]){
-					if (cirToRectCollision(players[player], healthDrops[healthDrop])){
-						emit("healthDrop-destroy", healthDrops[healthDrop].dropId);
-						delete healthDrops[healthDrops[healthDrop].dropId]; //healthDrops destroy
+				if (!players[player].dead && healthDrops[i]){
+					if (cirToRectCollision(players[player], healthDrops[i])){
+						emit("healthDrop-destroy", healthDrops[i].dropId);
+						healthDrops.splice(i, 1); //healthDrops destroy
 						if (players[player].health + 10 > 100){
 							const subtractedAmount = players[player].health + 10 - 100;
 							const newAmount = 10 - subtractedAmount;
@@ -734,10 +734,10 @@ function bulletToPlayer(projectile, i){
 }
 
 function bulletToRambot(projectile, i){
-	for (var bot in ramBots){
-		if (cirToCirCollision(projectile, ramBots[bot]) && ramBots[bot]){
-			ramBots[bot].health -= 10;
-			ramBots[bot].health = Math.round(ramBots[bot].health);
+	for (var i = 0; i < ramBots.length; i++){
+		if (cirToCirCollision(projectile, ramBots[i]) && ramBots[i]){
+			ramBots[i].health -= 10;
+			ramBots[i].health = Math.round(ramBots[i].health);
 			emit("bullet-destroy", {
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId
@@ -754,19 +754,19 @@ function checkPlayers(){
 		arePlayers = true;
 	} else {
 		arePlayers = false;
-		healthDrops = {};
-		ramBots = {};
+		healthDrops = [];
+		ramBots = [];
 		bullets = [];
 	}	
 }
 
 //main emit
 setInterval(() => {
-	bulletEmit();
-	playerEmit();
-	blockEmit();
-	ramBotEmit();
-	healthDropEmit();
+	bulletEmit(); //circle
+	playerEmit(); //circle
+	blockEmit(); //square
+	ramBotEmit(); //circle
+	healthDropEmit(); //square
 	checkPlayers();
 }, tickrate);
 
@@ -811,6 +811,8 @@ io.on('connection', socket => {
 				bullets.push({
 					playerId: socket.id,
 					radius: 6,
+					width: 6,
+					height: 6,
 					bulletId: randomstring.generate(),
 					speed: 30,
 					time: 50,
@@ -851,6 +853,8 @@ io.on('connection', socket => {
 				id: socket.id,
 				username: username,
 				radius: 26,
+				width: 6,
+				height: 6,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
