@@ -151,8 +151,6 @@ setInterval(() => {
 				botId: randomstring.generate(),
 				health: 30,
 				radius: 15,
-				width: 15,
-				height: 15,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
@@ -825,8 +823,6 @@ io.on('connection', socket => {
 					type: "bullet",
 					playerId: socket.id,
 					radius: 6,
-					width: 6,
-					height: 6,
 					bulletId: randomstring.generate(),
 					speed: 30,
 					time: 50,
@@ -868,8 +864,6 @@ io.on('connection', socket => {
 				id: socket.id,
 				username: username,
 				radius: 26,
-				width: 26,
-				height: 26,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
