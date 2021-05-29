@@ -421,6 +421,14 @@ function playerEmit(){
 				var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 				var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
 
+				//const closeObjects = getCloseObjects(100, 100, players[player].width, players[player].height);
+				const closeObjects = myTree.retrieve({
+					x: players[player].coords.x,
+					y: players[player].coords.y,
+					width: players[player].width,
+					height: players[player].height
+				});
+				console.log(closeObjects)
 				for (var i = 0; i < blocks.length; i++){
 					if (blocks[i]){
 						const block = blocks[i];
@@ -606,8 +614,8 @@ function blockEmit(){
 						playerId: chunk.playerId,
 						blockId: chunk.blockId
 					});
-					blocks.splice(i, 1);
 					players[chunk.playerId].blocksPlaced--;
+					blocks.splice(i, 1);
 				}
 			}
 		}
@@ -763,6 +771,7 @@ function checkPlayers(){
 	}	
 }
 
+
 //main emit
 setInterval(() => {
 	checkPlayers();
@@ -859,8 +868,8 @@ io.on('connection', socket => {
 				id: socket.id,
 				username: username,
 				radius: 26,
-				width: 6,
-				height: 6,
+				width: 26,
+				height: 26,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
