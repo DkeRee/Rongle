@@ -785,7 +785,7 @@ io.on('connection', socket => {
 			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
 			if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
 				players[socket.id].time = 5000;
-				players[socket.id].pTime = 3;
+				players[socket.id].pTime = 5;
 				players[socket.id].canPlace = false;
 				players[info.playerId].blocksPlaced++;
 				blocks.push({
@@ -805,7 +805,7 @@ io.on('connection', socket => {
 		socket.on("shoot", info => {
 			if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
 				players[socket.id].time = 5000;
-				players[socket.id].bTime = 3;
+				players[socket.id].bTime = 5;
 				players[socket.id].canShoot = false;
 				players[socket.id].bulletsShot++;
 				bullets.push({
@@ -868,8 +868,8 @@ io.on('connection', socket => {
 				running: false,
 				burntOut: false,
 				time: 5000,
-				bTime: 3,
-				pTime: 3,
+				bTime: 5,
+				pTime: 5,
 				blocksPlaced: 0,
 				bulletsShot: 0,
 				canShoot: true,
