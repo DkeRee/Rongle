@@ -735,10 +735,10 @@ function bulletToPlayer(projectile, i){
 }
 
 function bulletToRambot(projectile, i){
-	for (var i = 0; i < ramBots.length; i++){
-		if (cirToCirCollision(projectile, ramBots[i]) && ramBots[i]){
-			ramBots[i].health -= 10;
-			ramBots[i].health = Math.round(ramBots[i].health);
+	for (var o = 0; o < ramBots.length; o++){
+		if (cirToCirCollision(projectile, ramBots[o]) && ramBots[o]){
+			ramBots[o].health -= 10;
+			ramBots[o].health = Math.round(ramBots[o].health);
 			emit("bullet-destroy", {
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId
