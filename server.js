@@ -13,8 +13,8 @@ const tickrate = 1000/60;
 const randomstring = require('randomstring');
 
 var players = {};
-var bullets = {};
-var blocks = {};
+var bullets = [];
+var blocks = [];
 var healthDrops = {};
 var ramBots = {};
 var colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
@@ -83,15 +83,11 @@ function checkPlacement(info){
 	for (var player in players){
 		if (cirToRectCollision(players[player], info)) return true;
 	}
-	for (var bullet in bullets){
-		for (var i = 0; i < bullets[bullet].length; i++){
-			if (cirToRectCollision(bullets[bullet][i], info)) return true;
-		}
+	for (var i = 0; i < bullets.length; i++){
+		if (cirToRectCollision(bullets[i], info)) return true;
 	}
-	for (var player in blocks){
-		for (var i = 0; i < blocks[player].length; i++){
-			if (rectangleCollision(blocks[player][i], info)) return true;
-		}
+	for (var i = 0; i < blocks.length; i++){
+		if (rectangleCollision(blocks[i], info)) return true;
 	}
 	for (var healthDrop in healthDrops){
 		if (rectangleCollision(healthDrops[healthDrop], info)) return true;
@@ -237,31 +233,29 @@ function ramBotEmit(){
 						}
 					}
 					//bot and block collision
-					for (var plr in blocks){
-						for (var i = 0; i < blocks[plr].length; i++){
-							if (blocks[plr][i]){
-								if (cirToRectCollision(ramBots[bot], blocks[plr][i])){
-									var kbX = 80;
-									var kbY = 80;
-									const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[plr][i].coords.x, (ramBots[bot].coords.y - 80) - blocks[plr][i].coords.y);
-									if (Math.sign(ramBotX) == 1){
-										kbX = kbX;
-									}
-									if (Math.sign(ramBotX) == -1){
-										kbX = -kbX;
-									}
-									if (Math.sign(ramBotY) == 1){
-										kbY = kbY;
-									}
-									if (Math.sign(ramBotY) == -1){
-										kbY = -kbY;
-									}
-									ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
-									ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
-									blocks[plr][i].health -= 8;
-									blocks[plr][i].health = Math.round(blocks[plr][i].health);
-									break;
+					for (var i = 0; i < blocks.length; i++){
+						if (blocks[i]){
+							if (cirToRectCollision(ramBots[bot], blocks[i])){
+								var kbX = 80;
+								var kbY = 80;
+								const dir = Math.atan2((ramBots[bot].coords.x - 80) - blocks[i].coords.x, (ramBots[bot].coords.y - 80) - blocks[i].coords.y);
+								if (Math.sign(ramBotX) == 1){
+									kbX = kbX;
 								}
+								if (Math.sign(ramBotX) == -1){
+									kbX = -kbX;
+								}
+								if (Math.sign(ramBotY) == 1){
+									kbY = kbY;
+								}
+								if (Math.sign(ramBotY) == -1){
+									kbY = -kbY;
+								}
+								ramBots[bot].coords.x += Math.round(kbX * Math.cos(dir));
+								ramBots[bot].coords.y += Math.round(kbY * Math.sign(dir));
+								blocks[i].health -= 8;
+								blocks[i].health = Math.round(blocks[i].health);
+								break;
 							}
 						}
 					}
@@ -307,36 +301,34 @@ function ramBotEmit(){
 							}
 						}
 						//prevent knocking into wall
-						for (var plr in blocks){
-							for (var i = 0; i < blocks[plr].length; i++){
-								if (blocks[plr][i]){
-									if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[plr][i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[plr][i].coords.y, 2)) <= 155){
-										if (Math.sign(players[player].coords.x) == 1){
-											if (blocks[plr][i].coords.x - players[player].coords.x < 0){
-												pkbX = 0;
-											} else {
-												pkbX = blocks[plr][i].coords.x - players[player].coords.x;
-											}				
+						for (var i = 0; i < blocks.length; i++){
+							if (blocks[i]){
+								if (Math.sqrt(Math.pow(ramBots[bot].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[bot].coords.y - blocks[i].coords.y, 2)) <= 155){
+									if (Math.sign(players[player].coords.x) == 1){
+										if (blocks[i].coords.x - players[player].coords.x < 0){
+											pkbX = 0;
 										} else {
-											if (-blocks[plr][i].coords.x - players[player].coords.x > 0){
-												pkbX = 0;
-											} else {
-												pkbX = -blocks[plr][i].coords.x - players[player].coords.x;
-											}				
-										}
-										if (Math.sign(players[player].coords.y) == 1){
-											if (blocks[plr][i].coords.y - players[player].coords.y < 0){
-												pkbY = 0;
-											} else {
-												pkbY = blocks[plr][i].coords.y - players[player].coords.y;
-											}				
+											pkbX = blocks[i].coords.x - players[player].coords.x;
+										}				
+									} else {
+										if (-blocks[i].coords.x - players[player].coords.x > 0){
+											pkbX = 0;
 										} else {
-											if (-blocks[plr][i].coords.y - players[player].coords.y > 0){
-												pkbY = 0;
-											} else {
-												pkbY = -blocks[plr][i].coords.y - players[player].coords.y;
-											}				
-										}
+											pkbX = -blocks[i].coords.x - players[player].coords.x;
+										}				
+									}
+									if (Math.sign(players[player].coords.y) == 1){
+										if (blocks[i].coords.y - players[player].coords.y < 0){
+											pkbY = 0;
+										} else {
+											pkbY = blocks[i].coords.y - players[player].coords.y;
+										}				
+									} else {
+										if (-blocks[i].coords.y - players[player].coords.y > 0){
+											pkbY = 0;
+										} else {
+											pkbY = -blocks[i].coords.y - players[player].coords.y;
+										}				
 									}
 								}
 							}
@@ -365,7 +357,7 @@ function ramBotEmit(){
 						players[player].coords.x += Math.round(pkbX * Math.cos(dir));
 						players[player].coords.y += Math.round(pkbY * Math.sin(dir));
 						players[player].health -= 8;
-						if (players[player].health <= 0){
+						if (players[player].health <= 0){ //player duplicate
 							players[player].dead = true;
 							emit("plr-death", {
 								loser: {
@@ -386,6 +378,10 @@ function ramBotEmit(){
 			}
 			ramBots[bot].coords.x += ramBotX;
 			ramBots[bot].coords.y += ramBotY;
+			if (ramBots[bot].health <= 0){
+				emit("rambot-destroy", ramBots[bot].botId);
+				delete ramBots[bot];
+			}
 		}
 	}
 }
@@ -400,7 +396,7 @@ function playerEmit(){
 				health: players[player].health,
 				stamina: players[player].stamina,
 				burntOut: players[player].burntOut,
-				blocksUsed: blocks[player].length,
+				blocksUsed: players[player].blocksPlaced,
 				radius: players[player].radius,
 				color: players[player].color
 			});
@@ -422,51 +418,49 @@ function playerEmit(){
 				//movement update
 				var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 				var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
-				for (var plr in blocks){
-					for (var i = 0; i < blocks[plr].length; i++){
-						if (blocks[plr][i]){
-							const block = blocks[plr][i];
-							var leftX = block.coords.x;
-							var leftSide = {
-								width: 50,
-								height: 50,
-								coords: {
-									x: leftX -= 3,
-									y: block.coords.y
-								}
-							};
-							var rightX = block.coords.x;
-							var rightSide = {
-								width: 50,
-								height: 50,
-								coords: {
-									x: rightX += 3,
-									y: block.coords.y
-								}
-							};
-							var topY = block.coords.y;
-							var topSide = {
-								width: 50,
-								height: 50,
-								coords: {
-									x: block.coords.x,
-									y: topY -= 3
-								}
-							};
-							var bottomY = block.coords.y;
-							var bottomSide = {
-								width: 50,
-								height: 50,
-								coords: {
-									x: block.coords.x,
-									y: bottomY += 3
-								}
-							};
-							if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
-							if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
-							if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
-							if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
-						}
+				for (var i = 0; i < blocks.length; i++){
+					if (blocks[i]){
+						const block = blocks[i];
+						var leftX = block.coords.x;
+						var leftSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: leftX -= 3,
+								y: block.coords.y
+							}
+						};
+						var rightX = block.coords.x;
+						var rightSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: rightX += 3,
+								y: block.coords.y
+							}
+						};
+						var topY = block.coords.y;
+						var topSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: block.coords.x,
+								y: topY -= 3
+							}
+						};
+						var bottomY = block.coords.y;
+						var bottomSide = {
+							width: 50,
+							height: 50,
+							coords: {
+								x: block.coords.x,
+								y: bottomY += 3
+							}
+						};
+						if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
+						if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
+						if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
+						if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
 					}
 				}
 				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
@@ -589,29 +583,28 @@ function playerEmit(){
 
 function blockEmit(){
 	if (arePlayers){
-		for (var player in blocks){
-			for (var i = 0; i < blocks[player].length; i++){
-				const chunk = blocks[player][i];
-				if (chunk){
-					emit('blo-update', {
-						playerId: chunk.playerId,
-						blockId: chunk.blockId,
-						width: chunk.width,
-						height: chunk.height,
-						health: chunk.health,
-						color: chunk.color,
-						coords: {
-							x: chunk.coords.x,
-							y: chunk.coords.y
-						}
-					});
-					if (chunk.health <= 0){
-						emit("block-destroy", {
-							playerId: blocks[player][i].playerId,
-							blockId: blocks[player][i].blockId
-						});
-						blocks[player].splice(i, 1);
+		for (var i = 0; i < blocks.length; i++){
+			const chunk = blocks[i];
+			if (chunk){
+				emit('blo-update', {
+					playerId: chunk.playerId,
+					blockId: chunk.blockId,
+					width: chunk.width,
+					height: chunk.height,
+					health: chunk.health,
+					color: chunk.color,
+					coords: {
+						x: chunk.coords.x,
+						y: chunk.coords.y
 					}
+				});
+				if (chunk.health <= 0){
+					emit("block-destroy", {
+						playerId: chunk.playerId,
+						blockId: chunk.blockId
+					});
+					blocks.splice(i, 1);
+					players[chunk.playerId].blocksPlaced--;
 				}
 			}
 		}
@@ -653,65 +646,61 @@ function healthDropEmit(){
 
 function bulletEmit(){
 	if (arePlayers){
-		for (var plr in bullets){
-			if (bullets[plr]){
-				for (var i = 0; i < bullets[plr].length; i++){
-					const projectile = bullets[plr][i];
-					projectile.time -= 1;
-					
-					const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
-					projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
-					projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
-					emit('bupdate', {
-						playerId: projectile.playerId,
-						bulletId: projectile.bulletId,
-						coords: {
-							x: projectile.bulletCoords.x,
-							y: projectile.bulletCoords.y
-						},
-						color: projectile.color
-					});
-					//detect hits
-					projectile.coords = projectile.bulletCoords;
-					if (!players[plr].dead){
-						bulletToPlayer(projectile, plr, i);
-						bulletToWall(projectile, plr, i);
-						bulletToRambot(projectile, plr, i);
-					}
-					if (projectile.time <= 0){
-						emit("bullet-destroy", {
-							playerId: projectile.playerId,
-							bulletId: projectile.bulletId
-						});
-						bullets[plr].splice(i, 1);
-						projectile.time = 10;
-					}
-				}
+		for (var i = 0; i < bullets.length; i++){
+			const projectile = bullets[i];
+			projectile.time -= 1;
+			
+			const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
+			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
+			projectile.bulletCoords.y += projectile.speed * Math.sin(dir);
+			emit('bupdate', {
+				playerId: projectile.playerId,
+				bulletId: projectile.bulletId,
+				coords: {
+					x: projectile.bulletCoords.x,
+					y: projectile.bulletCoords.y
+				},
+				color: projectile.color
+			});
+			//detect hits
+			projectile.coords = projectile.bulletCoords;
+			if (!players[projectile.playerId].dead){
+				bulletToPlayer(projectile, i);
+				bulletToWall(projectile, i);
+				bulletToRambot(projectile, i);
+			}
+			if (projectile.time <= 0){
+				emit("bullet-destroy", {
+					playerId: projectile.playerId,
+					bulletId: projectile.bulletId
+				});
+				bullets.splice(i, 1);
+				players[projectile.playerId].bulletsShot--;
+				projectile.time = 10;
 			}
 		}
 	}
 }
 
-function bulletToWall(projectile, plr, i){
-	for (var player in players){
-		for (var o = 0; o < blocks[player].length; o++){
-			if (blocks[player][o]){
-				if (cirToRectCollision(projectile, blocks[player][o]) && blocks[player][o]){
-					blocks[player][o].health -= 10;
-					blocks[player][o].health = Math.round(blocks[player][o].health);
+function bulletToWall(projectile, i){
+		for (var o = 0; o < blocks.length; o++){
+			if (blocks[o]){
+				if (cirToRectCollision(projectile, blocks[o]) && blocks[o]){
+					blocks[o].health -= 10;
+					blocks[o].health = Math.round(blocks[o].health);
 					emit("bullet-destroy", {
 						playerId: projectile.playerId,
 						bulletId: projectile.bulletId
 					});
-					bullets[plr].splice(i, 1);
+					bullets.splice(i, 1);
+					players[projectile.playerId].bulletsShot--;
 					break;
 				}
 			}
 		}
-	}
 }
 
-function bulletToPlayer(projectile, plr, i){
+function bulletToPlayer(projectile, i){
 	for (var player in players){
 		if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead && players[player]){
 			players[player].health -= 10;
@@ -720,8 +709,9 @@ function bulletToPlayer(projectile, plr, i){
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId
 			});
-			bullets[plr].splice(i, 1);
-			if (players[player].health <= 0){
+			bullets.splice(i, 1);
+			players[projectile.playerId].bulletsShot--;
+			if (players[player].health <= 0){ //player duplicate
 				players[player].dead = true;
 				players[player].latestWinner.username = players[projectile.playerId].username;
 				players[player].latestWinner.color = players[projectile.playerId].color;
@@ -743,7 +733,7 @@ function bulletToPlayer(projectile, plr, i){
 	}
 }
 
-function bulletToRambot(projectile, plr, i){
+function bulletToRambot(projectile, i){
 	for (var bot in ramBots){
 		if (cirToCirCollision(projectile, ramBots[bot]) && ramBots[bot]){
 			ramBots[bot].health -= 10;
@@ -752,11 +742,8 @@ function bulletToRambot(projectile, plr, i){
 				playerId: projectile.playerId,
 				bulletId: projectile.bulletId
 			});
-			bullets[plr].splice(i, 1);
-			if (ramBots[bot].health <= 0){
-				emit("rambot-destroy", ramBots[bot].botId);
-				delete ramBots[bot];
-			}
+			bullets.splice(i, 1);
+			players[projectile.playerId].bulletsShot--;
 			break;
 		}
 	}
@@ -769,16 +756,16 @@ function checkPlayers(){
 		arePlayers = false;
 		healthDrops = {};
 		ramBots = {};
-		bullets = {};
+		bullets = [];
 	}	
 }
 
 //main emit
 setInterval(() => {
-	ramBotEmit();
+	bulletEmit();
 	playerEmit();
 	blockEmit();
-	bulletEmit();
+	ramBotEmit();
 	healthDropEmit();
 	checkPlayers();
 }, tickrate);
@@ -796,11 +783,12 @@ io.on('connection', socket => {
 			info.playerId = socket.id;
 			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
 			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
-			if (blocks[socket.id].length < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
+			if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
 				players[socket.id].time = 5000;
 				players[socket.id].pTime = 3;
 				players[socket.id].canPlace = false;
-				blocks[socket.id].push({
+				players[info.playerId].blocksPlaced++;
+				blocks.push({
 					playerId: socket.id,
 					blockId: randomstring.generate(),
 					health: 50,
@@ -815,11 +803,12 @@ io.on('connection', socket => {
 			}
 		});
 		socket.on("shoot", info => {
-			if (bullets[socket.id].length < 30 && players[socket.id].canShoot && !players[socket.id].dead){
+			if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
 				players[socket.id].time = 5000;
 				players[socket.id].bTime = 3;
 				players[socket.id].canShoot = false;
-				bullets[socket.id].push({
+				players[socket.id].bulletsShot++;
+				bullets.push({
 					playerId: socket.id,
 					radius: 6,
 					bulletId: randomstring.generate(),
@@ -881,11 +870,11 @@ io.on('connection', socket => {
 				time: 5000,
 				bTime: 3,
 				pTime: 3,
+				blocksPlaced: 0,
+				bulletsShot: 0,
 				canShoot: true,
 				canPlace: true
 			};
-			bullets[socket.id] = [];
-			blocks[socket.id] = [];
 			setup();
 			socket.emit('joining');
 			emit('plr-joined', {
@@ -909,18 +898,26 @@ io.on('connection', socket => {
 	});
 	socket.on("bullet-num", () => {
 		var num = 0;
-		for (var bullet in bullets){
-			for (var i = 0; i < bullets[bullet].length; i++){
-				num++;
-			}
+		for (var i = 0; i < bullets.length; i++){
+			num++;
 		}
 		socket.emit("bullet-numdate", num);
 	});
 	socket.on('disconnect', () => {
 		emit("leave", socket.id);
 		delete players[socket.id];
-		delete bullets[socket.id];
-		delete blocks[socket.id];	
+
+		for (var i = 0; i < bullets.length; i++){
+			if (bullets[i].playerId == socket.id){
+				delete bullets[i];
+			}
+		}
+
+		for (var i = 0; i < blocks.length; i++){
+			if (blocks[i].playerId == socket.id){
+				delete blocks[i];
+			}
+		}
 	});
 });
 
