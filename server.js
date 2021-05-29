@@ -420,7 +420,7 @@ function playerEmit(){
 				//movement update
 				var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 				var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
-				
+
 				for (var i = 0; i < blocks.length; i++){
 					if (blocks[i]){
 						const block = blocks[i];
@@ -762,10 +762,6 @@ function checkPlayers(){
 		bullets = [];
 	}	
 }
-
-
-
-
 
 //main emit
 setInterval(() => {
