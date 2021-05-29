@@ -134,6 +134,7 @@ setInterval(() => {
 	if (arePlayers){
 		if (healthDrops.length < 10){
 			healthDrops.push({
+				type: "healthDrop",
 				dropId: randomstring.generate(),
 				width: 30,
 				height: 30,
@@ -146,6 +147,7 @@ setInterval(() => {
 		}
 		if (ramBots.length < 6){
 			ramBots.push({
+				type: "ramBot",
 				botId: randomstring.generate(),
 				health: 30,
 				radius: 15,
@@ -233,7 +235,7 @@ function ramBotEmit(){
 						}
 					}
 					//bot and block collision
-					for (var b = 0; i < blocks.length; i++){
+					for (var b = 0; b < blocks.length; b++){
 						if (blocks[b]){
 							if (cirToRectCollision(ramBots[i], blocks[b])){
 								var kbX = 80;
@@ -301,7 +303,7 @@ function ramBotEmit(){
 							}
 						}
 						//prevent knocking into wall
-						for (var b = 0; b < blocks.length; i++){
+						for (var b = 0; b < blocks.length; b++){
 							if (blocks[b]){
 								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[b].coords.y, 2)) <= 155){
 									if (Math.sign(players[player].coords.x) == 1){
@@ -418,6 +420,7 @@ function playerEmit(){
 				//movement update
 				var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 				var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
+				
 				for (var i = 0; i < blocks.length; i++){
 					if (blocks[i]){
 						const block = blocks[i];
@@ -760,14 +763,18 @@ function checkPlayers(){
 	}	
 }
 
+
+
+
+
 //main emit
 setInterval(() => {
+	checkPlayers();
 	bulletEmit(); //circle
 	playerEmit(); //circle
 	blockEmit(); //square
 	ramBotEmit(); //circle
 	healthDropEmit(); //square
-	checkPlayers();
 }, tickrate);
 
 io.on('connection', socket => {
@@ -789,6 +796,7 @@ io.on('connection', socket => {
 				players[socket.id].canPlace = false;
 				players[info.playerId].blocksPlaced++;
 				blocks.push({
+					type: "block",
 					playerId: socket.id,
 					blockId: randomstring.generate(),
 					health: 50,
@@ -809,6 +817,7 @@ io.on('connection', socket => {
 				players[socket.id].canShoot = false;
 				players[socket.id].bulletsShot++;
 				bullets.push({
+					type: "bullet",
 					playerId: socket.id,
 					radius: 6,
 					width: 6,
@@ -850,6 +859,7 @@ io.on('connection', socket => {
 		const username = nickname.trim();
 		if (!loggedIn && username.length !== 0 && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
 			players[socket.id] = {
+				type: "player",
 				id: socket.id,
 				username: username,
 				radius: 26,
@@ -909,19 +919,19 @@ io.on('connection', socket => {
 	});
 	socket.on('disconnect', () => {
 		emit("leave", socket.id);
-		delete players[socket.id];
+		for (var i = 0; i < blocks.length; i++){
+			if (blocks[i].playerId == socket.id){
+				blocks.splice(i, 1);
+			}
+		}
 
 		for (var i = 0; i < bullets.length; i++){
 			if (bullets[i].playerId == socket.id){
-				delete bullets[i];
+				bullets.splice(i, 1);
 			}
 		}
 
-		for (var i = 0; i < blocks.length; i++){
-			if (blocks[i].playerId == socket.id){
-				delete blocks[i];
-			}
-		}
+		delete players[socket.id];
 	});
 });
 
