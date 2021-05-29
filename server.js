@@ -305,7 +305,7 @@ function ramBotEmit(){
 						//prevent knocking into wall
 						for (var b = 0; b < blocks.length; b++){
 							if (blocks[b]){
-								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[b].coords.y, 2)) <= 155){
+								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[b].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[b].coords.y, 2)) <= 155){
 									if (Math.sign(players[player].coords.x) == 1){
 										if (blocks[b].coords.x - players[player].coords.x < 0){
 											pkbX = 0;
