@@ -419,14 +419,6 @@ function playerEmit(){
 				var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 				var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
 
-				//const closeObjects = getCloseObjects(100, 100, players[player].width, players[player].height);
-				const closeObjects = myTree.retrieve({
-					x: players[player].coords.x,
-					y: players[player].coords.y,
-					width: players[player].width,
-					height: players[player].height
-				});
-				console.log(closeObjects)
 				for (var i = 0; i < blocks.length; i++){
 					if (blocks[i]){
 						const block = blocks[i];
