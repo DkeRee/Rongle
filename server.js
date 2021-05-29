@@ -233,12 +233,12 @@ function ramBotEmit(){
 						}
 					}
 					//bot and block collision
-					for (var i = 0; i < blocks.length; i++){
-						if (blocks[i]){
-							if (cirToRectCollision(ramBots[i], blocks[i])){
+					for (var b = 0; i < blocks.length; i++){
+						if (blocks[b]){
+							if (cirToRectCollision(ramBots[i], blocks[b])){
 								var kbX = 80;
 								var kbY = 80;
-								const dir = Math.atan2((ramBots[i].coords.x - 80) - blocks[i].coords.x, (ramBots[i].coords.y - 80) - blocks[i].coords.y);
+								const dir = Math.atan2((ramBots[i].coords.x - 80) - blocks[b].coords.x, (ramBots[i].coords.y - 80) - blocks[b].coords.y);
 								if (Math.sign(ramBotX) == 1){
 									kbX = kbX;
 								}
@@ -253,8 +253,8 @@ function ramBotEmit(){
 								}
 								ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
 								ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
-								blocks[i].health -= 8;
-								blocks[i].health = Math.round(blocks[i].health);
+								blocks[b].health -= 8;
+								blocks[b].health = Math.round(blocks[b].health);
 								break;
 							}
 						}
@@ -301,33 +301,33 @@ function ramBotEmit(){
 							}
 						}
 						//prevent knocking into wall
-						for (var i = 0; i < blocks.length; i++){
-							if (blocks[i]){
-								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[i].coords.y, 2)) <= 155){
+						for (var b = 0; b < blocks.length; i++){
+							if (blocks[b]){
+								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[i].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[b].coords.y, 2)) <= 155){
 									if (Math.sign(players[player].coords.x) == 1){
-										if (blocks[i].coords.x - players[player].coords.x < 0){
+										if (blocks[b].coords.x - players[player].coords.x < 0){
 											pkbX = 0;
 										} else {
-											pkbX = blocks[i].coords.x - players[player].coords.x;
+											pkbX = blocks[b].coords.x - players[player].coords.x;
 										}				
 									} else {
-										if (-blocks[i].coords.x - players[player].coords.x > 0){
+										if (-blocks[b].coords.x - players[player].coords.x > 0){
 											pkbX = 0;
 										} else {
-											pkbX = -blocks[i].coords.x - players[player].coords.x;
+											pkbX = -blocks[b].coords.x - players[player].coords.x;
 										}				
 									}
 									if (Math.sign(players[player].coords.y) == 1){
-										if (blocks[i].coords.y - players[player].coords.y < 0){
+										if (blocks[b].coords.y - players[player].coords.y < 0){
 											pkbY = 0;
 										} else {
-											pkbY = blocks[i].coords.y - players[player].coords.y;
+											pkbY = blocks[b].coords.y - players[player].coords.y;
 										}				
 									} else {
-										if (-blocks[i].coords.y - players[player].coords.y > 0){
+										if (-blocks[b].coords.y - players[player].coords.y > 0){
 											pkbY = 0;
 										} else {
-											pkbY = -blocks[i].coords.y - players[player].coords.y;
+											pkbY = -blocks[b].coords.y - players[player].coords.y;
 										}				
 									}
 								}
