@@ -735,52 +735,52 @@ function bulletEmit(){
 								break;
 							}
 						}
-					} 
-					for (var player in players){
-						if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !closestObjects[o].dead && players[player]){
-							players[player].health -= 10;
-							players[player].health = Math.round(players[player].health);
-							emit("bullet-destroy", {
-								playerId: projectile.playerId,
-								bulletId: projectile.bulletId
-							});
-							tree.remove(bullets[i]);
-							bullets.splice(i, 1);
-							players[projectile.playerId].bulletsShot--;
-							if (players[player].health <= 0){ //player duplicate
-								players[player].dead = true;
-								players[player].latestWinner.username = players[player].username;
-								players[player].latestWinner.color = players[projectile.playerId].color;
-									emit("plr-death", {
-									loser: {
-										username: players[player].username,
-										id: players[player].id,
-										color: players[player].color
-									},
-									winner: {
-										username: players[player].latestWinner.username,
-										color: players[player].latestWinner.color
-									},
-									type: "player"
-								});
-							}
-							break;
-						}					
 					}
-					for (var u = 0; u < ramBots.length; u++){
-						if (cirToCirCollision(projectile, ramBots[u]) && ramBots[u]){
-							ramBots[u].health -= 10;
-							ramBots[u].health = Math.round(ramBots[u].health);
-							emit("bullet-destroy", {
-								playerId: projectile.playerId,
-								bulletId: projectile.bulletId
+				}
+				for (var player in players){
+					if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !closestObjects[o].dead && players[player]){
+						players[player].health -= 10;
+						players[player].health = Math.round(players[player].health);
+						emit("bullet-destroy", {
+							playerId: projectile.playerId,
+							bulletId: projectile.bulletId
+						});
+						tree.remove(bullets[i]);
+						bullets.splice(i, 1);
+						players[projectile.playerId].bulletsShot--;
+						if (players[player].health <= 0){ //player duplicate
+							players[player].dead = true;
+							players[player].latestWinner.username = players[player].username;
+							players[player].latestWinner.color = players[projectile.playerId].color;
+								emit("plr-death", {
+								loser: {
+									username: players[player].username,
+									id: players[player].id,
+									color: players[player].color
+								},
+								winner: {
+									username: players[player].latestWinner.username,
+									color: players[player].latestWinner.color
+								},
+								type: "player"
 							});
-							tree.remove(bullets[i]);
-							bullets.splice(i, 1);
-							players[projectile.playerId].bulletsShot--;
-							break;
-						}		
-					}
+						}
+						break;
+					}					
+				}
+				for (var u = 0; u < ramBots.length; u++){
+					if (cirToCirCollision(projectile, ramBots[u]) && ramBots[u]){
+						ramBots[u].health -= 10;
+						ramBots[u].health = Math.round(ramBots[u].health);
+						emit("bullet-destroy", {
+							playerId: projectile.playerId,
+							bulletId: projectile.bulletId
+						});
+						tree.remove(bullets[i]);
+						bullets.splice(i, 1);
+						players[projectile.playerId].bulletsShot--;
+						break;
+					}		
 				}
 			}
 			if (projectile.time <= 0){
