@@ -306,9 +306,46 @@ function ramBotEmit(){
 								}
 								ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
 								ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
-								block.health -= 8;
-								block.health = Math.round(block.health);
-								break;
+
+								if (block.health > 0){
+									block.health -= 10;
+									block.health = Math.round(block.health);
+
+									emit('blo-update', {
+										playerId: block.playerId,
+										blockId: block.blockId,
+										width: block.width,
+										height: block.height,
+										health: block.health,
+										color: block.color,
+										coords: {
+											x: block.coords.x,
+											y: block.coords.y
+										}
+									});
+									break;
+								} else {
+									emit('blo-update', {
+										playerId: block.playerId,
+										blockId: block.blockId,
+										width: block.width,
+										height: block.height,
+										health: block.health,
+										color: block.color,
+										coords: {
+											x: block.coords.x,
+											y: block.coords.y
+										}
+									});
+									emit("block-destroy", {
+										playerId: block.playerId,
+										blockId: block.blockId
+									});
+									players[block.playerId].blocksPlaced--;
+									tree.remove(block);
+									blocks.splice(block.index, 1);
+									break;
+								}
 							}								
 						}
 					}
@@ -694,7 +731,7 @@ function bulletEmit(){
 
 				for (var o = 0; o < closestBlocks.length; o++){
 					if (closestBlocks[o]){
-						if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o]){
+						if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && players[projectile.playerId]){
 							if (closestBlocks[o].health <= 0){
 								emit('blo-update', {
 									playerId: closestBlocks[o].playerId,
