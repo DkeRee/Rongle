@@ -651,7 +651,7 @@ function blockEmit(){
 						playerId: chunk.playerId,
 						blockId: chunk.blockId
 					});
-					if (chunk){
+					if (players[chunk.playerId]){
 						players[chunk.playerId].blocksPlaced--;
 						tree.remove(blocks[i]);
 						blocks.splice(i, 1);
