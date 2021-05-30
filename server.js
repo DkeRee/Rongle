@@ -391,7 +391,7 @@ function ramBotEmit(){
 				}
 				//bot and block collision
 				for (var u = 0; u < closestObjects.length; u++){
-					if (closestObjects[u].type == "blocks"){
+					if (closestObjects[u].type == "block"){
 						if (closestObjects[u]){
 							if (cirToRectCollision(ramBots[i], closestObjects[u])){
 								var kbX = 80;
