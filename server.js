@@ -106,23 +106,39 @@ function checkPlacement(info){
 
 	if (Math.sqrt(Math.pow(info.coords.x - players[info.playerId].coords.x, 2) + Math.pow(info.coords.y - players[info.playerId].coords.y, 2)) > 500) return true;
 
+	const closestPlayers = knn(tree, info.coords.x, info.coords.y, loopLimit, item => {
+		return item.type == "player";
+	});
+	const closestBullets = knn(tree, info.coords.x, info.coords.y, loopLimit, item => {
+		return item.type == "bullet";
+	});
+	const closestBlocks = knn(tree, info.coords.x, info.coords.y, loopLimit, item => {
+		return item.type == "block";
+	});
+	const closestHealthDrops = knn(tree, info.coords.x, info.coords.y, loopLimit, item => {
+		return item.type == "healthDrop";
+	});
+	const closestRamBots = knn(tree, info.coords.x, info.coords.y, loopLimit, item => {
+		return item.type == "ramBot";
+	});
+
 	if (info.coords.x < -1800 || info.coords.x > 1750) return true;
 	if (info.coords.y < -1800 || info.coords.y > 1750) return true;
 
-	for (var player in players){
-		if (cirToRectCollision(players[player], info)) return true;
+	for (var i = 0; i < closestPlayers.length; i++){
+		if (cirToRectCollision(closestPlayers[i], info)) return true;
 	}
-	for (var i = 0; i < bullets.length; i++){
-		if (cirToRectCollision(bullets[i], info)) return true;
+	for (var i = 0; i < closestBullets.length; i++){
+		if (cirToRectCollision(closestBullets[i], info)) return true;
 	}
-	for (var i = 0; i < blocks.length; i++){
-		if (rectangleCollision(blocks[i], info)) return true;
+	for (var i = 0; i < closestBlocks.length; i++){
+		if (rectangleCollision(closestBlocks[i], info)) return true;
 	}
-	for (var i = 0; i < healthDrops.length; i++){
-		if (rectangleCollision(healthDrops[i], info)) return true;
+	for (var i = 0; i < closestHealthDrops.length; i++){
+		if (rectangleCollision(closestHealthDrops[i], info)) return true;
 	}
-	for (var i = 0; i < ramBots.length; i++){
-		if (cirToRectCollision(ramBots[i], info)) return true;
+	for (var i = 0; i < closestRamBots.length; i++){
+		if (cirToRectCollision(closestRamBots[i], info)) return true;
 	}
 }
 
