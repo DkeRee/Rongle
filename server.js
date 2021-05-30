@@ -769,7 +769,7 @@ function bulletEmit(){
 					}
 					for (var u = 0; u < ramBots.length; u++){
 						if (cirToCirCollision(projectile, ramBots[u]) && ramBots[u]){
-							cramBots[u].health -= 10;
+							ramBots[u].health -= 10;
 							ramBots[u].health = Math.round(ramBots[u].health);
 							emit("bullet-destroy", {
 								playerId: projectile.playerId,
