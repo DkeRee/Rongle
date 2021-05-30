@@ -971,23 +971,36 @@ io.on('connection', socket => {
 		socket.emit("bullet-numdate", num);
 	});
 	socket.on('disconnect', () => {
-		emit("leave", socket.id);
-		for (var i = 0; i < blocks.length; i++){
+
+		for (var i = 0; i < blocks.length;){
 			if (blocks[i].playerId == socket.id){
+				emit("block-destroy", {
+					playerId: blocks[i].playerId,
+					blockId: blocks[i].blockId
+				});
 				tree.remove(blocks[i]);
-				blocks.splice(i, 1);
+				blocks.splice(i, 1);				
+			} else {
+				i++;
 			}
 		}
 
-		for (var i = 0; i < bullets.length; i++){
+		for (var i = 0; i < bullets.length;){
 			if (bullets[i].playerId == socket.id){
+				emit("bullet-destroy", {
+					playerId: bullets[i].playerId,
+					bulletId: bullets[i].bulletId
+				});
 				tree.remove(bullets[i]);
-				bullets.splice(i, 1);
-			}
+				bullets.splice(i, 1);				
+			} else {
+				i++;
+			}			
 		}
 
 		tree.remove(players[socket.id]);
 		delete players[socket.id];
+		emit("leave", socket.id);
 	});
 });
 
