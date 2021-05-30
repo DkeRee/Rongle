@@ -8,6 +8,35 @@ const socket = require('socket.io');
 const server = app.listen(process.env.PORT || 3000);
 const io = socket(server);
 
+const RBush = require('rbush');
+const knn = require('rbush-knn');
+
+class MyRBush extends RBush {
+	toBBox({
+		coords: {
+			x: x,
+			y: y
+		}
+	}) {
+		return {
+			minX: x,
+			minY: y,
+			maxX: x,
+			maxY: y
+		};
+	}
+	compareMinX(a, b) {
+		return a.x - b.x;
+	}
+	compareMinY(a, b) {
+		return a.y - b.y;
+	}
+}
+
+const tree = new MyRBush();
+
+const loopLimit = 25;
+
 const tickrate = 1000/60;
 
 const randomstring = require('randomstring');
@@ -144,6 +173,7 @@ setInterval(() => {
 				},
 				color: "#4ee44e"
 			});
+			tree.insert(healthDrops[healthDrops.length - 1]);
 		}
 		if (ramBots.length < 6){
 			ramBots.push({
@@ -157,6 +187,7 @@ setInterval(() => {
 				},
 				color: "#DF362D"
 			});
+			tree.insert(ramBots[ramBots.length - 1]);
 		}
 	}
 }, 20000);
@@ -205,40 +236,167 @@ function ramBotEmit(){
 			ramBots[i].coords.y += Math.ceil(Math.random() * 10) * (Math.round(Math.random()) ? 1 : -1);
 			//calculate closest player
 			const playerInfo = [];
-			for (var player in players){
-				const distX = ramBots[i].coords.x - players[player].coords.x;
-				const distY = ramBots[i].coords.y - players[player].coords.y;
-				const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-				if (!players[player].dead){
-					playerInfo.push({
-						playerId: players[player].id,
-						dist: dist
-					});
-					const playerDist = playerInfo.map(player => player.dist);
-					const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
-					if (playerInfo[index]){
-						const targetPlayer = players[playerInfo[index].playerId];
-						//follow closest player
-						if (targetPlayer.coords.x < ramBots[i].coords.x){
-							ramBotX = -3.5;
+			const closestObjects = knn(tree, ramBots[i].coords.x, ramBots[i].coords.y, loopLimit);
+
+			for (var o = 0; o < closestObjects.length; o++){
+				if (closestObjects[o].type == "player"){
+					const player = closestObjects[o];
+
+					const distX = ramBots[i].coords.x - player.coords.x;
+					const distY = ramBots[i].coords.y - player.coords.y;
+					const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+					if (!player.dead){
+						playerInfo.push({
+							playerId: player.id,
+							dist: dist
+						});
+						const playerDist = playerInfo.map(player => player.dist);
+						const index = playerDist.indexOf(Math.min.apply(Math, playerDist));
+						if (playerInfo[index]){
+							const targetPlayer = players[playerInfo[index].playerId];
+							//follow closest player
+							if (targetPlayer.coords.x < ramBots[i].coords.x){
+								ramBotX = -3.5;
+							}
+							if (targetPlayer.coords.x > ramBots[i].coords.x){
+								ramBotX = 3.5;
+							}
+							if (targetPlayer.coords.y < ramBots[i].coords.y){
+								ramBotY = -3.5;
+							}
+							if (targetPlayer.coords.y > ramBots[i].coords.y){
+								ramBotY = 3.5;
+							}
 						}
-						if (targetPlayer.coords.x > ramBots[i].coords.x){
-							ramBotX = 3.5;
-						}
-						if (targetPlayer.coords.y < ramBots[i].coords.y){
-							ramBotY = -3.5;
-						}
-						if (targetPlayer.coords.y > ramBots[i].coords.y){
-							ramBotY = 3.5;
+						if (cirToCirCollision(ramBots[i], player)){
+							var bkbX = 80;
+							var bkbY = 80;
+							var pkbX = 80;
+							var pkbY = 80;
+							//calculate knockback
+							//prevent knocking outside of arena
+							if (Math.sign(player.coords.x) == 1){
+								if (1771 - player.coords.x <= 80){
+									if (1771 - player.coords.x < 0){
+										pkbX = 0;
+									} else {
+										pkbX = 1771 - player.coords.x;
+									}
+								}
+							} else {
+								if (-1771 - player.coords.x >= -80){
+									if (-1771 - player.coords.x > 0){
+										pkbX = 0;
+									} else {
+										pkbX = -1771 - player.coords.x;
+									}
+								}
+							}
+							if (Math.sign(player.coords.y) == 1){
+								if (1771 - player.coords.y <= 80){
+									if (1771 - player.coords.y < 0){
+										pkbY = 0;
+									} else {
+										pkbY = 1771 - player.coords.y;
+									}
+								}
+							} else {
+								if (-1771 - player.coords.y >= -80){
+									if (-1771 - player.coords.y > 0){
+										pkbY = 0;
+									} else {
+										pkbY = -1771 - player.coords.y;
+									}
+								}
+							}
+							//prevent knocking into wall
+							const closestObjects2 = knn(tree, ramBots[i].coords.x, ramBots[i].coords.y, loopLimit);
+							for (var b = 0; b < closestObjects2.length; b++){
+								if (closestObjects2[b].type == "block"){
+									if (closestObjects2[b]){
+										const block = closestObjects2[b];
+										if (Math.sqrt(Math.pow(ramBots[i].coords.x - block.coords.x, 2) + Math.pow(ramBots[i].coords.y - block.coords.y, 2)) <= 155){
+											if (Math.sign(player.coords.x) == 1){
+												if (block.coords.x - player.coords.x < 0){
+													pkbX = 0;
+												} else {
+													pkbX = block.coords.x - player.coords.x;
+												}				
+											} else {
+												if (-block.coords.x - player.coords.x > 0){
+													pkbX = 0;
+												} else {
+													pkbX = -block.coords.x - player.coords.x;
+												}				
+											}
+											if (Math.sign(player.coords.y) == 1){
+												if (block.coords.y - player.coords.y < 0){
+													pkbY = 0;
+												} else {
+													pkbY = block.coords.y - player.coords.y;
+												}				
+											} else {
+												if (-block.coords.y - player.coords.y > 0){
+													pkbY = 0;
+												} else {
+													pkbY = -block.coords.y - player.coords.y;
+												}				
+											}
+										}
+									}								
+								}
+							}
+							const dir = Math.atan2((ramBots[i].coords.x - 80) - player.coords.x, (ramBots[i].coords.y - 80) - player.coords.y);
+							//calculate direction
+							if (Math.sign(ramBotX) == 1){
+								pkbX = -pkbX;
+								bkbX = bkbX;
+							}
+							if (Math.sign(ramBotX) == -1){
+								pkbX = pkbX;
+								bkbX = -bkbX;
+							}
+							if (Math.sign(ramBotY) == 1){
+								pkbY = -pkbY;
+								bkbY = bkbY;
+							}
+							if (Math.sign(ramBotY) == -1){
+								pkbY = pkbY;
+								bkbY = -bkbY;
+							}
+							//hit
+							ramBots[i].coords.x += Math.round(bkbX * Math.cos(dir));
+							ramBots[i].coords.y += Math.round(bkbY * Math.sin(dir));
+							player.coords.x += Math.round(pkbX * Math.cos(dir));
+							player.coords.y += Math.round(pkbY * Math.sin(dir));
+							player.health -= 8;
+							if (player.health <= 0){ //player duplicate
+								player.dead = true;
+								emit("plr-death", {
+									loser: {
+										username: player.username,
+										id: player.id,
+										color: player.color
+									},
+									winner: {
+										username: "A RamBot",
+										color: "#DF362D"
+									},
+									type: "bot"
+								});					
+							}
+							break;
 						}
 					}
-					//bot and block collision
-					for (var b = 0; b < blocks.length; b++){
-						if (blocks[b]){
-							if (cirToRectCollision(ramBots[i], blocks[b])){
+				}
+				//bot and block collision
+				for (var u = 0; u < closestObjects.length; u++){
+					if (closestObjects[u].type == "blocks"){
+						if (closestObjects[u]){
+							if (cirToRectCollision(ramBots[i], closestObjects[u])){
 								var kbX = 80;
 								var kbY = 80;
-								const dir = Math.atan2((ramBots[i].coords.x - 80) - blocks[b].coords.x, (ramBots[i].coords.y - 80) - blocks[b].coords.y);
+								const dir = Math.atan2((ramBots[i].coords.x - 80) - closestObjects[u].coords.x, (ramBots[i].coords.y - 80) - closestObjects[u].coords.y);
 								if (Math.sign(ramBotX) == 1){
 									kbX = kbX;
 								}
@@ -253,126 +411,11 @@ function ramBotEmit(){
 								}
 								ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
 								ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
-								blocks[b].health -= 8;
-								blocks[b].health = Math.round(blocks[b].health);
+								closestObjects[u].health -= 8;
+								closestObjects[u].health = Math.round(closestObjects[u].health);
 								break;
 							}
-						}
-					}
-					if (cirToCirCollision(ramBots[i], players[player])){
-						var bkbX = 80;
-						var bkbY = 80;
-						var pkbX = 80;
-						var pkbY = 80;
-						//calculate knockback
-						//prevent knocking outside of arena
-						if (Math.sign(players[player].coords.x) == 1){
-							if (1771 - players[player].coords.x <= 80){
-								if (1771 - players[player].coords.x < 0){
-									pkbX = 0;
-								} else {
-									pkbX = 1771 - players[player].coords.x;
-								}
-							}
-						} else {
-							if (-1771 - players[player].coords.x >= -80){
-								if (-1771 - players[player].coords.x > 0){
-									pkbX = 0;
-								} else {
-									pkbX = -1771 - players[player].coords.x;
-								}
-							}
-						}
-						if (Math.sign(players[player].coords.y) == 1){
-							if (1771 - players[player].coords.y <= 80){
-								if (1771 - players[player].coords.y < 0){
-									pkbY = 0;
-								} else {
-									pkbY = 1771 - players[player].coords.y;
-								}
-							}
-						} else {
-							if (-1771 - players[player].coords.y >= -80){
-								if (-1771 - players[player].coords.y > 0){
-									pkbY = 0;
-								} else {
-									pkbY = -1771 - players[player].coords.y;
-								}
-							}
-						}
-						//prevent knocking into wall
-						for (var b = 0; b < blocks.length; b++){
-							if (blocks[b]){
-								if (Math.sqrt(Math.pow(ramBots[i].coords.x - blocks[b].coords.x, 2) + Math.pow(ramBots[i].coords.y - blocks[b].coords.y, 2)) <= 155){
-									if (Math.sign(players[player].coords.x) == 1){
-										if (blocks[b].coords.x - players[player].coords.x < 0){
-											pkbX = 0;
-										} else {
-											pkbX = blocks[b].coords.x - players[player].coords.x;
-										}				
-									} else {
-										if (-blocks[b].coords.x - players[player].coords.x > 0){
-											pkbX = 0;
-										} else {
-											pkbX = -blocks[b].coords.x - players[player].coords.x;
-										}				
-									}
-									if (Math.sign(players[player].coords.y) == 1){
-										if (blocks[b].coords.y - players[player].coords.y < 0){
-											pkbY = 0;
-										} else {
-											pkbY = blocks[b].coords.y - players[player].coords.y;
-										}				
-									} else {
-										if (-blocks[b].coords.y - players[player].coords.y > 0){
-											pkbY = 0;
-										} else {
-											pkbY = -blocks[b].coords.y - players[player].coords.y;
-										}				
-									}
-								}
-							}
-						}
-						const dir = Math.atan2((ramBots[i].coords.x - 80) - players[player].coords.x, (ramBots[i].coords.y - 80) - players[player].coords.y);
-						//calculate direction
-						if (Math.sign(ramBotX) == 1){
-							pkbX = -pkbX;
-							bkbX = bkbX;
-						}
-						if (Math.sign(ramBotX) == -1){
-							pkbX = pkbX;
-							bkbX = -bkbX;
-						}
-						if (Math.sign(ramBotY) == 1){
-							pkbY = -pkbY;
-							bkbY = bkbY;
-						}
-						if (Math.sign(ramBotY) == -1){
-							pkbY = pkbY;
-							bkbY = -bkbY;
-						}
-						//hit
-						ramBots[i].coords.x += Math.round(bkbX * Math.cos(dir));
-						ramBots[i].coords.y += Math.round(bkbY * Math.sin(dir));
-						players[player].coords.x += Math.round(pkbX * Math.cos(dir));
-						players[player].coords.y += Math.round(pkbY * Math.sin(dir));
-						players[player].health -= 8;
-						if (players[player].health <= 0){ //player duplicate
-							players[player].dead = true;
-							emit("plr-death", {
-								loser: {
-									username: players[player].username,
-									id: players[player].id,
-									color: players[player].color
-								},
-								winner: {
-									username: "A RamBot",
-									color: "#DF362D"
-								},
-								type: "bot"
-							});					
-						}
-						break;
+						}								
 					}
 				}
 			}
@@ -380,6 +423,7 @@ function ramBotEmit(){
 			ramBots[i].coords.y += ramBotY;
 			if (ramBots[i].health <= 0){
 				emit("rambot-destroy", ramBots[i].botId);
+				tree.remove(ramBots[i]);
 				ramBots.splice(i, 1);
 			}
 		}
@@ -419,51 +463,56 @@ function playerEmit(){
 				var borderX = borderCheckX(players[player].coords.x, players[player].coords.y);
 				var borderY = borderCheckY(players[player].coords.x, players[player].coords.y);
 
-				for (var i = 0; i < blocks.length; i++){
-					if (blocks[i]){
-						const block = blocks[i];
-						var leftX = block.coords.x;
-						var leftSide = {
-							width: 50,
-							height: 50,
-							coords: {
-								x: leftX -= 3,
-								y: block.coords.y
-							}
-						};
-						var rightX = block.coords.x;
-						var rightSide = {
-							width: 50,
-							height: 50,
-							coords: {
-								x: rightX += 3,
-								y: block.coords.y
-							}
-						};
-						var topY = block.coords.y;
-						var topSide = {
-							width: 50,
-							height: 50,
-							coords: {
-								x: block.coords.x,
-								y: topY -= 3
-							}
-						};
-						var bottomY = block.coords.y;
-						var bottomSide = {
-							width: 50,
-							height: 50,
-							coords: {
-								x: block.coords.x,
-								y: bottomY += 3
-							}
-						};
-						if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
-						if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
-						if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
-						if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
+				const closestObjects = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit);
+
+				for (var i = 0; i < closestObjects.length; i++){
+					if (closestObjects[i].type == "block"){
+						if (closestObjects[i]){
+							const block = closestObjects[i];
+							var leftX = block.coords.x;
+							var leftSide = {
+								width: 50,
+								height: 50,
+								coords: {
+									x: leftX -= 3,
+									y: block.coords.y
+								}
+							};
+							var rightX = block.coords.x;
+							var rightSide = {
+								width: 50,
+								height: 50,
+								coords: {
+									x: rightX += 3,
+									y: block.coords.y
+								}
+							};
+							var topY = block.coords.y;
+							var topSide = {
+								width: 50,
+								height: 50,
+								coords: {
+									x: block.coords.x,
+									y: topY -= 3
+								}
+							};
+							var bottomY = block.coords.y;
+							var bottomSide = {
+								width: 50,
+								height: 50,
+								coords: {
+									x: block.coords.x,
+									y: bottomY += 3
+								}
+							};
+							if (cirToRectCollision(players[player], leftSide)) borderX = "right border";
+							if (cirToRectCollision(players[player], rightSide)) borderX = "left border";
+							if (cirToRectCollision(players[player], topSide)) borderY = "bottom border";
+							if (cirToRectCollision(players[player], bottomSide)) borderY = "top border";
+						}
 					}
 				}
+
 				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
 					players[player].running = false;
 				}
@@ -605,6 +654,7 @@ function blockEmit(){
 						blockId: chunk.blockId
 					});
 					players[chunk.playerId].blocksPlaced--;
+					tree.remove(blocks[i]);
 					blocks.splice(i, 1);
 				}
 			}
@@ -625,23 +675,26 @@ function healthDropEmit(){
 				},
 				color: healthDrops[i].color
 			});
-			for (var player in players){
-				if (!players[player].dead && healthDrops[i]){
-					if (cirToRectCollision(players[player], healthDrops[i])){
+
+			const closestObjects = knn(tree, healthDrops[i].coords.x, healthDrops[i].coords.y, loopLimit);
+			for (var i = 0; i < closestObjects.length; i++){
+				if (closestObjects[i].type == "healthDrop"){
+					if (cirToRectCollision(closestObjects[i], healthDrops[i])){
 						emit("healthDrop-destroy", healthDrops[i].dropId);
+						tree.remove(healthDrops[i]);
 						healthDrops.splice(i, 1); //healthDrops destroy
-						if (players[player].health + 10 > 100){
-							const subtractedAmount = players[player].health + 10 - 100;
+						if (closestObjects[i].health + 10 > 100){
+							const subtractedAmount = closestObjects[i].health + 10 - 100;
 							const newAmount = 10 - subtractedAmount;
-							players[player].health += newAmount;
+							closestObjects[i].health += newAmount;
 						} else {
-							players[player].health += 10;
+							closestObjects[i].health += 10;
 						}
 						break;
 					}
 				}
 			}
-		}	
+		}
 	}
 }
 
@@ -666,86 +719,79 @@ function bulletEmit(){
 			//detect hits
 			projectile.coords = projectile.bulletCoords;
 			if (!players[projectile.playerId].dead){
-				bulletToPlayer(projectile, i);
-				bulletToWall(projectile, i);
-				bulletToRambot(projectile, i);
+				const closestObjects = knn(tree, projectile.coords.x, projectile.coords.y, loopLimit);
+				for (var o = 0; o < closestObjects.length; o++){
+					if (closestObjects[o].type == "block"){
+						if (closestObjects[o]){
+							if (cirToRectCollision(projectile, closestObjects[o]) && closestObjects[o]){
+								closestObjects[o].health -= 10;
+								closestObjects[o].health = Math.round(closestObjects[o].health);
+								emit("bullet-destroy", {
+									playerId: projectile.playerId,
+									bulletId: projectile.bulletId
+								});
+								tree.remove(bullets[i]);
+								bullets.splice(i, 1);
+								players[projectile.playerId].bulletsShot--;
+								break;
+							}
+						}
+					} else if (closestObjects[o].type == "player"){
+						if (closestObjects[o].id !== projectile.playerId && cirToCirCollision(projectile, closestObjects[o]) && !closestObjects[o].dead && closestObjects[o]){
+							closestObjects[o].health -= 10;
+							closestObjects[o].health = Math.round(closestObjects[o].health);
+							emit("bullet-destroy", {
+								playerId: projectile.playerId,
+								bulletId: projectile.bulletId
+							});
+							tree.remove(bullets[i]);
+							bullets.splice(i, 1);
+							players[projectile.playerId].bulletsShot--;
+							if (closestObjects[o].health <= 0){ //player duplicate
+								closestObjects[o].dead = true;
+								closestObjects[o].latestWinner.username = players[projectile.playerId].username;
+								closestObjects[o].latestWinner.color = players[projectile.playerId].color;
+									emit("plr-death", {
+									loser: {
+										username: closestObjects[o].username,
+										id: closestObjects[o].id,
+										color: closestObjects[o].color
+									},
+									winner: {
+										username: closestObjects[o].latestWinner.username,
+										color: closestObjects[o].latestWinner.color
+									},
+									type: "player"
+								});
+							}
+							break;
+						}					
+					} else if (closestObjects[o].type == "ramBot"){
+						if (cirToCirCollision(projectile, closestObjects[o]) && closestObjects[o]){
+							closestObjects[o].health -= 10;
+							closestObjects[o].health = Math.round(closestObjects[o].health);
+							emit("bullet-destroy", {
+								playerId: projectile.playerId,
+								bulletId: projectile.bulletId
+							});
+							tree.remove(bullets[i]);
+							bullets.splice(i, 1);
+							players[projectile.playerId].bulletsShot--;
+							break;
+						}		
+					}
+				}
 			}
 			if (projectile.time <= 0){
 				emit("bullet-destroy", {
 					playerId: projectile.playerId,
 					bulletId: projectile.bulletId
 				});
+				tree.remove(bullets[i]);
 				bullets.splice(i, 1);
 				players[projectile.playerId].bulletsShot--;
 				projectile.time = 10;
 			}
-		}
-	}
-}
-
-function bulletToWall(projectile, i){
-		for (var o = 0; o < blocks.length; o++){
-			if (blocks[o]){
-				if (cirToRectCollision(projectile, blocks[o]) && blocks[o]){
-					blocks[o].health -= 10;
-					blocks[o].health = Math.round(blocks[o].health);
-					emit("bullet-destroy", {
-						playerId: projectile.playerId,
-						bulletId: projectile.bulletId
-					});
-					bullets.splice(i, 1);
-					players[projectile.playerId].bulletsShot--;
-					break;
-				}
-			}
-		}
-}
-
-function bulletToPlayer(projectile, i){
-	for (var player in players){
-		if (players[player].id !== projectile.playerId && cirToCirCollision(projectile, players[player]) && !players[player].dead && players[player]){
-			players[player].health -= 10;
-			players[player].health = Math.round(players[player].health);
-			emit("bullet-destroy", {
-				playerId: projectile.playerId,
-				bulletId: projectile.bulletId
-			});
-			bullets.splice(i, 1);
-			players[projectile.playerId].bulletsShot--;
-			if (players[player].health <= 0){ //player duplicate
-				players[player].dead = true;
-				players[player].latestWinner.username = players[projectile.playerId].username;
-				players[player].latestWinner.color = players[projectile.playerId].color;
-					emit("plr-death", {
-					loser: {
-						username: players[player].username,
-						id: players[player].id,
-						color: players[player].color
-					},
-					winner: {
-						username: players[player].latestWinner.username,
-						color: players[player].latestWinner.color
-					},
-					type: "player"
-				});
-			}
-			break;
-		}
-	}
-}
-
-function bulletToRambot(projectile, i){
-	for (var o = 0; o < ramBots.length; o++){
-		if (cirToCirCollision(projectile, ramBots[o]) && ramBots[o]){
-			ramBots[o].health -= 10;
-			ramBots[o].health = Math.round(ramBots[o].health);
-			emit("bullet-destroy", {
-				playerId: projectile.playerId,
-				bulletId: projectile.bulletId
-			});
-			bullets.splice(i, 1);
-			players[projectile.playerId].bulletsShot--;
-			break;
 		}
 	}
 }
@@ -803,6 +849,7 @@ io.on('connection', socket => {
 						y: info.coords.y
 					}
 				});
+				tree.insert(blocks[blocks.length - 1]);
 			}
 		});
 		socket.on("shoot", info => {
@@ -830,8 +877,13 @@ io.on('connection', socket => {
 						x: info.coords.x,
 						y: info.coords.y
 					},
+					coords: {
+						x: players[socket.id].coords.x,
+						y: players[socket.id].coords.y
+					},
 					color: "#72bcd4"
 				});
+				tree.insert(bullets[bullets.length - 1]);
 			}
 		});
 		socket.on("send", msg => {
@@ -880,6 +932,7 @@ io.on('connection', socket => {
 				canShoot: true,
 				canPlace: true
 			};
+			tree.insert(players[socket.id]);
 			setup();
 			socket.emit('joining');
 			emit('plr-joined', {
@@ -912,16 +965,19 @@ io.on('connection', socket => {
 		emit("leave", socket.id);
 		for (var i = 0; i < blocks.length; i++){
 			if (blocks[i].playerId == socket.id){
+				tree.remove(blocks[i]);
 				blocks.splice(i, 1);
 			}
 		}
 
 		for (var i = 0; i < bullets.length; i++){
 			if (bullets[i].playerId == socket.id){
+				tree.remove(bullets[i]);
 				bullets.splice(i, 1);
 			}
 		}
 
+		tree.remove(players[socket.id]);
 		delete players[socket.id];
 	});
 });
