@@ -162,28 +162,36 @@ function emit(type, data){
 setInterval(() => {
 	if (arePlayers){
 		if (healthDrops.length < 10){
+			var index;
+
+			if (healthDrops.length == 0){
+				index = 0;
+			} else {
+				index = healthDrops.length;
+			}
+
 			healthDrops.push({
 				type: "healthDrop",
 				dropId: randomstring.generate(),
 				width: 30,
 				height: 30,
-				index: healthDrops.length - 1,
+				index: index,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
 				},
 				color: "#4ee44e"
 			});
-			tree.insert(healthDrops[healthDrops.length - 1]);
+			tree.insert(healthDrops[index]);
 			emit('hdupdate', {
-				dropId: healthDrops[healthDrops.length - 1].dropId,
-				width: healthDrops[healthDrops.length - 1].width,
-				height: healthDrops[healthDrops.length - 1].height,
+				dropId: healthDrops[index].dropId,
+				width: healthDrops[index].width,
+				height: healthDrops[index].height,
 				coords: {
-					x: healthDrops[healthDrops.length - 1].coords.x,
-					y: healthDrops[healthDrops.length - 1].coords.y
+					x: healthDrops[index].coords.x,
+					y: healthDrops[index].coords.y
 				},
-				color: healthDrops[healthDrops.length - 1].color
+				color: healthDrops[index].color
 			});
 		}
 		if (ramBots.length < 6){
@@ -202,6 +210,7 @@ setInterval(() => {
 		}
 	}
 }, 20000);
+
 
 //player respawn check
 setInterval(() => {
@@ -875,148 +884,177 @@ io.on('connection', socket => {
 	socket.emit("setup");
 	function setup(){
 		socket.on('movement', keys => {
-			if (!players[socket.id].dead){
-				players[socket.id].keys = keys;
+			if (typeof keys == 'object'){
+				if (!players[socket.id].dead){
+					players[socket.id].keys = keys;
+				}
+			} else {
+				socket.disconnect();
 			}
 		});
 		socket.on("place", info => {
-			info.playerId = socket.id;
-			info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
-			info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
-			if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
-				players[socket.id].time = 5000;
-				players[socket.id].pTime = 5;
-				players[socket.id].canPlace = false;
-				players[info.playerId].blocksPlaced++;
-				blocks.push({
-					type: "block",
-					playerId: socket.id,
-					blockId: randomstring.generate(),
-					health: 50,
-					width: 50,
-					height: 50,
-					index: blocks.length - 1,
-					color: "white",
-					coords: {
-						x: info.coords.x,
-						y: info.coords.y
-					}
-				});
-				tree.insert(blocks[blocks.length - 1]);
-				emit('blo-update', {
-					playerId: blocks[blocks.length - 1].playerId,
-					blockId: blocks[blocks.length - 1].blockId,
-					width: blocks[blocks.length - 1].width,
-					height: blocks[blocks.length - 1].height,
-					health: blocks[blocks.length - 1].health,
-					color: blocks[blocks.length - 1].color,
-					coords: {
-						x: blocks[blocks.length - 1].coords.x,
-						y: blocks[blocks.length - 1].coords.y
-					}
-				});
+			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
+				info.playerId = socket.id;
+				info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
+				info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
+
+				var index;
+
+				if (blocks.length == 0){
+					index = 0;
+				} else {
+					index = blocks.length;
+				}
+
+				if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
+					players[socket.id].time = 5000;
+					players[socket.id].pTime = 5;
+					players[socket.id].canPlace = false;
+					players[info.playerId].blocksPlaced++;
+					blocks.push({
+						type: "block",
+						playerId: socket.id,
+						blockId: randomstring.generate(),
+						health: 50,
+						width: 50,
+						height: 50,
+						index: index,
+						color: "white",
+						coords: {
+							x: info.coords.x,
+							y: info.coords.y
+						}
+					});
+					tree.insert(blocks[index]);
+					emit('blo-update', {
+						playerId: blocks[index].playerId,
+						blockId: blocks[index].blockId,
+						width: blocks[index].width,
+						height: blocks[index].height,
+						health: blocks[index].health,
+						color: blocks[index].color,
+						coords: {
+							x: blocks[index].coords.x,
+							y: blocks[index].coords.y
+						}
+					});
+				}
+			} else {
+				socket.disconnect();
 			}
 		});
 		socket.on("shoot", info => {
-			if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
-				players[socket.id].time = 5000;
-				players[socket.id].bTime = 5;
-				players[socket.id].canShoot = false;
-				players[socket.id].bulletsShot++;
-				bullets.push({
-					type: "bullet",
-					playerId: socket.id,
-					radius: 6,
-					bulletId: randomstring.generate(),
-					speed: 30,
-					time: 50,
-					screen: {
-						width: info.screen.width,
-						height: info.screen.height
-					},
-					bulletCoords: {
-						x: players[socket.id].coords.x,
-						y: players[socket.id].coords.y
-					},
-					targetCoords: {
-						x: info.coords.x,
-						y: info.coords.y
-					},
-					coords: {
-						x: players[socket.id].coords.x,
-						y: players[socket.id].coords.y
-					},
-					color: "#72bcd4"
-				});
-				tree.insert(bullets[bullets.length - 1]);
+			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
+				if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
+					players[socket.id].time = 5000;
+					players[socket.id].bTime = 5;
+					players[socket.id].canShoot = false;
+					players[socket.id].bulletsShot++;
+					bullets.push({
+						type: "bullet",
+						playerId: socket.id,
+						radius: 6,
+						bulletId: randomstring.generate(),
+						speed: 30,
+						time: 50,
+						screen: {
+							width: info.screen.width,
+							height: info.screen.height
+						},
+						bulletCoords: {
+							x: players[socket.id].coords.x,
+							y: players[socket.id].coords.y
+						},
+						targetCoords: {
+							x: info.coords.x,
+							y: info.coords.y
+						},
+						coords: {
+							x: players[socket.id].coords.x,
+							y: players[socket.id].coords.y
+						},
+						color: "#72bcd4"
+					});
+					tree.insert(bullets[bullets.length - 1]);
+				}
+			} else {
+				socket.disconnect();
 			}
 		});
 		socket.on("send", msg => {
-			const message = xss(msg.trim());
-			if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
-				players[socket.id].time = 5000;
-				emit("recieve", {
-					msg: message,
-					username: players[socket.id].username,
-					color: players[socket.id].color
-				});
-			} else if (msg.length > 100){
+			if (typeof msg == 'string'){
+				const message = xss(msg.trim());
+				if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
+					players[socket.id].time = 5000;
+					emit("recieve", {
+						msg: message,
+						username: players[socket.id].username,
+						color: players[socket.id].color
+					});
+				} else if (msg.length > 100){
+					socket.disconnect();
+				}
+			} else {
 				socket.disconnect();
 			}
 		});
 	}
 	socket.on('join', nickname => {
-		const username = nickname.trim();
-		if (!loggedIn && username.length !== 0 && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
-			players[socket.id] = {
-				type: "player",
-				id: socket.id,
-				username: username,
-				radius: 26,
-				coords: {
-					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-				},
-				keys: {},
-				color: colors[Math.floor(Math.random() * colors.length)],
-				health: 100,
-				dead: false,
-				respawnTime: 5,
-				latestWinner: {
-					username: null,
-					color: null
-				},
-				stamina: 100,
-				running: false,
-				burntOut: false,
-				time: 5000,
-				bTime: 5,
-				pTime: 5,
-				blocksPlaced: 0,
-				bulletsShot: 0,
-				canShoot: true,
-				canPlace: true
-			};
-			tree.insert(players[socket.id]);
-			setup();
-			socket.emit('joining');
-			emit('plr-joined', {
-				username: username,
-				color: players[socket.id].color
-			});
-			loggedIn = true;
-		} else if (username.length > 16){
+		if (typeof nickname == 'string'){
+			const username = nickname.trim();
+			if (!loggedIn && username.length !== 0 && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
+				players[socket.id] = {
+					type: "player",
+					id: socket.id,
+					username: username,
+					radius: 26,
+					coords: {
+						x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+						y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+					},
+					keys: {},
+					color: colors[Math.floor(Math.random() * colors.length)],
+					health: 100,
+					dead: false,
+					respawnTime: 5,
+					latestWinner: {
+						username: null,
+						color: null
+					},
+					stamina: 100,
+					running: false,
+					burntOut: false,
+					time: 5000,
+					bTime: 5,
+					pTime: 5,
+					blocksPlaced: 0,
+					bulletsShot: 0,
+					canShoot: true,
+					canPlace: true
+				};
+				tree.insert(players[socket.id]);
+				setup();
+				socket.emit('joining');
+				emit('plr-joined', {
+					username: username,
+					color: players[socket.id].color
+				});
+				loggedIn = true;
+			} else if (username.length > 16){
+				socket.disconnect();
+			} else if (checkString(username) == undefined){
+				socket.emit("warning", {
+					header: "Uh Oh",
+					warning: "Please enter a valid nickname!"
+				});
+			} else if (!checkCopy(username)){
+				socket.emit("warning", {
+					header: "Uh Oh",
+					warning: "This nickname has been taken."
+				});
+			}
+		} else {
 			socket.disconnect();
-		} else if (checkString(username) == undefined){
-			socket.emit("warning", {
-				header: "Uh Oh",
-				warning: "Please enter a valid nickname!"
-			});
-		} else if (!checkCopy(username)){
-			socket.emit("warning", {
-				header: "Uh Oh",
-				warning: "This nickname has been taken."
-			});
 		}
 	});
 	socket.on("bullet-num", () => {
@@ -1027,7 +1065,6 @@ io.on('connection', socket => {
 		socket.emit("bullet-numdate", num);
 	});
 	socket.on('disconnect', () => {
-
 		for (var i = 0; i < blocks.length;){
 			if (blocks[i].playerId == socket.id){
 				emit("block-destroy", {
