@@ -268,6 +268,35 @@ function ramBotEmit(){
 								ramBotY = 3.5;
 							}
 						}
+						for (var u = 0; u < closestObjects.length; u++){
+							if (closestObjects[u].type == "block"){
+								if (closestObjects[u]){
+									const block = closestObjects[u];
+									if (cirToRectCollision(ramBots[i], block)){
+										var kbX = 80;
+										var kbY = 80;
+										const dir = Math.atan2((ramBots[i].coords.x - 80) - block.coords.x, (ramBots[i].coords.y - 80) - block.coords.y);
+										if (Math.sign(ramBotX) == 1){
+											kbX = kbX;
+										}
+										if (Math.sign(ramBotX) == -1){
+											kbX = -kbX;
+										}
+										if (Math.sign(ramBotY) == 1){
+											kbY = kbY;
+										}
+										if (Math.sign(ramBotY) == -1){
+											kbY = -kbY;
+										}
+										ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
+										ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
+										block.health -= 8;
+										block.health = Math.round(block.health);
+										break;
+									}								
+								}
+							}
+						}
 						if (cirToCirCollision(ramBots[i], player)){
 							var bkbX = 80;
 							var bkbY = 80;
@@ -310,11 +339,10 @@ function ramBotEmit(){
 								}
 							}
 							//prevent knocking into wall
-							const closestObjects2 = knn(tree, ramBots[i].coords.x, ramBots[i].coords.y, loopLimit);
-							for (var b = 0; b < closestObjects2.length; b++){
-								if (closestObjects2[b].type == "block"){
-									if (closestObjects2[b]){
-										const block = closestObjects2[b];
+							for (var b = 0; b < closestObjects.length; b++){
+								if (closestObjects[b].type == "block"){
+									if (closestObjects[b]){
+										const block = closestObjects[b];
 										if (Math.sqrt(Math.pow(ramBots[i].coords.x - block.coords.x, 2) + Math.pow(ramBots[i].coords.y - block.coords.y, 2)) <= 155){
 											if (Math.sign(player.coords.x) == 1){
 												if (block.coords.x - player.coords.x < 0){
@@ -387,35 +415,6 @@ function ramBotEmit(){
 							}
 							break;
 						}
-					}
-				}
-				//bot and block collision
-				for (var u = 0; u < closestObjects.length; u++){
-					if (closestObjects[u].type == "block"){
-						if (closestObjects[u]){
-							if (cirToRectCollision(ramBots[i], closestObjects[u])){
-								var kbX = 80;
-								var kbY = 80;
-								const dir = Math.atan2((ramBots[i].coords.x - 80) - closestObjects[u].coords.x, (ramBots[i].coords.y - 80) - closestObjects[u].coords.y);
-								if (Math.sign(ramBotX) == 1){
-									kbX = kbX;
-								}
-								if (Math.sign(ramBotX) == -1){
-									kbX = -kbX;
-								}
-								if (Math.sign(ramBotY) == 1){
-									kbY = kbY;
-								}
-								if (Math.sign(ramBotY) == -1){
-									kbY = -kbY;
-								}
-								ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
-								ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
-								closestObjects[u].health -= 8;
-								closestObjects[u].health = Math.round(closestObjects[u].health);
-								break;
-							}
-						}								
 					}
 				}
 			}
