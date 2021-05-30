@@ -167,6 +167,7 @@ setInterval(() => {
 				dropId: randomstring.generate(),
 				width: 30,
 				height: 30,
+				index: healthDrops.length - 1,
 				coords: {
 					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
@@ -174,6 +175,16 @@ setInterval(() => {
 				color: "#4ee44e"
 			});
 			tree.insert(healthDrops[healthDrops.length - 1]);
+			emit('hdupdate', {
+				dropId: healthDrops[healthDrops.length - 1].dropId,
+				width: healthDrops[healthDrops.length - 1].width,
+				height: healthDrops[healthDrops.length - 1].height,
+				coords: {
+					x: healthDrops[healthDrops.length - 1].coords.x,
+					y: healthDrops[healthDrops.length - 1].coords.y
+				},
+				color: healthDrops[healthDrops.length - 1].color
+			});
 		}
 		if (ramBots.length < 6){
 			ramBots.push({
@@ -259,17 +270,19 @@ function ramBotEmit(){
 					if (playerInfo[index]){
 						const targetPlayer = players[playerInfo[index].playerId];
 						//follow closest player
-						if (targetPlayer.coords.x < ramBots[i].coords.x){
-							ramBotX = -3.5;
-						}
-						if (targetPlayer.coords.x > ramBots[i].coords.x){
-							ramBotX = 3.5;
-						}
-						if (targetPlayer.coords.y < ramBots[i].coords.y){
-							ramBotY = -3.5;
-						}
-						if (targetPlayer.coords.y > ramBots[i].coords.y){
-							ramBotY = 3.5;
+						if (targetPlayer){
+							if (targetPlayer.coords.x < ramBots[i].coords.x){
+								ramBotX = -3.5;
+							}
+							if (targetPlayer.coords.x > ramBots[i].coords.x){
+								ramBotX = 3.5;
+							}
+							if (targetPlayer.coords.y < ramBots[i].coords.y){
+								ramBotY = -3.5;
+							}
+							if (targetPlayer.coords.y > ramBots[i].coords.y){
+								ramBotY = 3.5;
+							}
 						}
 					}
 					for (var u = 0; u < closestBlocks.length; u++){
@@ -464,6 +477,25 @@ function playerEmit(){
 				const closestBlocks = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit, item => {
 					return item.type == "block";
 				});
+				const closestHealthDrops = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit, item => {
+					return item.type == "healthDrop";
+				});
+
+				for (var h = 0; h < closestHealthDrops.length; h++){
+					if (cirToRectCollision(players[player], closestHealthDrops[h])){
+						emit("healthDrop-destroy", closestHealthDrops[h].dropId);
+						tree.remove(closestHealthDrops[h]);
+						healthDrops.splice(closestHealthDrops[h].index, 1); //healthDrops destroy
+						if (players[player].health + 10 > 100){
+							const subtractedAmount = players[player].health + 10 - 100;
+							const newAmount = 10 - subtractedAmount;
+							players[player].health += newAmount;
+						} else {
+							players[player].health += 10;
+						}
+						break;
+					}
+				}
 
 				for (var i = 0; i < closestBlocks.length; i++){
 					if (closestBlocks[i]){
@@ -629,75 +661,6 @@ function playerEmit(){
 	}
 }
 
-function blockEmit(){
-	if (arePlayers){
-		for (var i = 0; i < blocks.length; i++){
-			const chunk = blocks[i];
-			if (chunk){
-				emit('blo-update', {
-					playerId: chunk.playerId,
-					blockId: chunk.blockId,
-					width: chunk.width,
-					height: chunk.height,
-					health: chunk.health,
-					color: chunk.color,
-					coords: {
-						x: chunk.coords.x,
-						y: chunk.coords.y
-					}
-				});
-				if (chunk.health <= 0){
-					emit("block-destroy", {
-						playerId: chunk.playerId,
-						blockId: chunk.blockId
-					});
-					if (players[chunk.playerId]){
-						players[chunk.playerId].blocksPlaced--;
-						tree.remove(blocks[i]);
-						blocks.splice(i, 1);
-					}
-				}
-			}
-		}
-	}
-}
-
-function healthDropEmit(){
-	if (arePlayers){
-		for (var i = 0; i < healthDrops.length; i++){
-			emit('hdupdate', {
-				dropId: healthDrops[i].dropId,
-				width: healthDrops[i].width,
-				height: healthDrops[i].height,
-				coords: {
-					x: healthDrops[i].coords.x,
-					y: healthDrops[i].coords.y
-				},
-				color: healthDrops[i].color
-			});
-
-			const closestPlayers = knn(tree, healthDrops[i].coords.x, healthDrops[i].coords.y, loopLimit, item => {
-				return item.type == "player";
-			});
-			for (var h = 0; h < closestPlayers.length; h++){
-				if (cirToRectCollision(closestPlayers[h], healthDrops[i])){
-					emit("healthDrop-destroy", healthDrops[i].dropId);
-					tree.remove(healthDrops[i]);
-					healthDrops.splice(i, 1); //healthDrops destroy
-					if (closestPlayers[h].health + 10 > 100){
-						const subtractedAmount = closestPlayers[h].health + 10 - 100;
-						const newAmount = 10 - subtractedAmount;
-						closestPlayers[h].health += newAmount;
-					} else {
-						closestPlayers[h].health += 10;
-					}
-					break;
-				}
-			}
-		}
-	}
-}
-
 function bulletEmit(){
 	if (arePlayers){
 		for (var i = 0; i < bullets.length; i++){
@@ -731,17 +694,62 @@ function bulletEmit(){
 
 				for (var o = 0; o < closestBlocks.length; o++){
 					if (closestBlocks[o]){
-						if (cirToRectCollision(projectile, closestBlocks[o]) &&closestBlocks[o]){
-							closestBlocks[o].health -= 10;
-							closestBlocks[o].health = Math.round(closestBlocks[o].health);
-							emit("bullet-destroy", {
-								playerId: projectile.playerId,
-								bulletId: projectile.bulletId
-							});
-							tree.remove(bullets[i]);
-							bullets.splice(i, 1);
-							players[projectile.playerId].bulletsShot--;
-							break;
+						if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o]){
+							if (closestBlocks[o].health <= 0){
+								emit('blo-update', {
+									playerId: closestBlocks[o].playerId,
+									blockId: closestBlocks[o].blockId,
+									width: closestBlocks[o].width,
+									height: closestBlocks[o].height,
+									health: closestBlocks[o].health,
+									color: closestBlocks[o].color,
+									coords: {
+										x: closestBlocks[o].coords.x,
+										y: closestBlocks[o].coords.y
+									}
+								});
+
+								emit("bullet-destroy", {
+									playerId: projectile.playerId,
+									bulletId: projectile.bulletId
+								});
+								tree.remove(bullets[i]);
+								bullets.splice(i, 1);
+								players[projectile.playerId].bulletsShot--;								
+
+								emit("block-destroy", {
+									playerId: closestBlocks[o].playerId,
+									blockId: closestBlocks[o].blockId
+								});
+								players[closestBlocks[o].playerId].blocksPlaced--;
+								tree.remove(closestBlocks[o]);
+								blocks.splice(closestBlocks[o].index, 1);
+								break;
+							} else {
+								closestBlocks[o].health -= 10;
+								closestBlocks[o].health = Math.round(closestBlocks[o].health);
+								emit("bullet-destroy", {
+									playerId: projectile.playerId,
+									bulletId: projectile.bulletId
+								});
+								tree.remove(bullets[i]);
+								bullets.splice(i, 1);
+								players[projectile.playerId].bulletsShot--;
+
+								emit('blo-update', {
+									playerId: closestBlocks[o].playerId,
+									blockId: closestBlocks[o].blockId,
+									width: closestBlocks[o].width,
+									height: closestBlocks[o].height,
+									health: closestBlocks[o].health,
+									color: closestBlocks[o].color,
+									coords: {
+										x: closestBlocks[o].coords.x,
+										y: closestBlocks[o].coords.y
+									}
+								});
+								break;
+							}
 						}
 					}
 				}
@@ -820,11 +828,9 @@ function checkPlayers(){
 //main emit
 setInterval(() => {
 	checkPlayers();
-	bulletEmit(); //circle
-	playerEmit(); //circle
-	blockEmit(); //square
 	ramBotEmit(); //circle
-	healthDropEmit(); //square
+	playerEmit(); //circle
+	bulletEmit(); //circle
 }, tickrate);
 
 io.on('connection', socket => {
@@ -852,6 +858,7 @@ io.on('connection', socket => {
 					health: 50,
 					width: 50,
 					height: 50,
+					index: blocks.length - 1,
 					color: "white",
 					coords: {
 						x: info.coords.x,
@@ -859,6 +866,18 @@ io.on('connection', socket => {
 					}
 				});
 				tree.insert(blocks[blocks.length - 1]);
+				emit('blo-update', {
+					playerId: blocks[blocks.length - 1].playerId,
+					blockId: blocks[blocks.length - 1].blockId,
+					width: blocks[blocks.length - 1].width,
+					height: blocks[blocks.length - 1].height,
+					health: blocks[blocks.length - 1].health,
+					color: blocks[blocks.length - 1].color,
+					coords: {
+						x: blocks[blocks.length - 1].coords.x,
+						y: blocks[blocks.length - 1].coords.y
+					}
+				});
 			}
 		});
 		socket.on("shoot", info => {
