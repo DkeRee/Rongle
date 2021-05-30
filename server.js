@@ -677,17 +677,17 @@ function healthDropEmit(){
 			const closestPlayers = knn(tree, healthDrops[i].coords.x, healthDrops[i].coords.y, loopLimit, item => {
 				return item.type == "player";
 			});
-			for (var i = 0; i < closestPlayers.length; i++){
-				if (cirToRectCollision(closestPlayers[i], healthDrops[i])){
+			for (var h = 0; h < closestPlayers.length; h++){
+				if (cirToRectCollision(closestPlayers[h], healthDrops[i])){
 					emit("healthDrop-destroy", healthDrops[i].dropId);
 					tree.remove(healthDrops[i]);
 					healthDrops.splice(i, 1); //healthDrops destroy
-					if (closestPlayers[i].health + 10 > 100){
-						const subtractedAmount = closestPlayers[i].health + 10 - 100;
+					if (closestPlayers[h].health + 10 > 100){
+						const subtractedAmount = closestPlayers[h].health + 10 - 100;
 						const newAmount = 10 - subtractedAmount;
-						closestPlayers[i].health += newAmount;
+						closestPlayers[h].health += newAmount;
 					} else {
-						closestPlayers[i].health += 10;
+						closestPlayers[h].health += 10;
 					}
 					break;
 				}
