@@ -651,9 +651,11 @@ function blockEmit(){
 						playerId: chunk.playerId,
 						blockId: chunk.blockId
 					});
-					players[chunk.playerId].blocksPlaced--;
-					tree.remove(blocks[i]);
-					blocks.splice(i, 1);
+					if (chunk){
+						players[chunk.playerId].blocksPlaced--;
+						tree.remove(blocks[i]);
+						blocks.splice(i, 1);
+					}
 				}
 			}
 		}
