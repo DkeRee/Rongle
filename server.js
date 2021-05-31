@@ -350,26 +350,28 @@ function ramBotEmit(){
 									});
 									break;
 								} else {
-									emit('blo-update', {
-										playerId: block.playerId,
-										blockId: block.blockId,
-										width: block.width,
-										height: block.height,
-										health: block.health,
-										color: block.color,
-										coords: {
-											x: block.coords.x,
-											y: block.coords.y
-										}
-									});
-									emit("block-destroy", {
-										playerId: block.playerId,
-										blockId: block.blockId
-									});
-									players[block.playerId].blocksPlaced--;
-									tree.remove(block);
-									blocks.splice(block.index, 1);
-									break;
+									if (players[block.playerId]){
+										emit('blo-update', {
+											playerId: block.playerId,
+											blockId: block.blockId,
+											width: block.width,
+											height: block.height,
+											health: block.health,
+											color: block.color,
+											coords: {
+												x: block.coords.x,
+												y: block.coords.y
+											}
+										});
+										emit("block-destroy", {
+											playerId: block.playerId,
+											blockId: block.blockId
+										});
+										players[block.playerId].blocksPlaced--;
+										tree.remove(block);
+										blocks.splice(block.index, 1);
+										break;
+									}
 								}
 							}								
 						}
