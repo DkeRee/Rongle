@@ -709,9 +709,11 @@ function bulletEmit(){
 									playerId: closestBlocks[o].playerId,
 									blockId: closestBlocks[o].blockId
 								});
-								players[closestBlocks[o].playerId].blocksPlaced--;
-								tree.remove(closestBlocks[o]);
-								blocks.splice(closestBlocks[o].index, 1);
+								if (players[closestBlocks[o].playerId]){
+									players[closestBlocks[o].playerId].blocksPlaced--;
+									tree.remove(closestBlocks[o]);
+									blocks.splice(closestBlocks[o].index, 1);
+								}
 								break;
 							} else {
 								closestBlocks[o].health -= 10;
