@@ -11,6 +11,11 @@ const io = socket(server);
 const RBush = require('rbush');
 const knn = require('rbush-knn');
 
+const serverInfo = {
+	respawn: true,
+	spawn: true
+};
+
 class MyRBush extends RBush {
 	toBBox({
 		coords: {
@@ -173,87 +178,6 @@ function emit(type, data){
 		io.to(players[player].id).emit(type, data);
 	}
 }
-
-//spawner
-setInterval(() => {
-	if (arePlayers){
-		if (healthDrops.length < 10){
-			var index;
-
-			if (healthDrops.length == 0){
-				index = 0;
-			} else {
-				index = healthDrops.length;
-			}
-
-			healthDrops.push({
-				type: "healthDrop",
-				dropId: randomstring.generate(),
-				width: 30,
-				height: 30,
-				index: index,
-				coords: {
-					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-				},
-				color: "#4ee44e"
-			});
-			tree.insert(healthDrops[index]);
-			emit('hdupdate', {
-				dropId: healthDrops[index].dropId,
-				width: healthDrops[index].width,
-				height: healthDrops[index].height,
-				coords: {
-					x: healthDrops[index].coords.x,
-					y: healthDrops[index].coords.y
-				},
-				color: healthDrops[index].color
-			});
-		}
-		if (ramBots.length < 6){
-			ramBots.push({
-				type: "ramBot",
-				botId: randomstring.generate(),
-				health: 30,
-				radius: 15,
-				coords: {
-					x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-					y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-				},
-				color: "#DF362D"
-			});
-			tree.insert(ramBots[ramBots.length - 1]);
-		}
-	}
-}, 20000);
-
-
-//player respawn check
-setInterval(() => {
-	if (arePlayers){
-		for (var player in players){
-			if (!players[player].dead && players[player].health < 100){
-				players[player].health++;
-				players[player].health = Math.round(players[player].health);
-			}
-			if (players[player].dead){
-				players[player].respawnTime -= 1;
-				//respawning section
-				if (players[player].respawnTime <= -1){
-					players[player].coords.x = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
-					players[player].coords.y = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
-					players[player].health = 100;
-					players[player].respawnTime = 5;
-					players[player].dead = false;
-					emit("plr-respawn", {
-						playerId: players[player].id,
-						playerColor: players[player].color
-					});
-				}
-			}
-		}
-	}
-}, 1000);
 
 function ramBotEmit(){
 	if (arePlayers){
@@ -888,10 +812,102 @@ function checkPlayers(){
 	}	
 }
 
+function spawn(){
+	if (arePlayers){
+		if (serverInfo.spawn){
+			if (healthDrops.length < 10){
+				var index;
+
+				if (healthDrops.length == 0){
+					index = 0;
+				} else {
+					index = healthDrops.length;
+				}	
+
+				healthDrops.push({
+					type: "healthDrop",
+					dropId: randomstring.generate(),
+					width: 30,
+					height: 30,
+					index: index,
+					coords: {
+						x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+						y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+					},
+					color: "#4ee44e"
+				});
+				tree.insert(healthDrops[index]);
+				emit('hdupdate', {
+					dropId: healthDrops[index].dropId,
+					width: healthDrops[index].width,
+					height: healthDrops[index].height,
+					coords: {
+						x: healthDrops[index].coords.x,
+						y: healthDrops[index].coords.y
+					},
+					color: healthDrops[index].color
+				});
+			}
+			if (ramBots.length < 6){
+				ramBots.push({
+					type: "ramBot",
+					botId: randomstring.generate(),
+					health: 30,
+					radius: 15,
+					coords: {
+						x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+						y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+					},
+					color: "#DF362D"
+				});
+				tree.insert(ramBots[ramBots.length - 1]);
+			}
+			serverInfo.spawn = false;
+			setTimeout(() => {
+				serverInfo.spawn = true;
+			}, 20000);
+		}
+	}
+}
+
+function respawn(){
+	if (arePlayers){
+		if (serverInfo.respawn){
+			for (var player in players){
+				if (!players[player].dead && players[player].health < 100){
+					players[player].health++;
+					players[player].health = Math.round(players[player].health);
+				}
+				if (players[player].dead){
+					players[player].respawnTime -= 1;
+					//respawning section
+					if (players[player].respawnTime <= -1){
+						players[player].coords.x = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
+						players[player].coords.y = Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1);
+						players[player].health = 100;
+						players[player].respawnTime = 5;
+						players[player].dead = false;
+						emit("plr-respawn", {
+							playerId: players[player].id,
+							playerColor: players[player].color
+						});
+					}
+				}
+			}
+			serverInfo.respawn = false;
+			setTimeout(() => {
+				serverInfo.respawn = true;
+			}, 1000);
+		}
+	}
+}
+
 
 //main emit
 setInterval(() => {
 	checkPlayers();
+	spawn();
+	respawn();
 	ramBotEmit(); //circle
 	playerEmit(); //circle
 	bulletEmit(); //circle
