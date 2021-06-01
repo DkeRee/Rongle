@@ -40,7 +40,7 @@ class MyRBush extends RBush {
 
 const tree = new MyRBush();
 
-const loopLimit = 3;
+const loopLimit = 7;
 
 const tickrate = 1000/60;
 
