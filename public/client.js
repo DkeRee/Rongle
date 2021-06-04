@@ -150,7 +150,7 @@
 			}
 
 			for (var player in players){
-				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health, players[player].rotation, players[player].screen);
+				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health, players[player].rotation);
 			}
 
 			coordText.innerText = `Coords: ${me.myX}, ${me.myY}`;
@@ -418,19 +418,17 @@
 					me.burntOut = info.burntOut;
 				}
 				players[info.id].coords = info.coords;
-				players[info.id].rotation = info.rotationInfo.rotation;
-				players[info.id].screen = info.rotationInfo.screen;
+				players[info.id].rotation = info.rotation;
 				players[info.id].health = info.health;
 			} else {
 				players[info.id] = {
 					coords: info.coords,
-					rotation: info.rotationInfo.rotation,
-					screen: info.rotationInfo.screen,
+					rotation: info.rotation,
 					username: info.username,
 					health: info.health,
 					blocksUsed: info.blocksUsed,
 					color: info.color,
-					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotationInfo.rotation, info.rotationInfo.screen)
+					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation)
 				};
 				bullets[info.id] = {};
 				blocks[info.id] = {};
