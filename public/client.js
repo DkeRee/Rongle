@@ -381,15 +381,24 @@
 			playerContainer.setAttribute("class", "player-widget");
 			playerContainer.setAttribute("id", id);
 
-			d3.select(playerContainer)
-				.append("svg")
-				.attr("class", "player-svg")
-				.attr("width", "60")
-				.attr("height", "60")
-				.append("circle")
+			const div = d3.select(playerContainer).append("svg");
+			div.attr("class", "player-svg")
+			div.attr("width", "60")
+			div.attr("height", "60");
+
+			div.append("circle")
 				.attr("cx", 30)
 				.attr("cy", 30)
 				.attr("r", 20)
+				.style("stroke", info.color)
+				.style("stroke-width", 2)
+				.style("fill", "transparent");
+
+			div.append("rect")
+				.attr("width", "15")
+				.attr("height", "10")
+				.attr("x", "37.5%")
+				.attr("y", "41%")
 				.style("stroke", info.color)
 				.style("stroke-width", 2)
 				.style("fill", "transparent");
