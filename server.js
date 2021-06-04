@@ -854,6 +854,13 @@ function spawn(){
 				});
 			}
 			if (ramBots.length < 6){
+				var index;
+
+				if (ramBots.length == 0){
+					index = 0;
+ 				} else {
+ 					index = ramBots.length;
+ 				}
 				ramBots.push({
 					type: "ramBot",
 					botId: randomstring.generate(),
@@ -865,7 +872,7 @@ function spawn(){
 					},
 					color: "#DF362D"
 				});
-				tree.insert(ramBots[ramBots.length - 1]);
+				tree.insert(ramBots[index]);
 			}
 			serverInfo.spawn = false;
 			setTimeout(() => {
@@ -908,41 +915,39 @@ function respawn(){
 }
 
 function checkDeletion(){
-	if (arePlayers){
-		for (var i = 0; i < deletionQueue.length;){
-			const socket = deletionQueue[i];
+	for (var i = 0; i < deletionQueue.length;){
+		const socket = deletionQueue[i];
 
-			for (var o = 0; o < blocks.length;){
-				if (blocks[o].playerId == socket){
-					emit("block-destroy", {
-						playerId: blocks[o].playerId,
-						blockId: blocks[o].blockId
-					});
-					tree.remove(blocks[o]);
-					blocks.splice(o, 1);				
-				} else {
-					o++;
-				}
+		for (var o = 0; o < blocks.length;){
+			if (blocks[o].playerId == socket){
+				emit("block-destroy", {
+					playerId: blocks[o].playerId,
+					blockId: blocks[o].blockId
+				});
+				tree.remove(blocks[o]);
+				blocks.splice(o, 1);				
+			} else {
+				o++;
 			}
-
-			for (var o = 0; o < bullets.length;){
-				if (bullets[o].playerId == socket){
-					emit("bullet-destroy", {
-						playerId: bullets[o].playerId,
-						bulletId: bullets[o].bulletId
-					});
-					tree.remove(bullets[o]);
-					bullets.splice(o, 1);
-				} else {
-					o++;
-				}			
-			}
-
-			tree.remove(players[socket]);
-			delete players[socket];
-			emit("leave", socket);
-			deletionQueue.splice(i, 1);
 		}
+
+		for (var o = 0; o < bullets.length;){
+			if (bullets[o].playerId == socket){
+				emit("bullet-destroy", {
+					playerId: bullets[o].playerId,
+					bulletId: bullets[o].bulletId
+				});
+				tree.remove(bullets[o]);
+				bullets.splice(o, 1);
+			} else {
+				o++;
+			}			
+		}
+
+		tree.remove(players[socket]);
+		delete players[socket];
+		emit("leave", socket);
+		deletionQueue.splice(i, 1);
 	}
 }
 
