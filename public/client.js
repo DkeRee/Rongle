@@ -398,7 +398,7 @@
 				.attr("width", "15")
 				.attr("height", "10")
 				.attr("x", "37.5%")
-				.attr("y", "41%")
+				.attr("y", "42%")
 				.style("stroke", info.color)
 				.style("stroke-width", 2)
 				.style("fill", "transparent");
