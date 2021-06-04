@@ -931,7 +931,7 @@ function checkDeletion(){
 						bulletId: bullets[o].bulletId
 					});
 					tree.remove(bullets[o]);
-					bullets.splice(o, 1);				
+					bullets.splice(o, 1);
 				} else {
 					o++;
 				}			
