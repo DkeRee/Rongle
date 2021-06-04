@@ -909,7 +909,7 @@ function respawn(){
 
 function checkDeletion(){
 	if (arePlayers){
-		for (var i = 0; i < deletionQueue.length; i++){
+		for (var i = 0; i < deletionQueue.length;){
 			const socket = deletionQueue[i];
 
 			for (var o = 0; o < blocks.length;){
