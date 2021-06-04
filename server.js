@@ -46,6 +46,8 @@ const tickrate = 1000/60;
 
 const randomstring = require('randomstring');
 
+const deletionQueue = [];
+
 var players = {};
 var bullets = [];
 var blocks = [];
@@ -904,6 +906,43 @@ function respawn(){
 	}
 }
 
+function checkDeletion(){
+	if (arePlayers){
+		for (var i = 0; i < deletionQueue.length; i++){
+			const socket = deletionQueue[i];
+
+			for (var o = 0; o < blocks.length;){
+				if (blocks[o].playerId == socket){
+					emit("block-destroy", {
+						playerId: blocks[o].playerId,
+						blockId: blocks[o].blockId
+					});
+					tree.remove(blocks[o]);
+					blocks.splice(o, 1);				
+				} else {
+					o++;
+				}
+			}
+
+			for (var o = 0; o < bullets.length;){
+				if (bullets[o].playerId == socket){
+					emit("bullet-destroy", {
+						playerId: bullets[o].playerId,
+						bulletId: bullets[o].bulletId
+					});
+					tree.remove(bullets[o]);
+					bullets.splice(o, 1);				
+				} else {
+					o++;
+				}			
+			}
+
+			tree.remove(players[socket]);
+			delete players[socket];
+			emit("leave", socket);
+		}
+	}
+}
 
 //main emit
 setInterval(() => {
@@ -913,6 +952,7 @@ setInterval(() => {
 	ramBotEmit(); //circle
 	playerEmit(); //circle
 	bulletEmit(); //circle
+	checkDeletion();
 }, tickrate);
 
 io.on('connection', socket => {
@@ -1101,35 +1141,7 @@ io.on('connection', socket => {
 		socket.emit("bullet-numdate", num);
 	});
 	socket.on('disconnect', () => {
-		for (var i = 0; i < blocks.length;){
-			if (blocks[i].playerId == socket.id){
-				emit("block-destroy", {
-					playerId: blocks[i].playerId,
-					blockId: blocks[i].blockId
-				});
-				tree.remove(blocks[i]);
-				blocks.splice(i, 1);				
-			} else {
-				i++;
-			}
-		}
-
-		for (var i = 0; i < bullets.length;){
-			if (bullets[i].playerId == socket.id){
-				emit("bullet-destroy", {
-					playerId: bullets[i].playerId,
-					bulletId: bullets[i].bulletId
-				});
-				tree.remove(bullets[i]);
-				bullets.splice(i, 1);				
-			} else {
-				i++;
-			}			
-		}
-
-		tree.remove(players[socket.id]);
-		delete players[socket.id];
-		emit("leave", socket.id);
+		deletionQueue.push(socket.id);
 	});
 });
 
