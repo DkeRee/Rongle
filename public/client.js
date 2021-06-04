@@ -92,6 +92,10 @@
 
 	socket.on("setup", () => {
 		me.myID = socket.id;
+		socket.emit("init-screen-info", {
+			x: window.innerWidth,
+			y: window.innerHeight
+		});
 		setInterval(() => {
 			if (!socket.connected){
 				bigUI.style.display = 'none';
@@ -146,7 +150,7 @@
 			}
 
 			for (var player in players){
-				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health);
+				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health, players[player].rotation, players[player].screen);
 			}
 
 			coordText.innerText = `Coords: ${me.myX}, ${me.myY}`;
@@ -197,7 +201,7 @@
 		requestAnimationFrame(step);
 
 		//Player constructor
-		function Player(x, y, health, color, username, radius){
+		function Player(x, y, health, color, username, radius, rotation, screen){
 			this.x = x;
 			this.y = y;
 			this.radius = radius;
@@ -205,22 +209,28 @@
 			this.health = health;
 			this.color = color;
 			this.username = username;
+			this.rotation = rotation;
+			this.screen = screen;
 		}
 
-		Player.prototype.update = function(x, y, health){
+		Player.prototype.update = function(x, y, health, rotation, screen){
 			this.x = lerp(this.x, x, 0.45);
 			this.y = lerp(this.y, y, 0.45);
+			this.rotation = rotation;
+			this.screen = screen;
 			this.health = lerp(this.health, health, 0.3);
 		};
 
 		Player.prototype.render = function(){
-			ctx.beginPath();
-			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = this.color;
-			ctx.stroke();
-
 			if (!this.dead){
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = this.color;
+				ctx.save();
+				ctx.translate(this.x, this.y);
+				ctx.rotate(this.rotation);
+				ctx.strokeRect(15 / -2, 10 / -2, 15, 10);
+				ctx.restore();
+
 				ctx.font = "25px monospace";
 				ctx.fillStyle = "white";
 				ctx.textAlign = "center";
@@ -232,6 +242,12 @@
 				ctx.fillStyle = "#4ee44e";
 				ctx.fillRect(this.x - 50, this.y - 80, this.health, 15);
 			}
+
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = this.color;
+			ctx.stroke();
 		};
 
 		//Bullet constructor
@@ -402,15 +418,19 @@
 					me.burntOut = info.burntOut;
 				}
 				players[info.id].coords = info.coords;
+				players[info.id].rotation = info.rotationInfo.rotation;
+				players[info.id].screen = info.rotationInfo.screen;
 				players[info.id].health = info.health;
 			} else {
 				players[info.id] = {
 					coords: info.coords,
+					rotation: info.rotationInfo.rotation,
+					screen: info.rotationInfo.screen,
 					username: info.username,
 					health: info.health,
 					blocksUsed: info.blocksUsed,
 					color: info.color,
-					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius)
+					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotationInfo.rotation, info.rotationInfo.screen)
 				};
 				bullets[info.id] = {};
 				blocks[info.id] = {};
@@ -479,6 +499,21 @@
 						break;
 				}
 
+			}
+		});
+
+		window.addEventListener("mousemove", e => {
+			if (!typing){
+				socket.emit("move-turret", {
+					screen: {
+						width: window.innerWidth,
+						height: window.innerHeight
+					},
+					coords: {
+						mouseX: e.clientX,
+						mouseY: e.clientY
+					}
+				});
 			}
 		});
 

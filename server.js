@@ -438,6 +438,7 @@ function playerEmit(){
 				id: players[player].id,
 				username: players[player].username,
 				coords: players[player].coords,
+				rotationInfo: players[player].rotationInfo,
 				health: players[player].health,
 				stamina: players[player].stamina,
 				burntOut: players[player].burntOut,
@@ -940,12 +941,14 @@ function checkDeletion(){
 			tree.remove(players[socket]);
 			delete players[socket];
 			emit("leave", socket);
+			deletionQueue.splice(i, 1);
 		}
 	}
 }
 
 //main emit
 setInterval(() => {
+	//console.log(players)
 	checkPlayers();
 	spawn();
 	respawn();
@@ -957,6 +960,8 @@ setInterval(() => {
 
 io.on('connection', socket => {
 	var loggedIn = false;
+	var screenX;
+	var screenY;
 	socket.emit("setup");
 	function setup(){
 		socket.on('movement', keys => {
@@ -1057,6 +1062,15 @@ io.on('connection', socket => {
 				socket.disconnect();
 			}
 		});
+		socket.on("move-turret", info => {
+			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.mouseX == 'number' && typeof info.coords.mouseY == 'number'){
+				players[socket.id].rotationInfo.rotation = Math.atan2(info.coords.mouseY - info.screen.height / 2, info.coords.mouseX - info.screen.width / 2);
+				players[socket.id].rotationInfo.screen.x = info.screen.width / 2;
+				players[socket.id].rotationInfo.screen.y = info.screen.height / 2;
+			} else {
+				socket.disconnect();
+			}
+		});
 		socket.on("send", msg => {
 			if (typeof msg == 'string'){
 				const message = xss(msg.trim());
@@ -1075,6 +1089,10 @@ io.on('connection', socket => {
 			}
 		});
 	}
+	socket.on("init-screen-info", info => {
+		screenX = info.x / 2;
+		screenY = info.y / 2;
+	});
 	socket.on('join', nickname => {
 		if (typeof nickname == 'string'){
 			const username = nickname.trim();
@@ -1087,6 +1105,13 @@ io.on('connection', socket => {
 					coords: {
 						x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 						y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+					},
+					rotationInfo: {
+						rotation: 0,
+						screen: {
+							x: screenX,
+							y: screenY
+						}
 					},
 					keys: {},
 					color: colors[Math.floor(Math.random() * colors.length)],
