@@ -812,6 +812,7 @@ function checkPlayers(){
 	} else {
 		arePlayers = false;
 		healthDrops = [];
+		blocks = [];
 		ramBots = [];
 		bullets = [];
 	}	
