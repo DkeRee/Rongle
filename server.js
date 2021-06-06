@@ -815,6 +815,7 @@ function checkPlayers(){
 		blocks = [];
 		ramBots = [];
 		bullets = [];
+		tree.clear();
 	}	
 }
 
