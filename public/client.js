@@ -439,14 +439,15 @@
 					color: info.color,
 					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation)
 				};
-				bullets[info.id] = {};
-				blocks[info.id] = {};
 				addPlayerList(players[info.id], info.id);
 			}
 		});
 
 		//bullet update
 		socket.on('bupdate', info => {
+			if (bullets[info.playerId] == undefined){
+				bullets[info.playerId] = {};
+			}
 			if (bullets[info.playerId][info.bulletId]){
 				bullets[info.playerId][info.bulletId].coords = info.coords;
 			} else {
@@ -468,6 +469,9 @@
 		});
 
 		socket.on('blo-update', info => {
+			if (blocks[info.playerId] == undefined){
+				blocks[info.playerId] = {};
+			}
 			if (blocks[info.playerId][info.blockId]){
 				blocks[info.playerId][info.blockId].health = info.health;
 			} else {

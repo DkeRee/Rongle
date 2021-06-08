@@ -1128,6 +1128,38 @@ io.on('connection', socket => {
 				tree.insert(players[socket.id]);
 				setup();
 				socket.emit('joining');
+				for (var i = 0; i < blocks.length; i++){
+					if (blocks[i]){
+						const block = blocks[i];
+						socket.emit('blo-update', {
+							playerId: block.playerId,
+							blockId: block.blockId,
+							width: block.width,
+							height: block.height,
+							health: block.health,
+							color: block.color,
+							coords: {
+								x: block.coords.x,
+								y: block.coords.y
+							}
+						});
+					}
+				}
+				for (var i = 0; i < healthDrops.length; i++){
+					if (healthDrops[i]){
+						const healthDrop = healthDrops[i];
+						socket.emit('hdupdate', {
+							dropId: healthDrop.dropId,
+							width: healthDrop.width,
+							height: healthDrop.height,
+							coords: {
+								x: healthDrop.coords.x,
+								y: healthDrop.coords.y
+							},
+							color: healthDrop.color
+						});
+					}
+				}
 				emit('plr-joined', {
 					username: username,
 					color: players[socket.id].color
