@@ -926,8 +926,8 @@ function checkDeletion(){
 					playerId: blocks[o].playerId,
 					blockId: blocks[o].blockId
 				});
-				blocks.splice(o, 1);
 				tree.remove(blocks[o]);
+				blocks.splice(o, 1);
 			} else {
 				o++;
 			}
@@ -939,8 +939,8 @@ function checkDeletion(){
 					playerId: bullets[o].playerId,
 					bulletId: bullets[o].bulletId
 				});
-				bullets.splice(o, 1);
 				tree.remove(bullets[o]);
+				bullets.splice(o, 1);
 			} else {
 				o++;
 			}			
