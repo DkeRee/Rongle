@@ -1083,16 +1083,18 @@ io.on('connection', socket => {
 		});
 		socket.on("send", msg => {
 			if (typeof msg == 'string'){
-				const message = xss(msg.trim());
-				if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
-					players[socket.id].time = 5000;
-					emit("recieve", {
-						msg: message,
-						username: players[socket.id].username,
-						color: players[socket.id].color
-					});
-				} else if (msg.length > 100){
-					socket.disconnect();
+				if (!msg.includes("<") && !msg.includes(">")){
+					const message = xss(msg.trim());
+					if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
+						players[socket.id].time = 5000;
+						emit("recieve", {
+							msg: message,
+							username: players[socket.id].username,
+							color: players[socket.id].color
+						});
+					} else if (msg.length > 100){
+						socket.disconnect();
+					}
 				}
 			} else {
 				socket.disconnect();
