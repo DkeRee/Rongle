@@ -919,31 +919,29 @@ function respawn(){
 function checkDeletion(){
 	for (var i = 0; i < deletionQueue.length;){
 		const socket = deletionQueue[i];
+		const allTree = tree.all();
 
-		for (var o = 0; o < blocks.length;){
-			if (blocks[o].playerId == socket){
-				emit("block-destroy", {
-					playerId: blocks[o].playerId,
-					blockId: blocks[o].blockId
-				});
-				tree.remove(blocks[o]);
-				blocks.splice(o, 1);
-			} else {
-				o++;
+		for (var o = 0; o < allTree.length; o++){
+			if (allTree[o].type == "block"){
+				if (allTree[o].playerId == socket){
+					emit("block-destroy", {
+						playerId: allTree[o].playerId,
+						blockId: allTree[o].blockId
+					});
+					blocks.splice(allTree[o].index, 1);
+					tree.remove(allTree[o]);	
+				}
 			}
-		}
-
-		for (var o = 0; o < bullets.length;){
-			if (bullets[o].playerId == socket){
-				emit("bullet-destroy", {
-					playerId: bullets[o].playerId,
-					bulletId: bullets[o].bulletId
-				});
-				tree.remove(bullets[o]);
-				bullets.splice(o, 1);
-			} else {
-				o++;
-			}			
+			if (allTree[o].type == "bullet"){
+				if (allTree[o].playerId == socket){
+					emit("bullet-destroy", {
+						playerId: allTree[o].playerId,
+						bulletId: allTree[o].bulletId
+					});
+					bullets.splice(allTree[o].index, 1);
+					tree.remove(allTree[o]);	
+				}
+			}
 		}
 
 		tree.remove(players[socket]);
@@ -1030,6 +1028,15 @@ io.on('connection', socket => {
 		});
 		socket.on("shoot", info => {
 			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
+
+				var index;
+
+				if (bullets.length == 0){
+					index = 0;
+				} else {
+					index = bullets.length;
+				}
+
 				if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
 					players[socket.id].time = 5000;
 					players[socket.id].bTime = 5;
@@ -1042,6 +1049,7 @@ io.on('connection', socket => {
 						bulletId: randomstring.generate(),
 						speed: 30,
 						time: 50,
+						index: index,
 						screen: {
 							width: info.screen.width,
 							height: info.screen.height
@@ -1060,7 +1068,7 @@ io.on('connection', socket => {
 						},
 						color: "#72bcd4"
 					});
-					tree.insert(bullets[bullets.length - 1]);
+					tree.insert(bullets[index]);
 				}
 			} else {
 				socket.disconnect();
