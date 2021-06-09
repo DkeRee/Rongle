@@ -1071,6 +1071,7 @@ io.on('connection', socket => {
 						color: "#72bcd4"
 					});
 					tree.insert(bullets[index]);
+					players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
 				}
 			} else {
 				socket.disconnect();
