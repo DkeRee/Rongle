@@ -111,8 +111,6 @@ function checkPlacement(info){
 	info.width = 50;
 	info.height = 50;
 
-	if (Math.sqrt(Math.pow(info.coords.x - players[info.playerId].coords.x, 2) + Math.pow(info.coords.y - players[info.playerId].coords.y, 2)) > 500) return true;
-
 	const closestPlayers = knn(tree, info.coords.x, info.coords.y, loopLimit, item => {
 		return item.type == "player";
 	});
@@ -177,7 +175,15 @@ function borderCheckY(coordX, coordY){
 
 function emit(type, data){
 	for (var player in players){
-		io.to(players[player].id).emit(type, data);
+		if (data.global == undefined){
+			const distX = players[player].coords.x - data.coords.x;
+			const distY = players[player].coords.y - data.coords.y;
+			if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < 1050){
+				io.to(players[player].id).emit(type, data);
+			}
+		} else {
+			io.to(players[player].id).emit(type, data);
+		}
 	}
 }
 
@@ -290,6 +296,7 @@ function ramBotEmit(){
 											}
 										});
 										emit("block-destroy", {
+											global: true,
 											playerId: block.playerId,
 											blockId: block.blockId
 										});
@@ -404,6 +411,7 @@ function ramBotEmit(){
 						if (player.health <= 0){ //player duplicate
 							player.dead = true;
 							emit("plr-death", {
+								global: true,
 								loser: {
 									username: player.username,
 									id: player.id,
@@ -423,7 +431,10 @@ function ramBotEmit(){
 			ramBots[i].coords.x += ramBotX;
 			ramBots[i].coords.y += ramBotY;
 			if (ramBots[i].health <= 0){
-				emit("rambot-destroy", ramBots[i].botId);
+				emit("rambot-destroy", {
+					global: true,
+					id: ramBots[i].botId
+				});
 				tree.remove(ramBots[i]);
 				ramBots.splice(i, 1);
 			}
@@ -446,8 +457,15 @@ function playerEmit(){
 				radius: players[player].radius,
 				color: players[player].color
 			});
-			if (players[player]){
 
+			emit('render-player-list', {
+				global: true,
+				id: players[player].id,
+				username: players[player].username,
+				color: players[player].color
+			});
+
+			if (players[player]){
 				players[player].time -= 1;
 				players[player].bTime -= 1;
 				players[player].pTime -= 1;
@@ -474,7 +492,10 @@ function playerEmit(){
 
 				for (var h = 0; h < closestHealthDrops.length; h++){
 					if (cirToRectCollision(players[player], closestHealthDrops[h])){
-						emit("healthDrop-destroy", closestHealthDrops[h].dropId);
+						emit("healthDrop-destroy", {
+							global: true,
+							id: closestHealthDrops[h].dropId
+						});
 						tree.remove(closestHealthDrops[h]);
 						healthDrops.splice(closestHealthDrops[h].index, 1); //healthDrops destroy
 						if (players[player].health + 10 > 100){
@@ -702,6 +723,7 @@ function bulletEmit(){
 									});
 
 									emit("bullet-destroy", {
+										global: true,
 										playerId: projectile.playerId,
 										bulletId: projectile.bulletId
 									});
@@ -710,6 +732,7 @@ function bulletEmit(){
 									players[projectile.playerId].bulletsShot--;								
 
 									emit("block-destroy", {
+										global: true,
 										playerId: closestBlocks[o].playerId,
 										blockId: closestBlocks[o].blockId
 									});
@@ -723,6 +746,7 @@ function bulletEmit(){
 									closestBlocks[o].health -= 10;
 									closestBlocks[o].health = Math.round(closestBlocks[o].health);
 									emit("bullet-destroy", {
+										global: true,
 										playerId: projectile.playerId,
 										bulletId: projectile.bulletId
 									});
@@ -752,6 +776,7 @@ function bulletEmit(){
 							closestPlayers[p].health -= 10;
 							closestPlayers[p].health = Math.round(closestPlayers[p].health);
 							emit("bullet-destroy", {
+								global: true,
 								playerId: projectile.playerId,
 								bulletId: projectile.bulletId
 							});
@@ -762,7 +787,8 @@ function bulletEmit(){
 								closestPlayers[p].dead = true;
 								closestPlayers[p].latestWinner.username = closestPlayers[p].username;
 								closestPlayers[p].latestWinner.color = players[projectile.playerId].color;
-									emit("plr-death", {
+								emit("plr-death", {
+									global: true,
 									loser: {
 										username: closestPlayers[p].username,
 										id: closestPlayers[p].id,
@@ -783,6 +809,7 @@ function bulletEmit(){
 							ramBots[u].health -= 10;
 							ramBots[u].health = Math.round(ramBots[u].health);
 							emit("bullet-destroy", {
+								global: true,
 								playerId: projectile.playerId,
 								bulletId: projectile.bulletId
 							});
@@ -796,6 +823,7 @@ function bulletEmit(){
 			}
 			if (projectile.time <= 0){
 				emit("bullet-destroy", {
+					global: true,
 					playerId: projectile.playerId,
 					bulletId: projectile.bulletId
 				});
@@ -904,6 +932,7 @@ function respawn(){
 						players[player].respawnTime = 5;
 						players[player].dead = false;
 						emit("plr-respawn", {
+							global: true,
 							playerId: players[player].id,
 							playerColor: players[player].color
 						});
@@ -922,11 +951,21 @@ function checkDeletion(){
 	for (var i = 0; i < deletionQueue.length;){
 		const socket = deletionQueue[i];
 		const allTree = tree.all();
+		const playerInfo = {
+			username: null,
+			color: null
+		};
+
+		if (players[socket]){
+			playerInfo.username = players[socket].username;
+			playerInfo.color = players[socket].color;
+		}
 
 		for (var o = 0; o < allTree.length; o++){
 			if (allTree[o].type == "block"){
 				if (allTree[o].playerId == socket){
 					emit("block-destroy", {
+						global: true,
 						playerId: allTree[o].playerId,
 						blockId: allTree[o].blockId
 					});
@@ -937,6 +976,7 @@ function checkDeletion(){
 			if (allTree[o].type == "bullet"){
 				if (allTree[o].playerId == socket){
 					emit("bullet-destroy", {
+						global: true,
 						playerId: allTree[o].playerId,
 						bulletId: allTree[o].bulletId
 					});
@@ -948,7 +988,13 @@ function checkDeletion(){
 
 		tree.remove(players[socket]);
 		delete players[socket];
-		emit("leave", socket);
+		emit("leave", {
+			global: true,
+			message: " has left the server",
+			username: playerInfo.username,
+			color: playerInfo.color,
+			id: socket
+		});
 		deletionQueue.splice(i, 1);
 	}
 }
@@ -979,7 +1025,6 @@ io.on('connection', socket => {
 		});
 		socket.on("place", info => {
 			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
-				info.playerId = socket.id;
 				info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
 				info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
 
@@ -990,39 +1035,40 @@ io.on('connection', socket => {
 				} else {
 					index = blocks.length;
 				}
-
-				if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
-					players[socket.id].time = 5000;
-					players[socket.id].pTime = 5;
-					players[socket.id].canPlace = false;
-					players[info.playerId].blocksPlaced++;
-					blocks.push({
-						type: "block",
-						playerId: socket.id,
-						blockId: randomstring.generate(),
-						health: 50,
-						width: 50,
-						height: 50,
-						index: index,
-						color: "white",
-						coords: {
-							x: info.coords.x,
-							y: info.coords.y
-						}
-					});
-					tree.insert(blocks[index]);
-					emit('blo-update', {
-						playerId: blocks[index].playerId,
-						blockId: blocks[index].blockId,
-						width: blocks[index].width,
-						height: blocks[index].height,
-						health: blocks[index].health,
-						color: blocks[index].color,
-						coords: {
-							x: blocks[index].coords.x,
-							y: blocks[index].coords.y
-						}
-					});
+				if (Math.sqrt(Math.pow(info.coords.x - players[socket.id].coords.x, 2) + Math.pow(info.coords.y - players[socket.id].coords.y, 2)) < 500){
+					if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
+						players[socket.id].time = 5000;
+						players[socket.id].pTime = 5;
+						players[socket.id].canPlace = false;
+						players[socket.id].blocksPlaced++;
+						blocks.push({
+							type: "block",
+							playerId: socket.id,
+							blockId: randomstring.generate(),
+							health: 50,
+							width: 50,
+							height: 50,
+							index: index,
+							color: "white",
+							coords: {
+								x: info.coords.x,
+								y: info.coords.y
+							}
+						});
+						tree.insert(blocks[index]);
+						emit('blo-update', {
+							playerId: blocks[index].playerId,
+							blockId: blocks[index].blockId,
+							width: blocks[index].width,
+							height: blocks[index].height,
+							health: blocks[index].health,
+							color: blocks[index].color,
+							coords: {
+								x: blocks[index].coords.x,
+								y: blocks[index].coords.y
+							}
+						});
+					}
 				}
 			} else {
 				socket.disconnect();
@@ -1091,6 +1137,7 @@ io.on('connection', socket => {
 					if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
 						players[socket.id].time = 5000;
 						emit("recieve", {
+							global: true,
 							msg: message,
 							username: players[socket.id].username,
 							color: players[socket.id].color
@@ -1141,6 +1188,12 @@ io.on('connection', socket => {
 				tree.insert(players[socket.id]);
 				setup();
 				socket.emit('joining');
+				emit('plr-joined', {
+					global: true,
+					message: " has joined the server",
+					username: username,
+					color: players[socket.id].color
+				});
 				for (var i = 0; i < blocks.length; i++){
 					if (blocks[i]){
 						const block = blocks[i];
@@ -1173,10 +1226,6 @@ io.on('connection', socket => {
 						});
 					}
 				}
-				emit('plr-joined', {
-					username: username,
-					color: players[socket.id].color
-				});
 				loggedIn = true;
 			} else if (username.length > 16){
 				socket.disconnect();

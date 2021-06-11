@@ -373,45 +373,6 @@
 			ctx.strokeRect(this.x, this.y, this.width, this.height);			
 		};
 
-		function addPlayerList(info, id){
-			const playerListWrapper = document.getElementById("player-list-inner-wrapper");
-
-			const playerContainer = document.createElement("div");
-			playerContainer.style.border = `2px solid ${info.color}`;
-			playerContainer.setAttribute("class", "player-widget");
-			playerContainer.setAttribute("id", id);
-
-			const div = d3.select(playerContainer).append("svg");
-			div.attr("class", "player-svg")
-			div.attr("width", "60")
-			div.attr("height", "60");
-
-			div.append("circle")
-				.attr("cx", 30)
-				.attr("cy", 30)
-				.attr("r", 20)
-				.style("stroke", info.color)
-				.style("stroke-width", 2)
-				.style("fill", "transparent");
-
-			div.append("rect")
-				.attr("width", "15")
-				.attr("height", "10")
-				.attr("x", "37.5%")
-				.attr("y", "42%")
-				.style("stroke", info.color)
-				.style("stroke-width", 2)
-				.style("fill", "transparent");
-
-			const name = document.createElement("bdi");
-			name.innerText = info.username;
-			name.style.color = info.color;
-			name.setAttribute("class", "player-widget-name");
-
-			playerContainer.appendChild(name);
-			playerListWrapper.appendChild(playerContainer);
-		}
-
 		//updates
 
 		//player update
@@ -439,7 +400,6 @@
 					color: info.color,
 					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation)
 				};
-				addPlayerList(players[info.id], info.id);
 			}
 		});
 
@@ -464,8 +424,10 @@
 		});
 
 		socket.on("bullet-destroy", info => {
-			bullets[info.playerId][info.bulletId].body.destroy();
-			delete bullets[info.playerId][info.bulletId];
+			if (bullets[info.playerId][info.bulletId]){
+				bullets[info.playerId][info.bulletId].body.destroy();
+				delete bullets[info.playerId][info.bulletId];
+			}
 		});
 
 		socket.on('blo-update', info => {
@@ -485,7 +447,9 @@
 		});
 
 		socket.on("block-destroy", info => {
-			delete blocks[info.playerId][info.blockId];
+			if (blocks[info.playerId][info.blockId]){
+				delete blocks[info.playerId][info.blockId];
+			}
 		});
 
 		//click event listener
@@ -538,8 +502,10 @@
 			}
 		});
 
-		socket.on("healthDrop-destroy", id => {
-			delete healthDrops[id];
+		socket.on("healthDrop-destroy", info => {
+			if (healthDrops[info.id]){
+				delete healthDrops[info.id];
+			}
 		});
 
 		//rambot update
@@ -556,8 +522,10 @@
 			}
 		});
 
-		socket.on("rambot-destroy", botId => {
-			delete ramBots[botId];
+		socket.on("rambot-destroy", info => {
+			if (ramBots[info.id]){
+				delete ramBots[info.id];
+			}
 		});
 	
 		setInterval(() => {
@@ -590,52 +558,28 @@
 
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
-	function serverMsg(info, message){
-		if (me.loggedIn && players[info]){
-			if (typeof info == 'object'){
-				const msgContainer = document.createElement("div");
-				msgContainer.setAttribute("class", "msg-container");
+	function serverMsg(info){
+		if (me.loggedIn){
+			const msgContainer = document.createElement("div");
+			msgContainer.setAttribute("class", "msg-container");
 
-				const msg = document.createElement("p");
-				msg.innerText = message;
-				msg.setAttribute("class", "msg");
-				msg.style.color = "white";
+			const msg = document.createElement("p");
+			msg.innerText = info.message;
+			msg.setAttribute("class", "msg");
+			msg.style.color = "white";
 
-				const name = document.createElement("bdi");
-				name.innerText = info.username;
-				name.style.color = info.color;
-				name.setAttribute("class", "msg");
+			const name = document.createElement("bdi");
+			name.innerText = info.username;
+			name.style.color = info.color;
+			name.setAttribute("class", "msg");
 
-				msg.prepend(name);
-				msgContainer.appendChild(msg);
-				serverInnerWrapper.appendChild(msgContainer);
+			msg.prepend(name);
+			msgContainer.appendChild(msg);
+			serverInnerWrapper.appendChild(msgContainer);
 
-				setTimeout(() => {
-					msgContainer.remove();
-				}, 3000);
-			}
-			if (typeof info == 'string'){
-				const msgContainer = document.createElement("div");
-				msgContainer.setAttribute("class", "msg-container");
-
-				const msg = document.createElement("p");
-				msg.innerText = message;
-				msg.setAttribute("class", "msg");
-				msg.style.color = "white";
-
-				const name = document.createElement("bdi");
-				name.innerText = players[info].username;
-				name.style.color = players[info].color;
-				name.setAttribute("class", "msg");
-
-				msg.prepend(name);
-				msgContainer.appendChild(msg);
-				serverInnerWrapper.appendChild(msgContainer);
-
-				setTimeout(() => {
-					msgContainer.remove();
-				}, 3000);
-			}
+			setTimeout(() => {
+				msgContainer.remove();
+			}, 3000);
 		}
 	}
 
@@ -663,56 +607,105 @@
 		}
 	});
 
-	socket.on("plr-joined", id => {
-		serverMsg(id, " has joined the server");
+	function addPlayerList(info){
+		const playerListWrapper = document.getElementById("player-list-inner-wrapper");
+
+		const playerContainer = document.createElement("div");
+		playerContainer.style.border = `2px solid ${info.color}`;
+		playerContainer.setAttribute("class", "player-widget");
+		playerContainer.setAttribute("id", info.id);
+
+		const div = d3.select(playerContainer).append("svg");
+		div.attr("class", "player-svg")
+		div.attr("width", "60")
+		div.attr("height", "60");
+
+		div.append("circle")
+			.attr("cx", 30)
+			.attr("cy", 30)
+			.attr("r", 20)
+			.style("stroke", info.color)
+			.style("stroke-width", 2)
+			.style("fill", "transparent");
+
+		div.append("rect")
+			.attr("width", "15")
+			.attr("height", "10")
+			.attr("x", "37.5%")
+			.attr("y", "42%")
+			.style("stroke", info.color)
+			.style("stroke-width", 2)
+			.style("fill", "transparent");
+
+		const name = document.createElement("bdi");
+		name.innerText = info.username;
+		name.style.color = info.color;
+		name.setAttribute("class", "player-widget-name");
+
+		playerContainer.appendChild(name);
+		playerListWrapper.appendChild(playerContainer);
+	}
+
+	socket.on("plr-joined", info => {
+		serverMsg(info);
 	});
 
-	socket.on('leave', id => {
-		serverMsg(id, " has left the server");
-		document.getElementById(id).remove();
-		delete players[id];
-		delete bullets[id];
-		delete blocks[id];
+	socket.on("render-player-list", info => {
+		if (document.getElementById(info.id) == null){
+			addPlayerList(info);
+		}
+	});
+
+	socket.on('leave', info => {
+		serverMsg(info);
+		document.getElementById(info.id).remove();
+		if (players[info.id]) delete players[info.id];
+		if (bullets[info.id]) delete bullets[info.id];
+		if (blocks[info.id]) delete blocks[info.id];
 	});
 
 	socket.on("plr-death", info => {
-		players[info.loser.id].body.color = "transparent";
-		players[info.loser.id].body.dead = true;
-		if (me.loggedIn){
-			const msgContainer = document.createElement("div");
-			msgContainer.setAttribute("class", "msg-container");
+		if (players[info.loser.id]){
+			players[info.loser.id].body.color = "transparent";
+			players[info.loser.id].body.dead = true;
+			if (me.loggedIn){
+				const msgContainer = document.createElement("div");
+				msgContainer.setAttribute("class", "msg-container");
 
-			const msg = document.createElement("p");
-			msg.innerText = " was killed by ";
-			msg.setAttribute("class", "msg");
-			msg.style.color = "white";
+				const msg = document.createElement("p");
+				msg.innerText = " was killed by ";
+				msg.setAttribute("class", "msg");
+				msg.style.color = "white";
 
-			const loser = document.createElement("bdi");
-			loser.innerText = info.loser.username;
-			loser.style.color = info.loser.color;
+				const loser = document.createElement("bdi");
+				loser.innerText = info.loser.username;
+				loser.style.color = info.loser.color;
 
-			const winner = document.createElement("bdi");
-			winner.innerText = info.winner.username;
-			winner.style.color = info.winner.color;
+				const winner = document.createElement("bdi");
+				winner.innerText = info.winner.username;
+				winner.style.color = info.winner.color;
 
-			if (info.type == "bot"){
-				winner.style.textDecoration = "underline";
+				if (info.type == "bot"){
+					winner.style.textDecoration = "underline";
+				}
+
+				msg.prepend(loser);
+				msg.appendChild(winner);
+				msgContainer.appendChild(msg);
+				serverInnerWrapper.appendChild(msgContainer);
+
+				setTimeout(() => {
+					msgContainer.remove();
+				}, 3000);
 			}
-
-			msg.prepend(loser);
-			msg.appendChild(winner);
-			msgContainer.appendChild(msg);
-			serverInnerWrapper.appendChild(msgContainer);
-
-			setTimeout(() => {
-				msgContainer.remove();
-			}, 3000);
 		}
 	});
 
 	socket.on("plr-respawn", info => {
-		players[info.playerId].body.color = info.playerColor;
-		players[info.playerId].body.dead = false;
+		if (players[info.playerId]){
+			players[info.playerId].body.color = info.playerColor;
+			players[info.playerId].body.dead = false;
+		}
 	});
 
 	setInterval(() => {
