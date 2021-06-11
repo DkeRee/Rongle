@@ -178,7 +178,7 @@ function emit(type, data){
 		if (data.global == undefined){
 			const distX = players[player].coords.x - data.coords.x;
 			const distY = players[player].coords.y - data.coords.y;
-			if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < 1050){
+			if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) < 1125){
 				io.to(players[player].id).emit(type, data);
 			}
 		} else {
