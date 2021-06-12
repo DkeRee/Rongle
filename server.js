@@ -993,9 +993,14 @@ io.on('connection', socket => {
 		});
 		socket.on("place", info => {
 			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
-				info.playerId = socket.id;
-				info.coords.x = Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50;
-				info.coords.y = Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50;
+				const placeInfo = {
+					screen: info.screen,
+					playerId: socket.id,
+					coords: {
+						x: Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50,
+						y: Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50
+					}
+				};
 
 				var index;
 
@@ -1005,11 +1010,11 @@ io.on('connection', socket => {
 					index = blocks.length;
 				}
 
-				if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(info) == undefined && !players[socket.id].dead){
+				if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(placeInfo) == undefined && !players[socket.id].dead){
 					players[socket.id].time = 5000;
 					players[socket.id].pTime = 5;
 					players[socket.id].canPlace = false;
-					players[info.playerId].blocksPlaced++;
+					players[socket.id].blocksPlaced++;
 					blocks.push({
 						type: "block",
 						playerId: socket.id,
@@ -1020,11 +1025,12 @@ io.on('connection', socket => {
 						index: index,
 						color: "white",
 						coords: {
-							x: info.coords.x,
-							y: info.coords.y
+							x: placeInfo.coords.x,
+							y: placeInfo.coords.y
 						}
 					});
 					tree.insert(blocks[index]);
+					players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
 					emit('blo-update', {
 						playerId: blocks[index].playerId,
 						blockId: blocks[index].blockId,
