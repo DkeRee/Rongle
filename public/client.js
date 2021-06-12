@@ -590,52 +590,28 @@
 
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
-	function serverMsg(info, message){
-		if (me.loggedIn && players[info]){
-			if (typeof info == 'object'){
-				const msgContainer = document.createElement("div");
-				msgContainer.setAttribute("class", "msg-container");
+	function serverMsg(info){
+		if (me.loggedIn){
+			const msgContainer = document.createElement("div");
+			msgContainer.setAttribute("class", "msg-container");
 
-				const msg = document.createElement("p");
-				msg.innerText = message;
-				msg.setAttribute("class", "msg");
-				msg.style.color = "white";
+			const msg = document.createElement("p");
+			msg.innerText = info.message;
+			msg.setAttribute("class", "msg");
+			msg.style.color = "white";
 
-				const name = document.createElement("bdi");
-				name.innerText = info.username;
-				name.style.color = info.color;
-				name.setAttribute("class", "msg");
+			const name = document.createElement("bdi");
+			name.innerText = info.username;
+			name.style.color = info.color;
+			name.setAttribute("class", "msg");
 
-				msg.prepend(name);
-				msgContainer.appendChild(msg);
-				serverInnerWrapper.appendChild(msgContainer);
+			msg.prepend(name);
+			msgContainer.appendChild(msg);
+			serverInnerWrapper.appendChild(msgContainer);
 
-				setTimeout(() => {
-					msgContainer.remove();
-				}, 3000);
-			}
-			if (typeof info == 'string'){
-				const msgContainer = document.createElement("div");
-				msgContainer.setAttribute("class", "msg-container");
-
-				const msg = document.createElement("p");
-				msg.innerText = message;
-				msg.setAttribute("class", "msg");
-				msg.style.color = "white";
-
-				const name = document.createElement("bdi");
-				name.innerText = players[info].username;
-				name.style.color = players[info].color;
-				name.setAttribute("class", "msg");
-
-				msg.prepend(name);
-				msgContainer.appendChild(msg);
-				serverInnerWrapper.appendChild(msgContainer);
-
-				setTimeout(() => {
-					msgContainer.remove();
-				}, 3000);
-			}
+			setTimeout(() => {
+				msgContainer.remove();
+			}, 3000);
 		}
 	}
 
@@ -663,16 +639,16 @@
 		}
 	});
 
-	socket.on("plr-joined", id => {
-		serverMsg(id, " has joined the server");
+	socket.on("plr-joined", info => {
+		serverMsg(info);
 	});
 
-	socket.on('leave', id => {
-		serverMsg(id, " has left the server");
-		document.getElementById(id).remove();
-		delete players[id];
-		delete bullets[id];
-		delete blocks[id];
+	socket.on('leave', info => {
+		serverMsg(info);
+		document.getElementById(info.id).remove();
+		delete players[info.id];
+		delete bullets[info.id];
+		delete blocks[info.id];
 	});
 
 	socket.on("plr-death", info => {

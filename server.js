@@ -922,6 +922,15 @@ function checkDeletion(){
 	for (var i = 0; i < deletionQueue.length;){
 		const socket = deletionQueue[i];
 		const allTree = tree.all();
+		const playerInfo = {
+			username: null,
+			color: null
+		};
+
+		if (players[socket]){
+			playerInfo.username = players[socket].username;
+			playerInfo.color = players[socket].color;
+		}
 
 		for (var o = 0; o < allTree.length; o++){
 			if (allTree[o].type == "block"){
@@ -948,7 +957,12 @@ function checkDeletion(){
 
 		tree.remove(players[socket]);
 		delete players[socket];
-		emit("leave", socket);
+		emit("leave", {
+			message: " has left the server",
+			id: socket,
+			username: playerInfo.username,
+			color: playerInfo.color
+		});
 		deletionQueue.splice(i, 1);
 	}
 }
@@ -1141,6 +1155,11 @@ io.on('connection', socket => {
 				tree.insert(players[socket.id]);
 				setup();
 				socket.emit('joining');
+				emit('plr-joined', {
+					message: " has joined the server",
+					username: username,
+					color: players[socket.id].color
+				});
 				for (var i = 0; i < blocks.length; i++){
 					if (blocks[i]){
 						const block = blocks[i];
@@ -1173,10 +1192,6 @@ io.on('connection', socket => {
 						});
 					}
 				}
-				emit('plr-joined', {
-					username: username,
-					color: players[socket.id].color
-				});
 				loggedIn = true;
 			} else if (username.length > 16){
 				socket.disconnect();
@@ -1203,7 +1218,7 @@ io.on('connection', socket => {
 		socket.emit("bullet-numdate", num);
 	});
 	socket.on('disconnect', () => {
-		deletionQueue.push(socket.id);
+		if (players[socket.id]) deletionQueue.push(socket.id);
 	});
 });
 
