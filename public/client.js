@@ -714,6 +714,9 @@
 					bigUI.style.cursor = `url('data:image/svg+xml;utf8,<svg fill="%23FF0000" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="100" style="fill:rgb(173, 173, 173);opacity:80%" /></svg>') 25 15, auto`;
 					toggle("building-container");
 				}
+				if (e.keyCode == 103 || e.which == 103){
+					socket.emit("clear-blocks");
+				}
 			}
 			if (!$(chatbar).is(':focus')){
 				if (e.keyCode == 13 || e.which == 13){

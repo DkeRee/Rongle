@@ -46,7 +46,8 @@ const tickrate = 1000/60;
 
 const randomstring = require('randomstring');
 
-const deletionQueue = [];
+const blockDeletionQueue = [];
+const playerDeletionQueue = [];
 
 var players = {};
 var bullets = [];
@@ -918,9 +919,31 @@ function respawn(){
 	}
 }
 
-function checkDeletion(){
-	for (var i = 0; i < deletionQueue.length;){
-		const socket = deletionQueue[i];
+function checkDeletionBlocks(){
+	for (var i = 0; i < blockDeletionQueue.length;){
+		const socket = blockDeletionQueue[i]
+		const allTree = tree.all();
+
+		for (var o = 0; o < allTree.length; o++){
+			if (allTree[o].type == "block"){
+				if (allTree[o].playerId == socket){
+					emit("block-destroy", {
+						playerId: allTree[o].playerId,
+						blockId: allTree[o].blockId
+					});
+					blocks.splice(allTree[o].index, 1);
+					tree.remove(allTree[o]);	
+				}
+			}
+		}
+		players[socket].blocksPlaced = 0;
+		blockDeletionQueue.splice(i, 1);
+	}
+}
+
+function checkDeletionLeave(){
+	for (var i = 0; i < playerDeletionQueue.length;){
+		const socket = playerDeletionQueue[i];
 		const allTree = tree.all();
 		const playerInfo = {
 			username: null,
@@ -963,7 +986,7 @@ function checkDeletion(){
 			username: playerInfo.username,
 			color: playerInfo.color
 		});
-		deletionQueue.splice(i, 1);
+		playerDeletionQueue.splice(i, 1);
 	}
 }
 
@@ -975,7 +998,8 @@ setInterval(() => {
 	ramBotEmit(); //circle
 	playerEmit(); //circle
 	bulletEmit(); //circle
-	checkDeletion();
+	checkDeletionBlocks();
+	checkDeletionLeave();
 }, tickrate);
 
 io.on('connection', socket => {
@@ -990,6 +1014,9 @@ io.on('connection', socket => {
 			} else {
 				socket.disconnect();
 			}
+		});
+		socket.on("clear-blocks", () => {
+			if (players[socket.id]) blockDeletionQueue.push(socket.id);
 		});
 		socket.on("place", info => {
 			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
@@ -1224,7 +1251,7 @@ io.on('connection', socket => {
 		socket.emit("bullet-numdate", num);
 	});
 	socket.on('disconnect', () => {
-		if (players[socket.id]) deletionQueue.push(socket.id);
+		if (players[socket.id]) playerDeletionQueue.push(socket.id);
 	});
 });
 
