@@ -479,6 +479,7 @@
 		socket.on("bullet-destroy", info => {
 			bullets[info.playerId][info.bulletId].body.destroy();
 			delete bullets[info.playerId][info.bulletId];
+			if (info.leave) delete bullets[info.playerId];
 		});
 
 		socket.on("blo-update", info => {
@@ -499,6 +500,7 @@
 
 		socket.on("block-destroy", info => {
 			delete blocks[info.playerId][info.blockId];
+			if (info.leave) delete blocks[info.playerId];
 		});
 
 		function Vortex(x, y, radius, color){
@@ -550,6 +552,7 @@
 			} else {
 				vortexes[info.playerId][info.vortexId] = {
 					playerId: info.playerId,
+					playerUsername: info.playerUsername,
 					coords: info.coords,
 					radius: info.radius,
 					body: new Vortex(info.coords.x, info.coords.y, info.radius, info.color)
@@ -559,6 +562,7 @@
 
 		socket.on("vortex-destroy", info => {
 			delete vortexes[info.playerId][info.vortexId];
+			if (info.leave) delete vortexes[info.playerId];
 		});
 
 		//click event listener

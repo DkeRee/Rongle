@@ -55,7 +55,7 @@ var blocks = [];
 var healthDrops = [];
 var ramBots = [];
 var vortexes = [];
-var colors = ["#7289da", "#FFA500", "#FFCD58", "cyan", "#EB459E", "#57F287", "#ED4245"];
+var colors = ["#7289da", "#FFA500", "#FFCD58", "#00FFFF", "#EB459E", "#57F287", "#ED4245"];
 
 var arePlayers = false;
 
@@ -763,8 +763,8 @@ function bulletEmit(){
 							if (closestPlayers[p].health <= 0){ //player duplicate
 								closestPlayers[p].dead = true;
 								closestPlayers[p].latestWinner.username = closestPlayers[p].username;
-								closestPlayers[p].latestWinner.color = players[projectile.playerId].color;
-									emit("plr-death", {
+								closestPlayers[p].latestWinner.color = closestPlayers[p].color;
+								emit("plr-death", {
 									loser: {
 										username: closestPlayers[p].username,
 										id: closestPlayers[p].id,
@@ -817,11 +817,104 @@ function vortexEmit(){
 
 			emit("vupdate", {
 				playerId: vortex.playerId,
+				playerUsername: vortex.playerUsername,
 				vortexId: vortex.vortexId,
 				radius: vortex.radius,
 				coords: vortex.coords,
 				color: vortex.color
 			});
+
+			const closestPlayers = knn(tree, vortex.coords.x, vortex.coords.y, loopLimit, item => {
+				return item.type == "player";
+			});
+			const closestBlocks = knn(tree, vortex.coords.x, vortex.coords.y, loopLimit, item => {
+				return item.type == "block";
+			});
+			const closestRamBots = knn(tree, vortex.coords.x, vortex.coords.y, loopLimit, item => {
+				return item.type == "ramBot";
+			});
+
+			for (var o = 0; o < closestPlayers.length; o++){
+				if (vortex.playerId !== closestPlayers[o].id && cirToCirCollision(vortex, closestPlayers[o]) && !closestPlayers[o].dead){
+					const player = closestPlayers[o];
+					player.coords.x = vortex.coords.x;
+					player.coords.y = vortex.coords.y;
+					player.health -= 0.5;
+
+					if (player.health <= 0){
+						player.dead = true;
+						player.latestWinner.username = players[vortex.playerId].username;
+						player.latestWinner.color = players[vortex.playerId].color;
+
+						emit("plr-death", {
+							loser: {
+								username: player.username,
+								id: player.id,
+								color: player.color
+							},
+							winner: {
+								username: player.latestWinner.username,
+								color: player.latestWinner.color
+							},
+							type: "player"
+						});
+					}
+				}
+			}
+
+			for (var o = 0; o < closestRamBots.length; o++){
+				if (cirToCirCollision(vortex, closestRamBots[o]) && closestRamBots[o]){
+					const ramBot = closestRamBots[o];
+					ramBot.coords.x = vortex.coords.x;
+					ramBot.coords.y = vortex.coords.y;
+					ramBot.health -= 0.5;
+				}
+			}
+
+			for (var o = 0; o < closestBlocks.length; o++){
+				if (cirToRectCollision(vortex, closestBlocks[o]) && closestBlocks[o]){
+					const block = closestBlocks[o];
+					block.health -= 0.5;
+
+					if (block.health <= 0){
+						emit('blo-update', {
+							playerId: block.playerId,
+							blockId: block.blockId,
+							width: block.width,
+							height: block.height,
+							health: block.health,
+							color: block.color,
+							coords: {
+								x: block.coords.x,
+								y: block.coords.y
+							}
+						});						
+
+						emit("block-destroy", {
+							playerId: block.playerId,
+							blockId: block.blockId
+						});
+						if (players[block.playerId]){
+							players[block.playerId].blocksPlaced--;
+							tree.remove(block);
+							blocks.splice(block.index, 1);
+						}
+					} else {
+						emit('blo-update', {
+							playerId: block.playerId,
+							blockId: block.blockId,
+							width: block.width,
+							height: block.height,
+							health: block.health,
+							color: block.color,
+							coords: {
+								x: block.coords.x,
+								y: block.coords.y
+							}
+						});	
+					}
+				}
+			}
 
 			vortex.time--;
 			if (vortex.time <= 0) vortex.active = false;
@@ -991,25 +1084,32 @@ function checkDeletionLeave(){
 		}
 
 		for (var o = 0; o < allTree.length; o++){
-			if (allTree[o].type == "block"){
-				if (allTree[o].playerId == socket){
-					emit("block-destroy", {
-						playerId: allTree[o].playerId,
-						blockId: allTree[o].blockId
-					});
-					blocks.splice(allTree[o].index, 1);
-					tree.remove(allTree[o]);	
-				}
+			if (allTree[o].type == "block" && allTree[o].playerId == socket){
+				emit("block-destroy", {
+					playerId: allTree[o].playerId,
+					blockId: allTree[o].blockId,
+					leave: true
+				});
+				blocks.splice(allTree[o].index, 1);
+				tree.remove(allTree[o]);	
 			}
-			if (allTree[o].type == "bullet"){
-				if (allTree[o].playerId == socket){
-					emit("bullet-destroy", {
-						playerId: allTree[o].playerId,
-						bulletId: allTree[o].bulletId
-					});
-					bullets.splice(allTree[o].index, 1);
-					tree.remove(allTree[o]);	
-				}
+			if (allTree[o].type == "bullet" && allTree[o].playerId == socket){
+				emit("bullet-destroy", {
+					playerId: allTree[o].playerId,
+					bulletId: allTree[o].bulletId,
+					leave: true
+				});
+				bullets.splice(allTree[o].index, 1);
+				tree.remove(allTree[o]);	
+			}
+			if (allTree[o].type == "vortex" && allTree[o].playerId == socket){
+				emit("vortex-destroy", {
+					playerId: allTree[o].playerId,
+					vortexId: allTree[o].vortexId,
+					leave: true
+				});
+				vortexes.splice(allTree[o].index, 1);
+				tree.remove(allTree[o]);
 			}
 		}
 
@@ -1169,21 +1269,25 @@ io.on('connection', socket => {
 			}
 
 			if (players[socket.id]){
-				players[socket.id].time = 5000;
-				vortexes.push({
-					type: "vortex",
-					playerId: socket.id,
-					vortexId: randomstring.generate(),
-					coords: {
-						x: players[socket.id].coords.x,
-						y: players[socket.id].coords.y
-					},
-					radius: 0,
-					time: 100,
-					active: true,
-					color: players[socket.id].color,
-				});
-				tree.insert(vortexes[index]);
+				if (!players[socket.id].dead){
+					players[socket.id].time = 5000;
+					vortexes.push({
+						type: "vortex",
+						index: index,
+						playerId: socket.id,
+						playerUsername: players[socket.id].username,
+						vortexId: randomstring.generate(),
+						coords: {
+							x: players[socket.id].coords.x,
+							y: players[socket.id].coords.y
+						},
+						radius: 0,
+						time: 100,
+						active: true,
+						color: players[socket.id].color,
+					});
+					tree.insert(vortexes[index]);
+				}
 			}
 		});
 		socket.on("move-turret", info => {
