@@ -54,7 +54,8 @@ var bullets = [];
 var blocks = [];
 var healthDrops = [];
 var ramBots = [];
-var colors = ["#7289da", "#FFA500", "#FFCD58", "cyan"];
+var vortexes = [];
+var colors = ["#7289da", "#FFA500", "#FFCD58", "cyan", "#EB459E", "#57F287", "#ED4245"];
 
 var arePlayers = false;
 
@@ -657,7 +658,7 @@ function bulletEmit(){
 	if (arePlayers){
 		for (var i = 0; i < bullets.length; i++){
 			const projectile = bullets[i];
-			projectile.time -= 1;
+			projectile.time--;
 			
 			const dir = Math.atan2(projectile.targetCoords.y - projectile.screen.height / 2, projectile.targetCoords.x - projectile.screen.width / 2);
 			projectile.bulletCoords.x += projectile.speed * Math.cos(dir);
@@ -809,6 +810,39 @@ function bulletEmit(){
 	}
 }
 
+function vortexEmit(){
+	if (arePlayers){
+		for (var i = 0; i < vortexes.length; i++){
+			const vortex = vortexes[i];
+
+			emit("vupdate", {
+				playerId: vortex.playerId,
+				vortexId: vortex.vortexId,
+				radius: vortex.radius,
+				coords: vortex.coords,
+				color: vortex.color
+			});
+
+			vortex.time--;
+			if (vortex.time <= 0) vortex.active = false;
+
+			if (vortex.radius < 300 && vortex.active) vortex.radius += 30;
+			if (!vortex.active){
+				if (vortex.radius > 0){
+					vortex.radius -= 30;
+				} else {
+					emit("vortex-destroy", {
+						playerId: vortex.playerId,
+						vortexId: vortex.vortexId
+					});
+					tree.remove(vortex);
+					vortexes.splice(i, 1);
+				}
+			}
+		}
+	}
+}
+
 function checkPlayers(){
 	if (Object.keys(players).length > 0){
 		arePlayers = true;
@@ -818,6 +852,7 @@ function checkPlayers(){
 		blocks = [];
 		ramBots = [];
 		bullets = [];
+		vortexes = [];
 		tree.clear();
 	}	
 }
@@ -998,6 +1033,7 @@ setInterval(() => {
 	ramBotEmit(); //circle
 	playerEmit(); //circle
 	bulletEmit(); //circle
+	vortexEmit(); //circle
 	checkDeletionBlocks();
 	checkDeletionLeave();
 }, tickrate);
@@ -1077,7 +1113,6 @@ io.on('connection', socket => {
 		});
 		socket.on("shoot", info => {
 			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
-
 				var index;
 
 				if (bullets.length == 0){
@@ -1124,6 +1159,33 @@ io.on('connection', socket => {
 				socket.disconnect();
 			}
 		});
+		socket.on("vortex", () => {
+			var index;
+
+			if (bullets.length == 0){
+				index = 0;
+			} else {
+				index = bullets.length;
+			}
+
+			if (players[socket.id]){
+				players[socket.id].time = 5000;
+				vortexes.push({
+					type: "vortex",
+					playerId: socket.id,
+					vortexId: randomstring.generate(),
+					coords: {
+						x: players[socket.id].coords.x,
+						y: players[socket.id].coords.y
+					},
+					radius: 0,
+					time: 100,
+					active: true,
+					color: players[socket.id].color,
+				});
+				tree.insert(vortexes[index]);
+			}
+		});
 		socket.on("move-turret", info => {
 			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.mouseX == 'number' && typeof info.coords.mouseY == 'number'){
 				players[socket.id].rotation = Math.atan2(info.coords.mouseY - info.screen.height / 2, info.coords.mouseX - info.screen.width / 2);
@@ -1133,7 +1195,7 @@ io.on('connection', socket => {
 		});
 		socket.on("send", msg => {
 			if (typeof msg == 'string'){
-				if (!msg.includes("<") && !msg.includes(">")){
+				if (!msg.includes("<") && !msg.includes(">") && players[socket.id]){
 					const message = xss(msg.trim());
 					if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
 						players[socket.id].time = 5000;

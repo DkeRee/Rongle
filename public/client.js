@@ -11,6 +11,7 @@
 	const blocks = {};
 	const healthDrops = {};
 	const ramBots = {};
+	const vortexes = {};
 
 	const keys = {};
 
@@ -149,6 +150,12 @@
 				}
 			}
 
+			for (var player in vortexes){
+				for (var vortex in vortexes[player]){
+					vortexes[player][vortex].body.update(vortexes[player][vortex].radius);
+				}
+			}
+
 			for (var player in players){
 				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health, players[player].rotation);
 			}
@@ -171,6 +178,12 @@
 				staminaBar.style.backgroundColor = "#4ee44e";
 			} else {
 				staminaBar.style.backgroundColor = "#f70d1a";
+			}
+
+			for (var player in vortexes){
+				for (var vortex in vortexes[player]){
+					vortexes[player][vortex].body.render();
+				}
 			}
 
 			for (var healthDrop in healthDrops){
@@ -468,7 +481,7 @@
 			delete bullets[info.playerId][info.bulletId];
 		});
 
-		socket.on('blo-update', info => {
+		socket.on("blo-update", info => {
 			if (blocks[info.playerId] == undefined){
 				blocks[info.playerId] = {};
 			}
@@ -486,6 +499,66 @@
 
 		socket.on("block-destroy", info => {
 			delete blocks[info.playerId][info.blockId];
+		});
+
+		function Vortex(x, y, radius, color){
+			this.x = x;
+			this.y = y;
+			this.degree = 0;
+			this.radius = radius;
+			this.color = color;
+		}
+
+		Vortex.prototype.update = function(radius){
+			this.radius = lerp(this.radius, radius, 0.3);
+			this.degree += 10;
+		};
+
+		Vortex.prototype.render = function(){
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+			ctx.fillStyle = hexToRgbA(this.color, 0.1);
+			ctx.fill();
+
+			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = this.color;
+			ctx.stroke();
+
+
+			ctx.lineWidth = 3;
+			ctx.strokeStyle = this.color;
+			ctx.save();
+			ctx.translate(this.x, this.y);
+			ctx.rotate(this.degree * Math.PI/180);
+			ctx.strokeRect(this.radius / -2, this.radius / -2, this.radius / 2, this.radius);
+			ctx.restore();
+			ctx.save();
+			ctx.translate(this.x, this.y);
+			ctx.rotate(this.degree + 90 * Math.PI/180);
+			ctx.strokeRect(this.radius / -2, this.radius / -2, this.radius, this.radius / 2);
+			ctx.restore();
+		}
+
+		//vortex updates
+		socket.on("vupdate", info => {
+			if (vortexes[info.playerId] == undefined){
+				vortexes[info.playerId] = {};
+			}
+			if (vortexes[info.playerId][info.vortexId]){
+				vortexes[info.playerId][info.vortexId].radius = info.radius;
+			} else {
+				vortexes[info.playerId][info.vortexId] = {
+					playerId: info.playerId,
+					coords: info.coords,
+					radius: info.radius,
+					body: new Vortex(info.coords.x, info.coords.y, info.radius, info.color)
+				};
+			}
+		});
+
+		socket.on("vortex-destroy", info => {
+			delete vortexes[info.playerId][info.vortexId];
 		});
 
 		//click event listener
@@ -716,6 +789,9 @@
 				}
 				if (e.keyCode == 103 || e.which == 103){
 					socket.emit("clear-blocks");
+				}
+				if (e.keyCode == 101 || e.which == 101){
+					socket.emit("vortex");
 				}
 			}
 			if (!$(chatbar).is(':focus')){
