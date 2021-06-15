@@ -443,6 +443,7 @@ function playerEmit(){
 				rotation: players[player].rotation,
 				health: players[player].health,
 				stamina: players[player].stamina,
+				vTime: players[player].vTime,
 				burntOut: players[player].burntOut,
 				blocksUsed: players[player].blocksPlaced,
 				radius: players[player].radius,
@@ -453,6 +454,10 @@ function playerEmit(){
 				players[player].time -= 1;
 				players[player].bTime -= 1;
 				players[player].pTime -= 1;
+
+				if (!players[player].usingVortex && players[player].vTime < 600){
+					players[player].vTime++;
+				}
 
 				const keys = players[player].keys;
 				//death update
@@ -689,6 +694,29 @@ function bulletEmit(){
 					for (var o = 0; o < closestBlocks.length; o++){
 						if (closestBlocks[o]){
 							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && players[projectile.playerId]){
+								closestBlocks[o].health -= 10;
+								closestBlocks[o].health = Math.round(closestBlocks[o].health);
+								emit("bullet-destroy", {
+									playerId: projectile.playerId,
+									bulletId: projectile.bulletId
+								});
+								tree.remove(bullets[i]);
+								bullets.splice(i, 1);
+								players[projectile.playerId].bulletsShot--;
+
+								emit('blo-update', {
+									playerId: closestBlocks[o].playerId,
+									blockId: closestBlocks[o].blockId,
+									width: closestBlocks[o].width,
+									height: closestBlocks[o].height,
+									health: closestBlocks[o].health,
+									color: closestBlocks[o].color,
+									coords: {
+										x: closestBlocks[o].coords.x,
+										y: closestBlocks[o].coords.y
+									}
+								});
+
 								if (closestBlocks[o].health <= 0){
 									emit('blo-update', {
 										playerId: closestBlocks[o].playerId,
@@ -721,31 +749,9 @@ function bulletEmit(){
 										blocks.splice(closestBlocks[o].index, 1);
 									}
 									break;
-								} else {
-									closestBlocks[o].health -= 10;
-									closestBlocks[o].health = Math.round(closestBlocks[o].health);
-									emit("bullet-destroy", {
-										playerId: projectile.playerId,
-										bulletId: projectile.bulletId
-									});
-									tree.remove(bullets[i]);
-									bullets.splice(i, 1);
-									players[projectile.playerId].bulletsShot--;
-
-									emit('blo-update', {
-										playerId: closestBlocks[o].playerId,
-										blockId: closestBlocks[o].blockId,
-										width: closestBlocks[o].width,
-										height: closestBlocks[o].height,
-										health: closestBlocks[o].health,
-										color: closestBlocks[o].color,
-										coords: {
-											x: closestBlocks[o].coords.x,
-											y: closestBlocks[o].coords.y
-										}
-									});
-									break;
 								}
+
+								break;
 							}
 						}
 					}
@@ -916,6 +922,8 @@ function vortexEmit(){
 				}
 			}
 
+			players[vortex.playerId].usingVortex = true;
+			if (players[vortex.playerId].vTime > 0) players[vortex.playerId].vTime = vortex.time * 6;
 			vortex.time--;
 			if (vortex.time <= 0) vortex.active = false;
 
@@ -928,6 +936,7 @@ function vortexEmit(){
 						playerId: vortex.playerId,
 						vortexId: vortex.vortexId
 					});
+					players[vortex.playerId].usingVortex = false;
 					tree.remove(vortex);
 					vortexes.splice(i, 1);
 				}
@@ -1269,7 +1278,7 @@ io.on('connection', socket => {
 			}
 
 			if (players[socket.id]){
-				if (!players[socket.id].dead){
+				if (!players[socket.id].dead && players[socket.id].vTime == 600){
 					players[socket.id].time = 5000;
 					vortexes.push({
 						type: "vortex",
@@ -1343,9 +1352,11 @@ io.on('connection', socket => {
 					stamina: 100,
 					running: false,
 					burntOut: false,
+					usingVortex: false,
 					time: 5000,
 					bTime: 5,
 					pTime: 5,
+					vTime: 600,
 					blocksPlaced: 0,
 					bulletsShot: 0,
 					canShoot: true,

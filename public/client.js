@@ -23,6 +23,8 @@
 	const playerList = document.getElementById("player-list-container");
 	const staminaContainer = document.getElementById("stamina-container");
 	const staminaBar = document.getElementById("stamina-bar");
+	const vortexContainer = document.getElementById("vortex-container");
+	const vortexBar = document.getElementById("vortex-bar");
 	const warningContainer = document.getElementById("warning-container");
 	const toggleUI = document.getElementById("toggle-container");
 	canvas.width = window.innerWidth;
@@ -35,9 +37,11 @@
 		myY: "N/A",
 		lerpX: null,
 		lerpY: null,
+		color: "#424549",
 		blocksUsed: 0,
 		bulletCount: null,
 		stamina: 100,
+		vTime: 100,
 		burntOut: false,
 	};
 
@@ -117,6 +121,7 @@
 		myInfo.style.display = 'block';
 		chat.style.display = 'block';
 		staminaContainer.style.display = 'block';
+		vortexContainer.style.display = 'block';
 		warningContainer.style.display = 'none';
 		toggleUI.style.display = 'block';
 
@@ -171,8 +176,11 @@
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
 
+			vortexBar.style.backgroundColor = me.color;
+
 			blockCounter.innerText = `${me.blocksUsed}/40`;
 			staminaBar.style.width = `${me.stamina}%`;
+			vortexBar.style.width = `${me.vTime / 6}%`;
 
 			if (!me.burntOut){
 				staminaBar.style.backgroundColor = "#4ee44e";
@@ -437,6 +445,8 @@
 					me.lerpY = lerp(players[info.id].coords.y, info.coords.y, 0.45);
 					me.blocksUsed = info.blocksUsed;
 					me.stamina = info.stamina;
+					me.color = info.color;
+					me.vTime = info.vTime;
 					me.burntOut = info.burntOut;
 				}
 				players[info.id].coords = info.coords;

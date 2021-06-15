@@ -317,6 +317,29 @@ body {
 	text-align: left;
 }
 
+#vortex-container {
+	position: absolute;
+	width: 100%;
+	bottom: 18px;
+	opacity: 0.5;
+}
+
+#vortex-wrapper {
+	margin: auto;
+	text-align: center;
+	border-radius: 8px;
+	height: 15px;
+	width: 600px;
+	background-color: #424549;
+}
+
+#vortex-bar {
+	margin: auto;
+	border-radius: 8px;
+	height: 15px;
+	width: 100%;
+}
+
 #toggle-container {
 	position: absolute;
 	display: none;
