@@ -1060,6 +1060,8 @@ function checkDeletionBlocks(){
 		const socket = blockDeletionQueue[i]
 		const allTree = tree.all();
 
+		var decrement = 0;
+
 		for (var o = 0; o < allTree.length; o++){
 			if (allTree[o].type == "block"){
 				if (allTree[o].playerId == socket){
@@ -1067,10 +1069,15 @@ function checkDeletionBlocks(){
 						playerId: allTree[o].playerId,
 						blockId: allTree[o].blockId
 					});
-					blocks.splice(allTree[o].index, 1);
-					tree.remove(allTree[o]);	
+					blocks.splice(allTree[o].index - decrement, 1);
+					tree.remove(allTree[o]);
+					decrement++;
 				}
 			}
+		}
+
+		for (var u = 0; u < blocks.length; u++){
+			blocks[u].index -= decrement;
 		}
 		players[socket].blocksPlaced = 0;
 		blockDeletionQueue.splice(i, 1);
@@ -1086,6 +1093,10 @@ function checkDeletionLeave(){
 			color: null
 		};
 
+		var blockDecrement = 0;
+		var bulletDecrement = 0;
+		var vortexDecrement = 0;
+
 		if (players[socket]){
 			playerInfo.username = players[socket].username;
 			playerInfo.color = players[socket].color;
@@ -1098,8 +1109,9 @@ function checkDeletionLeave(){
 					blockId: allTree[o].blockId,
 					leave: true
 				});
-				blocks.splice(allTree[o].index, 1);
+				blocks.splice(allTree[o].index - blockDement, 1);
 				tree.remove(allTree[o]);	
+				blockDecrement++;
 			}
 			if (allTree[o].type == "bullet" && allTree[o].playerId == socket){
 				emit("bullet-destroy", {
@@ -1107,8 +1119,9 @@ function checkDeletionLeave(){
 					bulletId: allTree[o].bulletId,
 					leave: true
 				});
-				bullets.splice(allTree[o].index, 1);
-				tree.remove(allTree[o]);	
+				bullets.splice(allTree[o].index - bulletDecrement, 1);
+				tree.remove(allTree[o]);
+				bulletDecrement++;
 			}
 			if (allTree[o].type == "vortex" && allTree[o].playerId == socket){
 				emit("vortex-destroy", {
@@ -1116,9 +1129,22 @@ function checkDeletionLeave(){
 					vortexId: allTree[o].vortexId,
 					leave: true
 				});
-				vortexes.splice(allTree[o].index, 1);
+				vortexes.splice(allTree[o].index - vortexDecrement, 1);
 				tree.remove(allTree[o]);
+				vortexDecrement++;
 			}
+		}
+
+		for (var o = 0; o < blocks.length; o++){
+			blocks[o].index -= blockDecrement;
+		}
+
+		for (var o = 0; o < bullets.length; o++){
+			bullets[o].index -= bulletDecrement;
+		}
+
+		for (var o = 0; o < vortexes.length; o++){
+			vortexes[o].index -= vortexDecrement;
 		}
 
 		tree.remove(players[socket]);
