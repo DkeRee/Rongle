@@ -322,6 +322,7 @@ body {
 	width: 100%;
 	bottom: 18px;
 	opacity: 0.5;
+	display: none;
 }
 
 #vortex-wrapper {
