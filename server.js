@@ -1109,7 +1109,7 @@ function checkDeletionLeave(){
 					blockId: allTree[o].blockId,
 					leave: true
 				});
-				blocks.splice(allTree[o].index - blockDement, 1);
+				blocks.splice(allTree[o].index - blockDecrement, 1);
 				tree.remove(allTree[o]);	
 				blockDecrement++;
 			}
