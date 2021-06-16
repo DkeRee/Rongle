@@ -30,6 +30,8 @@
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
+	var lastTD = performance.now();
+
 	const me = {
 		loggedIn: false,
 		myID: null,
@@ -439,15 +441,17 @@
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				if (info.id == me.myID){
+					const lastTD2 = (performance.now() - lastTD) / tickrate;
 					me.myX = players[info.id].coords.x;
 					me.myY = players[info.id].coords.y;
-					me.lerpX = lerp(players[info.id].coords.x, info.coords.x, 0.45);
-					me.lerpY = lerp(players[info.id].coords.y, info.coords.y, 0.45);
+					me.lerpX = lerp(players[info.id].coords.x, info.coords.x, lastTD2);
+					me.lerpY = lerp(players[info.id].coords.y, info.coords.y, lastTD2);
 					me.blocksUsed = info.blocksUsed;
 					me.stamina = info.stamina;
 					me.color = info.color;
 					me.vTime = info.vTime;
 					me.burntOut = info.burntOut;
+					lastTD = performance.now();
 				}
 				players[info.id].coords = info.coords;
 				players[info.id].rotation = info.rotation;
