@@ -130,10 +130,12 @@
 		toggle("shooting-container");
 
 		var step = function(){
-			canvas.style.backgroundPosition = `${-me.lerpX / 0.8}px ${-me.lerpY / 0.8}px`;
+			const lastTD2 = (performance.now() - lastTD) / tickrate;
+			canvas.style.backgroundPosition = `${-lerp(me.myX, me.lerpX, lastTD2) / 0.8}px ${-lerp(me.myY, me.lerpY, lastTD2) / 0.8}px`;
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.translate(-me.lerpX + canvas.width / 2, -me.lerpY + canvas.height / 2);
+			ctx.translate(-lerp(me.myX, me.lerpX, lastTD2) + canvas.width / 2, -lerp(me.myY, me.lerpY, lastTD2) + canvas.height / 2);
+			lastTD = performance.now();
 			update();
 			render();
 			requestAnimationFrame(step);
@@ -441,17 +443,22 @@
 		socket.on('pupdate', info => {
 			if (players[info.id]){
 				if (info.id == me.myID){
-					const lastTD2 = (performance.now() - lastTD) / tickrate;
-					me.myX = players[info.id].coords.x;
-					me.myY = players[info.id].coords.y;
-					me.lerpX = lerp(players[info.id].coords.x, info.coords.x, lastTD2);
-					me.lerpY = lerp(players[info.id].coords.y, info.coords.y, lastTD2);
+					if (me.myX == "N/A" && me.myY == "N/A"){
+						me.myX = info.coords.x;
+						me.myY = info.coords.y;
+						me.lerpX = info.coords.x;
+						me.lerpY = info.coords.y;
+					} else {
+						me.myX = me.lerpX;
+						me.myY = me.lerpY;
+						me.lerpX = info.coords.x;
+						me.lerpY = info.coords.y;
+					}
 					me.blocksUsed = info.blocksUsed;
 					me.stamina = info.stamina;
 					me.color = info.color;
 					me.vTime = info.vTime;
 					me.burntOut = info.burntOut;
-					lastTD = performance.now();
 				}
 				players[info.id].coords = info.coords;
 				players[info.id].rotation = info.rotation;
