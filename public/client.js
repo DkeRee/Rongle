@@ -103,17 +103,7 @@
 			x: window.innerWidth,
 			y: window.innerHeight
 		});
-		setInterval(() => {
-			if (!socket.connected){
-				bigUI.style.display = 'none';
-				overlappingUI.style.display = 'block';
-			}
-		}, tickrate);
 	});
-
-	setInterval(() => {
-		socket.emit("bullet-num");
-	}, tickrate);
 
 	socket.on('joining', () => {
 		me.loggedIn = true;
@@ -136,6 +126,37 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.translate(-lerp(me.myX, me.lerpX, lastTD2) + canvas.width / 2, -lerp(me.myY, me.lerpY, lastTD2) + canvas.height / 2);
 			lastTD = performance.now();
+
+			if (!socket.connected){
+				bigUI.style.display = 'none';
+				overlappingUI.style.display = 'block';
+			}
+
+			if (!typing){
+				socket.emit('movement', keys);
+				if (keys[9]){
+					playerList.style.display = 'block';
+				} else {
+					playerList.style.display = 'none';
+				}
+			}
+
+			if ($(chatbar).is(":focus")){
+				$(chat).removeClass("unselectable");
+				chat.style.opacity = "1";
+				typing = true;
+			} else {
+				chatbar.style.height = "20px";
+			}
+
+			socket.emit("bullet-num");
+
+			if (me.bulletCount > bulletStorage.length){
+				for (var i = 0; i < 500; i++){
+					bulletStorage.push(new Bullet(5000, 5000, "transparent"));
+				}
+			}
+
 			update();
 			render();
 			requestAnimationFrame(step);
@@ -322,14 +343,6 @@
 				}
 			}
 		}
-
-		setInterval(() => {
-			if (me.bulletCount > bulletStorage.length){
-				for (var i = 0; i < 500; i++){
-					bulletStorage.push(new Bullet(5000, 5000, "transparent"));
-				}
-			}
-		}, tickrate);
 
 		//health drop constructor
 		function HealthDrop(x, y, width, height, color){
@@ -666,17 +679,6 @@
 		socket.on("rambot-destroy", botId => {
 			delete ramBots[botId];
 		});
-	
-		setInterval(() => {
-			if (!typing){
-				socket.emit('movement', keys);
-				if (keys[9]){
-					playerList.style.display = 'block';
-				} else {
-					playerList.style.display = 'none';
-				}
-			}
-		}, tickrate);
 	});
 	const warningHeader = document.getElementById("warning-header");
 	const warning = document.getElementById("warning");
@@ -796,16 +798,6 @@
 	socket.on("plr-respawn", info => {
 		players[info.playerId].body.color = info.playerColor;
 		players[info.playerId].body.dead = false;
-	});
-
-	setInterval(() => {
-		if ($(chatbar).is(":focus")){
-			$(chat).removeClass("unselectable");
-			chat.style.opacity = "1";
-			typing = true;
-		} else {
-			chatbar.style.height = "20px";
-		}
 	});
 
 	window.addEventListener("keypress", e => {
