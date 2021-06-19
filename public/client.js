@@ -125,6 +125,7 @@
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.translate(-lerp(me.myX, me.lerpX, lastTD2) + canvas.width / 2, -lerp(me.myY, me.lerpY, lastTD2) + canvas.height / 2);
+			lastTD = performance.now();
 
 			if (!socket.connected){
 				bigUI.style.display = 'none';
@@ -453,7 +454,6 @@
 
 		//player update
 		socket.on('pupdate', info => {
-			lastTD = performance.now();
 			if (players[info.id]){
 				if (info.id == me.myID){
 					if (me.myX == "N/A" && me.myY == "N/A"){
