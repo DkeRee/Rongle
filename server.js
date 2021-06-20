@@ -46,6 +46,7 @@ const tickrate = 1000/60;
 
 const randomstring = require('randomstring');
 
+const vortexBlockQueue = [];
 const blockDeletionQueue = [];
 const playerDeletionQueue = [];
 
@@ -902,7 +903,7 @@ function vortexEmit(){
 						if (players[block.playerId]){
 							players[block.playerId].blocksPlaced--;
 							tree.remove(block);
-							blocks.splice(block.index, 1);
+							vortexBlockQueue.push(block.blockId);
 						}
 					} else {
 						emit('blo-update', {
@@ -1084,6 +1085,27 @@ function checkDeletionBlocks(){
 	}
 }
 
+function checkDeletionVortexToBlocks(){
+	for (var i = 0; i < vortexBlockQueue.length;){
+		const blockId = vortexBlockQueue[i];
+		var decrement = 0;
+
+		for (var o = 0; o < blocks.length;){
+			if (blocks[o].blockId == blockId){
+				blocks.splice(blocks[o].index - decrement, 1);
+				decrement++;
+			} else {
+				o++;
+			}
+		}
+
+		for (var o = 0; o < blocks.length; o++){
+			blocks[o].index -= decrement;
+		}
+		vortexBlockQueue.splice(i, 1);
+	}
+}
+
 function checkDeletionLeave(){
 	for (var i = 0; i < playerDeletionQueue.length;){
 		const socket = playerDeletionQueue[i];
@@ -1168,6 +1190,7 @@ setInterval(() => {
 	playerEmit(); //circle
 	bulletEmit(); //circle
 	vortexEmit(); //circle
+	checkDeletionVortexToBlocks();
 	checkDeletionBlocks();
 	checkDeletionLeave();
 }, tickrate);
