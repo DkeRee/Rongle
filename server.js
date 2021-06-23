@@ -46,7 +46,6 @@ const tickrate = 1000/60;
 
 const randomstring = require('randomstring');
 
-const vortexBlockQueue = [];
 const blockDeletionQueue = [];
 const playerDeletionQueue = [];
 
@@ -833,9 +832,6 @@ function vortexEmit(){
 			const closestPlayers = knn(tree, vortex.coords.x, vortex.coords.y, loopLimit, item => {
 				return item.type == "player";
 			});
-			const closestBlocks = knn(tree, vortex.coords.x, vortex.coords.y, loopLimit, item => {
-				return item.type == "block";
-			});
 			const closestRamBots = knn(tree, vortex.coords.x, vortex.coords.y, loopLimit, item => {
 				return item.type == "ramBot";
 			});
@@ -876,52 +872,7 @@ function vortexEmit(){
 					ramBot.health -= 0.5;
 				}
 			}
-
-			for (var o = 0; o < closestBlocks.length; o++){
-				if (cirToRectCollision(vortex, closestBlocks[o]) && closestBlocks[o]){
-					const block = closestBlocks[o];
-					block.health -= 0.5;
-
-					if (block.health <= 0){
-						emit('blo-update', {
-							playerId: block.playerId,
-							blockId: block.blockId,
-							width: block.width,
-							height: block.height,
-							health: block.health,
-							color: block.color,
-							coords: {
-								x: block.coords.x,
-								y: block.coords.y
-							}
-						});						
-
-						emit("block-destroy", {
-							playerId: block.playerId,
-							blockId: block.blockId
-						});
-						if (players[block.playerId]){
-							players[block.playerId].blocksPlaced--;
-							tree.remove(block);
-							vortexBlockQueue.push(block.blockId);
-						}
-					} else {
-						emit('blo-update', {
-							playerId: block.playerId,
-							blockId: block.blockId,
-							width: block.width,
-							height: block.height,
-							health: block.health,
-							color: block.color,
-							coords: {
-								x: block.coords.x,
-								y: block.coords.y
-							}
-						});	
-					}
-				}
-			}
-
+			
 			players[vortex.playerId].usingVortex = true;
 			if (players[vortex.playerId].vTime > 0) players[vortex.playerId].vTime = vortex.time * 6;
 			vortex.time--;
@@ -1085,27 +1036,6 @@ function checkDeletionBlocks(){
 	}
 }
 
-function checkDeletionVortexToBlocks(){
-	for (var i = 0; i < vortexBlockQueue.length;){
-		const blockId = vortexBlockQueue[i];
-		var decrement = 0;
-
-		for (var o = 0; o < blocks.length;){
-			if (blocks[o].blockId == blockId){
-				blocks.splice(blocks[o].index - decrement, 1);
-				decrement++;
-			} else {
-				o++;
-			}
-		}
-
-		for (var o = 0; o < blocks.length; o++){
-			blocks[o].index -= decrement;
-		}
-		vortexBlockQueue.splice(i, 1);
-	}
-}
-
 function checkDeletionLeave(){
 	for (var i = 0; i < playerDeletionQueue.length;){
 		const socket = playerDeletionQueue[i];
@@ -1190,7 +1120,6 @@ setInterval(() => {
 	playerEmit(); //circle
 	bulletEmit(); //circle
 	vortexEmit(); //circle
-	checkDeletionVortexToBlocks();
 	checkDeletionBlocks();
 	checkDeletionLeave();
 }, tickrate);
