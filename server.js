@@ -53,6 +53,8 @@ const rateLimiter = new RateLimiterMemory({
 
 const randomstring = require('randomstring');
 
+const connectedIPs = {};
+
 const blockDeletionQueue = [];
 const playerDeletionQueue = [];
 
@@ -1135,12 +1137,25 @@ io.use((socket, next) => {
 	if (socket.request.headers.host == "localhost:3000"){
 		return next();
 	} else {
-		rateLimiter.consume(socket.handshake.headers["x-forwarded-for"])
+		const ip = socket.handshake.headers["x-forwarded-for"];
+		rateLimiter.consume(ip)
 			.then((rateLimiterRes) => {
-				return next();
+				if (connectedIPs[ip]){
+					if (connectedIPs[ip].count < 4){
+						connectedIPs[ip].count++;
+						return next();
+					} else {
+						return next(new Error("Too many connected clients. Please close some tabs."))
+					}
+				} else {
+					connectedIPs[ip] = {
+						count: 1
+					};
+					return next();
+				}
 			})
 			.catch((rateLimiterRes) => {
-				return next(new Error("Joined too quickly. Please wait."));
+				return next(new Error("Joining too quickly. Please wait up to 30 seconds."));
 			});
 	}
 });
@@ -1427,6 +1442,14 @@ io.on('connection', socket => {
 	});
 	socket.on('disconnect', () => {
 		if (players[socket.id]) playerDeletionQueue.push(socket.id);
+		if (socket.request.headers.host !== "localhost:3000"){
+			const ip = socket.handshake.headers["x-forwarded-for"];
+			if (connectedIPs[ip].count > 1){
+				connectedIPs[ip].count--;
+			} else {
+				delete connectedIPs[ip];
+			}
+		}
 	});
 });
 
