@@ -47,7 +47,7 @@ const tickrate = 1000/60;
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 
 const rateLimiter = new RateLimiterMemory({
-  points: 5,
+  points: 4,
   duration: 30
 });
 
