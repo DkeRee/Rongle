@@ -44,13 +44,6 @@ const loopLimit = 7;
 
 const tickrate = 1000/60;
 
-const { RateLimiterMemory } = require('rate-limiter-flexible');
-
-const rateLimiter = new RateLimiterMemory({
-  points: 5,
-  duration: 30
-});
-
 const randomstring = require('randomstring');
 
 const blockDeletionQueue = [];
@@ -1132,17 +1125,7 @@ setInterval(() => {
 }, tickrate);
 
 io.use((socket, next) => {
-	if (socket.request.headers.host == "localhost:3000"){
-		return next();
-	} else {
-		rateLimiter.consume(socket.handshake.headers["x-forwarded-for"])
-			.then((rateLimiterRes) => {
-				return next();
-			})
-			.catch((rateLimiterRes) => {
-				return next(new Error("Joined too quickly. Please wait."));
-			});
-	}
+	console.log(socket.request);
 });
 
 io.on('connection', socket => {
