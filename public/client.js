@@ -105,6 +105,11 @@
 		});
 	});
 
+	socket.on("connect_error", () => {
+		bigUI.style.display = 'none';
+		overlappingUI.style.display = 'block';
+	})
+
 	socket.on('joining', () => {
 		me.loggedIn = true;
 		loginContainer.remove();
