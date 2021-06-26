@@ -807,24 +807,6 @@
 
 	window.addEventListener("keypress", e => {
 		if (me.loggedIn){
-			if (!typing){
-				if (e.keyCode == 49 || e.which == 49 || e.keyCode == 114 || e.which == 114){
-					mode = "shooting";
-					bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
-					toggle("shooting-container");
-				}
-				if (e.keyCode == 50 || e.which == 50 || e.keyCode == 102 || e.which == 102){
-					mode = "placing";
-					bigUI.style.cursor = `url('data:image/svg+xml;utf8,<svg fill="%23FF0000" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="100" style="fill:rgb(173, 173, 173);opacity:80%" /></svg>') 25 15, auto`;
-					toggle("building-container");
-				}
-				if (e.keyCode == 103 || e.which == 103){
-					socket.emit("clear-blocks");
-				}
-				if (e.keyCode == 101 || e.which == 101){
-					socket.emit("vortex");
-				}
-			}
 			if (!$(chatbar).is(':focus')){
 				if (e.keyCode == 13 || e.which == 13){
 					setTimeout(() => {
@@ -850,6 +832,24 @@
 
 	window.addEventListener("keydown", e => {
 		keys[e.keyCode || e.which] = true;
+		if (!typing){
+			if (e.keyCode == 49 || e.which == 49){
+				mode = "shooting";
+				bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
+				toggle("shooting-container");
+			}
+			if (e.keyCode == 50 || e.which == 50){
+				mode = "placing";
+				bigUI.style.cursor = `url('data:image/svg+xml;utf8,<svg fill="%23FF0000" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="100" style="fill:rgb(173, 173, 173);opacity:80%" /></svg>') 25 15, auto`;
+				toggle("building-container");
+			}
+			if (e.keyCode == 71 || e.which == 71){
+				socket.emit("clear-blocks");
+			}
+			if (e.keyCode == 69 || e.which == 69){
+				socket.emit("vortex");
+			}
+		}
 	});
 
 	window.addEventListener("keyup", e => {
