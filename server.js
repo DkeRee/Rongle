@@ -1304,6 +1304,7 @@ io.on('connection', socket => {
 			if (players[socket.id]){
 				if (!players[socket.id].dead && players[socket.id].vTime == 600){
 					players[socket.id].time = 5000;
+					players[socket.id].vTime = 599;
 					vortexes.push({
 						type: "vortex",
 						index: index,
