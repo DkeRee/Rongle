@@ -703,7 +703,7 @@ function bulletEmit(){
 
 					for (var o = 0; o < closestBlocks.length; o++){
 						if (closestBlocks[o]){
-							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && !players[projectile.playerId].god && players[projectile.playerId]){
+							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && players[projectile.playerId]){
 								if (closestBlocks[o].health <= 0){
 									emit('blo-update', {
 										playerId: closestBlocks[o].playerId,
@@ -765,7 +765,7 @@ function bulletEmit(){
 						}
 					}
 					for (var p = 0; p < closestPlayers.length; p++){
-						if (closestPlayers[p].id !== projectile.playerId && cirToCirCollision(projectile, closestPlayers[p]) && !closestPlayers[p].dead && closestPlayers[p]){
+						if (closestPlayers[p].id !== projectile.playerId && cirToCirCollision(projectile, closestPlayers[p]) && !players[projectile.playerId].god && !closestPlayers[p].dead && closestPlayers[p]){
 							closestPlayers[p].health -= 10;
 							closestPlayers[p].health = Math.round(closestPlayers[p].health);
 							emit("bullet-destroy", {
