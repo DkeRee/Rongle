@@ -313,7 +313,7 @@ function ramBotEmit(){
 							}								
 						}
 					}
-					if (cirToCirCollision(ramBots[i], player)){
+					if (cirToCirCollision(ramBots[i], player) && !player.god){
 						var bkbX = 80;
 						var bkbY = 80;
 						var pkbX = 80;
@@ -703,7 +703,7 @@ function bulletEmit(){
 
 					for (var o = 0; o < closestBlocks.length; o++){
 						if (closestBlocks[o]){
-							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && players[projectile.playerId]){
+							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && !players[projectile.playerId].god && players[projectile.playerId]){
 								if (closestBlocks[o].health <= 0){
 									emit('blo-update', {
 										playerId: closestBlocks[o].playerId,
@@ -787,6 +787,7 @@ function bulletEmit(){
 									},
 									winner: {
 										username: closestPlayers[p].latestWinner.username,
+										id: closestPlayers[p].id,
 										color: closestPlayers[p].latestWinner.color
 									},
 									type: "player"
@@ -847,7 +848,7 @@ function vortexEmit(){
 			});
 
 			for (var o = 0; o < closestPlayers.length; o++){
-				if (vortex.playerId !== closestPlayers[o].id && cirToCirCollision(vortex, closestPlayers[o]) && !closestPlayers[o].dead){
+				if (vortex.playerId !== closestPlayers[o].id && cirToCirCollision(vortex, closestPlayers[o]) && !closestPlayers[o].god && !closestPlayers[o].dead){
 					const player = closestPlayers[o];
 					player.coords.x = vortex.coords.x;
 					player.coords.y = vortex.coords.y;
@@ -866,6 +867,7 @@ function vortexEmit(){
 							},
 							winner: {
 								username: player.latestWinner.username,
+								id: player.id,
 								color: player.latestWinner.color
 							},
 							type: "player"
@@ -1051,6 +1053,7 @@ function checkDeletionLeave(){
 		const socket = playerDeletionQueue[i];
 		const allTree = tree.all();
 		const playerInfo = {
+			isDev: null,
 			username: null,
 			color: null
 		};
@@ -1060,6 +1063,7 @@ function checkDeletionLeave(){
 		var vortexDecrement = 0;
 
 		if (players[socket]){
+			playerInfo.isDev = players[socket].isDev;
 			playerInfo.username = players[socket].username;
 			playerInfo.color = players[socket].color;
 		}
@@ -1114,6 +1118,7 @@ function checkDeletionLeave(){
 		emit("leave", {
 			message: " has left the server",
 			id: socket,
+			isDev: playerInfo.isDev,
 			username: playerInfo.username,
 			color: playerInfo.color
 		});
@@ -1336,12 +1341,109 @@ io.on('connection', socket => {
 								color: players[socket.id].color
 							});
 						} else if (isDev){
+							function findPlayer(username){
+								for (var player in players){
+									if (players[player].username == username){
+										return players[player];
+									}
+								}
+							}
+
 							const cmd = message.split(" ");
 
 							if (cmd[0] == "/tp" && cmd[1] == "me"){
 								if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
 									players[socket.id].coords.x = Number(cmd[2]);
 									players[socket.id].coords.y = Number(cmd[3]);
+								}
+							}
+
+							if (cmd[0] == "/god" && cmd[1] == "me"){
+								players[socket.id].god = true;
+							}
+
+							if (cmd[0] == "/ungod" && cmd[1] == "me"){
+								players[socket.id].god = false;
+							}
+
+							if (cmd[0] == "/health"){
+								if (cmd[1] == "me"){
+									if (!isNaN(Number(cmd[2]))) players[socket.id].health = cmd[2];
+								} else {
+									if (!isNaN(Number(cmd[2]))){
+										const target = findPlayer(cmd[1]);
+										target.health = cmd[2];
+									}
+								}
+							}
+
+							if (cmd[0] == "/kill"){
+								if (cmd[1] == "all"){
+									for (var player in players){
+										players[player].health = -1;
+
+										setTimeout(() => {
+											players[player].dead = true;
+
+											emit("plr-death", {
+												loser: {
+													username: players[player].username,
+													id: players[player].id,
+													color: players[player].color
+												},
+												winner: {
+													username: players[socket.id].username,
+													id: players[socket.id].id,
+													color: players[socket.id].color
+												},
+												type: "player"
+											});
+										}, 500);
+									}
+								} else if (cmd[1] == "others"){
+									for (var player in players){
+										if (players[player].id !== socket.id){
+											players[player].health = -1;
+
+											setTimeout(() => {
+												players[player].dead = true;
+
+												emit("plr-death", {
+													loser: {
+														username: players[player].username,
+														id: players[player].id,
+														color: players[player].color
+													},
+													winner: {
+														username: players[socket.id].username,
+														id: players[socket.id].color,
+														color: players[socket.id].color
+													},
+													type: "player"
+												});
+											}, 500);
+										}
+									}
+								} else {
+									const target = findPlayer(cmd[1]);
+
+									target.health = -1;
+									setTimeout(() => {
+										target.dead = true;
+										emit("plr-death", {
+											loser: {
+												username: target.username,
+												id: target.id,
+												color: target.color
+											},
+											winner: {
+												username: players[socket.id].username,
+												id: players[socket.id].color,
+												color: players[socket.id].color
+											},
+											type: "player"
+										});
+									}, 500);
 								}
 							}
 						}
@@ -1384,6 +1486,7 @@ io.on('connection', socket => {
 				players[socket.id] = {
 					type: "player",
 					isDev: isDev,
+					god: false,
 					id: socket.id,
 					username: username,
 					radius: 26,
@@ -1420,6 +1523,7 @@ io.on('connection', socket => {
 				emit('plr-joined', {
 					message: " has joined the server",
 					username: username,
+					isDev: isDev,
 					color: players[socket.id].color
 				});
 				for (var i = 0; i < blocks.length; i++){

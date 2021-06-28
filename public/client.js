@@ -144,6 +144,11 @@
 						setTimeout(() => {
 							$(chatbar).focus();
 						}, 50);
+					} else if (e.keyCode == 47 || e.which == 47){
+						setTimeout(() => {
+							$(chatbar).focus();
+							chatbar.value = "/";
+						}, 50);
 					}
 				} else {
 					if (e.keyCode == 13 || e.which == 13){
@@ -812,8 +817,14 @@
 
 			const name = document.createElement("bdi");
 			name.innerText = info.username;
-			name.style.color = info.color;
-			name.setAttribute("class", "msg");
+
+			if (!info.isDev){
+				name.style.color = info.color;
+				name.setAttribute("class", "msg");
+			} else {
+				name.classList.add("class", "dev-text");
+				name.classList.add("class", "msg");
+			}
 
 			msg.prepend(name);
 			msgContainer.appendChild(msg);
@@ -881,11 +892,21 @@
 
 			const loser = document.createElement("bdi");
 			loser.innerText = info.loser.username;
-			loser.style.color = info.loser.color;
+
+			if (!players[info.loser.id].isDev){
+				loser.style.color = info.loser.color;
+			} else {
+				loser.setAttribute("class", "dev-text");
+			}
 
 			const winner = document.createElement("bdi");
 			winner.innerText = info.winner.username;
-			winner.style.color = info.winner.color;
+
+			if (!players[info.winner.id].isDev){
+				winner.style.color = info.winner.color;
+			} else {
+				winner.setAttribute("class", "dev-text")
+			}
 
 			if (info.type == "bot"){
 				winner.style.textDecoration = "underline";
