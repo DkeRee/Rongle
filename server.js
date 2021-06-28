@@ -467,6 +467,9 @@ function playerEmit(){
 
 				if (!players[player].usingVortex && players[player].vTime < 600){
 					players[player].vTime++;
+					if (players[player].vTime == 600){
+						players[player].canVortex = true;
+					}
 				}
 
 				const keys = players[player].keys;
@@ -1295,16 +1298,16 @@ io.on('connection', socket => {
 		socket.on("vortex", () => {
 			var index;
 
-			if (bullets.length == 0){
+			if (vortexes.length == 0){
 				index = 0;
 			} else {
-				index = bullets.length;
+				index = vortexes.length;
 			}
 
 			if (players[socket.id]){
-				if (!players[socket.id].dead && players[socket.id].vTime == 600){
+				if (!players[socket.id].dead && players[socket.id].canVortex){
+					players[socket.id].canVortex = false;
 					players[socket.id].time = 5000;
-					players[socket.id].vTime = 599;
 					vortexes.push({
 						type: "vortex",
 						index: index,
@@ -1553,6 +1556,7 @@ io.on('connection', socket => {
 					blocksPlaced: 0,
 					bulletsShot: 0,
 					canShoot: true,
+					canVortex: true,
 					canPlace: true
 				};
 				tree.insert(players[socket.id]);
