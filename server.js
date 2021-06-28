@@ -777,8 +777,6 @@ function bulletEmit(){
 							players[projectile.playerId].bulletsShot--;
 							if (closestPlayers[p].health <= 0){ //player duplicate
 								closestPlayers[p].dead = true;
-								closestPlayers[p].latestWinner.username = closestPlayers[p].username;
-								closestPlayers[p].latestWinner.color = closestPlayers[p].color;
 								emit("plr-death", {
 									loser: {
 										username: closestPlayers[p].username,
@@ -786,9 +784,9 @@ function bulletEmit(){
 										color: closestPlayers[p].color
 									},
 									winner: {
-										username: closestPlayers[p].latestWinner.username,
-										id: closestPlayers[p].id,
-										color: closestPlayers[p].latestWinner.color
+										username: players[projectile.playerId].username,
+										id: players[projectile.playerId].id,
+										color: players[projectile.playerId].color
 									},
 									type: "player"
 								});
@@ -856,8 +854,6 @@ function vortexEmit(){
 
 					if (player.health <= 0){
 						player.dead = true;
-						player.latestWinner.username = players[vortex.playerId].username;
-						player.latestWinner.color = players[vortex.playerId].color;
 
 						emit("plr-death", {
 							loser: {
@@ -866,9 +862,9 @@ function vortexEmit(){
 								color: player.color
 							},
 							winner: {
-								username: player.latestWinner.username,
-								id: player.id,
-								color: player.latestWinner.color
+								username: players[vortex.playerId].username,
+								id: players[vortex.playerId].id,
+								color: players[vortex.playerId].color
 							},
 							type: "player"
 						});
@@ -1351,19 +1347,58 @@ io.on('connection', socket => {
 
 							const cmd = message.split(" ");
 
-							if (cmd[0] == "/tp" && cmd[1] == "me"){
-								if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
-									players[socket.id].coords.x = Number(cmd[2]);
-									players[socket.id].coords.y = Number(cmd[3]);
+							if (cmd[0] == "/tp"){
+								if (cmd[1] == "me"){
+									if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
+										//tp me to coords
+										players[socket.id].coords.x = Number(cmd[2]);
+										players[socket.id].coords.y = Number(cmd[3]);
+									} else {
+										//tp me to player
+										const target = findPlayer(cmd[2]);
+										if (target){
+											players[socket.id].coords.x = target.coords.x;
+											players[socket.id].coords.y = target.coords.y;
+										}
+									}
+								} else {
+									const target = findPlayer(cmd[1]);
+									if (target){
+										if (cmd[2] == "me"){
+											//tp player to me
+											target.coords.x = players[socket.id].coords.x;
+											target.coords.y = players[socket.id].coords.y;
+										} else {
+											//tp player to coords
+											if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
+												target.coords.x = Number(cmd[2]);
+												target.coords.y = Number(cmd[3]);
+											}
+										}
+									}
 								}
 							}
 
-							if (cmd[0] == "/god" && cmd[1] == "me"){
-								players[socket.id].god = true;
+							if (cmd[0] == "/god"){
+								if (cmd[1] == "me"){
+									players[socket.id].god = true;
+								} else {
+									const target = findPlayer(cmd[1]);
+									if (target){
+										target.god = true;
+									}
+								}
 							}
 
-							if (cmd[0] == "/ungod" && cmd[1] == "me"){
-								players[socket.id].god = false;
+							if (cmd[0] == "/ungod"){
+								if (cmd[1] == "me"){
+									players[socket.id].god = false;
+								} else {
+									const target = findPlayer(cmd[1]);
+									if (target){
+										target.god = false;
+									}
+								}
 							}
 
 							if (cmd[0] == "/health"){
@@ -1372,7 +1407,7 @@ io.on('connection', socket => {
 								} else {
 									if (!isNaN(Number(cmd[2]))){
 										const target = findPlayer(cmd[1]);
-										target.health = Number(cmd[2]);
+										if (target) target.health = Number(cmd[2]);
 									}
 								}
 							}
@@ -1381,8 +1416,26 @@ io.on('connection', socket => {
 								if (cmd[1] == "all"){
 									for (var player in players){
 										players[player].health = -1;
+										players[player].dead = true;
 
-										setTimeout(() => {
+										emit("plr-death", {
+											loser: {
+												username: players[player].username,
+												id: players[player].id,
+												color: players[player].color
+											},
+											winner: {
+												username: players[socket.id].username,
+												id: players[socket.id].id,
+												color: players[socket.id].color
+											},
+											type: "player"
+										});
+									}
+								} else if (cmd[1] == "others"){
+									for (var player in players){
+										if (players[player].id !== socket.id){
+											players[player].health = -1;
 											players[player].dead = true;
 
 											emit("plr-death", {
@@ -1398,38 +1451,14 @@ io.on('connection', socket => {
 												},
 												type: "player"
 											});
-										}, 500);
-									}
-								} else if (cmd[1] == "others"){
-									for (var player in players){
-										if (players[player].id !== socket.id){
-											players[player].health = -1;
-
-											setTimeout(() => {
-												players[player].dead = true;
-
-												emit("plr-death", {
-													loser: {
-														username: players[player].username,
-														id: players[player].id,
-														color: players[player].color
-													},
-													winner: {
-														username: players[socket.id].username,
-														id: players[socket.id].color,
-														color: players[socket.id].color
-													},
-													type: "player"
-												});
-											}, 500);
 										}
 									}
 								} else {
 									const target = findPlayer(cmd[1]);
-
-									target.health = -1;
-									setTimeout(() => {
+									if (target){
+										target.health = -1;
 										target.dead = true;
+									
 										emit("plr-death", {
 											loser: {
 												username: target.username,
@@ -1438,12 +1467,12 @@ io.on('connection', socket => {
 											},
 											winner: {
 												username: players[socket.id].username,
-												id: players[socket.id].color,
+												id: players[socket.id].id,
 												color: players[socket.id].color
 											},
 											type: "player"
 										});
-									}, 500);
+									}
 								}
 							}
 						}
@@ -1500,10 +1529,6 @@ io.on('connection', socket => {
 					health: 100,
 					dead: false,
 					respawnTime: 5,
-					latestWinner: {
-						username: null,
-						color: null
-					},
 					stamina: 100,
 					running: false,
 					burntOut: false,
