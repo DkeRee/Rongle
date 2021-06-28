@@ -547,8 +547,7 @@
 				name.setAttribute("class", "player-widget-name");
 			} else {
 				name.innerText = info.username;
-				name.classList.add("class", "dev-text");
-				name.classList.add("class", "player-widget-name");
+				name.classList.add("dev-text", "player-widget-name");
 			}
 
 			playerContainer.appendChild(name);
@@ -822,8 +821,7 @@
 				name.style.color = info.color;
 				name.setAttribute("class", "msg");
 			} else {
-				name.classList.add("class", "dev-text");
-				name.classList.add("class", "msg");
+				name.classList.add("dev-text", "msg");
 			}
 
 			msg.prepend(name);
@@ -849,8 +847,7 @@
 				name.setAttribute("class", "msg");
 			} else {
 				name.innerText = info.username;
-				name.classList.add("class", "dev-text");
-				name.classList.add("class", "msg");
+				name.classList.add("dev-text", "msg");
 			}
 
 			msgContainer.innerText = `: ${info.msg}`;
