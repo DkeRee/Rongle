@@ -1180,105 +1180,113 @@ io.on('connection', socket => {
 			if (players[socket.id]) blockDeletionQueue.push(socket.id);
 		});
 		socket.on("place", info => {
-			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
-				const placeInfo = {
-					screen: info.screen,
-					playerId: socket.id,
-					coords: {
-						x: Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50,
-						y: Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50
-					}
-				};
-
-				var index;
-
-				if (blocks.length == 0){
-					index = 0;
-				} else {
-					index = blocks.length;
-				}
-
-				if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(placeInfo) == undefined && !players[socket.id].dead){
-					players[socket.id].time = 5000;
-					players[socket.id].pTime = 5;
-					players[socket.id].canPlace = false;
-					players[socket.id].blocksPlaced++;
-					blocks.push({
-						type: "block",
+			if (typeof info == 'object'){
+				if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
+					const placeInfo = {
+						screen: info.screen,
 						playerId: socket.id,
-						blockId: randomstring.generate(),
-						health: 50,
-						width: 50,
-						height: 50,
-						index: index,
-						color: "white",
 						coords: {
-							x: placeInfo.coords.x,
-							y: placeInfo.coords.y
+							x: Math.round((players[socket.id].coords.x + info.coords.x - info.screen.width / 2 - 34) / 50) * 50,
+							y: Math.round((players[socket.id].coords.y + info.coords.y - info.screen.height / 2 - 25) / 50) * 50
 						}
-					});
-					tree.insert(blocks[index]);
-					players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
-					emit('blo-update', {
-						playerId: blocks[index].playerId,
-						blockId: blocks[index].blockId,
-						width: blocks[index].width,
-						height: blocks[index].height,
-						health: blocks[index].health,
-						color: blocks[index].color,
-						coords: {
-							x: blocks[index].coords.x,
-							y: blocks[index].coords.y
-						}
-					});
+					};
+
+					var index;
+
+					if (blocks.length == 0){
+						index = 0;
+					} else {
+						index = blocks.length;
+					}
+
+					if (players[socket.id].blocksPlaced < 40  && players[socket.id].canPlace && checkPlacement(placeInfo) == undefined && !players[socket.id].dead){
+						players[socket.id].time = 5000;
+						players[socket.id].pTime = 5;
+						players[socket.id].canPlace = false;
+						players[socket.id].blocksPlaced++;
+						blocks.push({
+							type: "block",
+							playerId: socket.id,
+							blockId: randomstring.generate(),
+							health: 50,
+							width: 50,
+							height: 50,
+							index: index,
+							color: "white",
+							coords: {
+								x: placeInfo.coords.x,
+								y: placeInfo.coords.y
+							}
+						});
+						tree.insert(blocks[index]);
+						players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
+						emit('blo-update', {
+							playerId: blocks[index].playerId,
+							blockId: blocks[index].blockId,
+							width: blocks[index].width,
+							height: blocks[index].height,
+							health: blocks[index].health,
+							color: blocks[index].color,
+							coords: {
+								x: blocks[index].coords.x,
+								y: blocks[index].coords.y
+							}
+						});
+					}
+				} else {
+					socket.disconnect();
 				}
 			} else {
 				socket.disconnect();
 			}
 		});
 		socket.on("shoot", info => {
-			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
-				var index;
+			if (typeof info == 'object'){
+				if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.x == 'number' && typeof info.coords.y == 'number'){
+					var index;	
 
-				if (bullets.length == 0){
-					index = 0;
+					if (bullets.length == 0){
+						index = 0;
+					} else {
+						index = bullets.length;
+					}
+
+					if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
+						players[socket.id].time = 5000;
+						players[socket.id].bTime = 5;
+						players[socket.id].canShoot = false;
+						players[socket.id].bulletsShot++;
+						bullets.push({
+							type: "bullet",
+							playerId: socket.id,
+							radius: 6,
+							bulletId: randomstring.generate(),
+							speed: 30,
+							time: 50,
+							index: index,
+							screen: {
+								width: info.screen.width,
+								height: info.screen.height
+							},
+							bulletCoords: {
+								x: players[socket.id].coords.x,
+								y: players[socket.id].coords.y
+							},
+							targetCoords: {
+								x: info.coords.x,
+								y: info.coords.y
+							},
+							coords: {
+								x: players[socket.id].coords.x,
+								y: players[socket.id].coords.y
+							},
+							color: "#72bcd4"
+						});
+						tree.insert(bullets[index]);
+						players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
+					}
 				} else {
-					index = bullets.length;
-				}
-
-				if (players[socket.id].bulletsShot < 30 && players[socket.id].canShoot && !players[socket.id].dead){
-					players[socket.id].time = 5000;
-					players[socket.id].bTime = 5;
-					players[socket.id].canShoot = false;
-					players[socket.id].bulletsShot++;
-					bullets.push({
-						type: "bullet",
-						playerId: socket.id,
-						radius: 6,
-						bulletId: randomstring.generate(),
-						speed: 30,
-						time: 50,
-						index: index,
-						screen: {
-							width: info.screen.width,
-							height: info.screen.height
-						},
-						bulletCoords: {
-							x: players[socket.id].coords.x,
-							y: players[socket.id].coords.y
-						},
-						targetCoords: {
-							x: info.coords.x,
-							y: info.coords.y
-						},
-						coords: {
-							x: players[socket.id].coords.x,
-							y: players[socket.id].coords.y
-						},
-						color: "#72bcd4"
-					});
-					tree.insert(bullets[index]);
-					players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
+					socket.disconnect();
 				}
 			} else {
 				socket.disconnect();
@@ -1316,8 +1324,12 @@ io.on('connection', socket => {
 			}
 		});
 		socket.on("move-turret", info => {
-			if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.mouseX == 'number' && typeof info.coords.mouseY == 'number'){
-				players[socket.id].rotation = Math.atan2(info.coords.mouseY - info.screen.height / 2, info.coords.mouseX - info.screen.width / 2);
+			if (typeof info == 'object'){
+				if (typeof info.screen.width == 'number' && typeof info.screen.height == 'number' && typeof info.coords.mouseX == 'number' && typeof info.coords.mouseY == 'number'){
+					players[socket.id].rotation = Math.atan2(info.coords.mouseY - info.screen.height / 2, info.coords.mouseX - info.screen.width / 2);
+				} else {
+					socket.disconnect();
+				}
 			} else {
 				socket.disconnect();
 			}
