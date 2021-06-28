@@ -765,7 +765,7 @@ function bulletEmit(){
 						}
 					}
 					for (var p = 0; p < closestPlayers.length; p++){
-						if (closestPlayers[p].id !== projectile.playerId && cirToCirCollision(projectile, closestPlayers[p]) && !players[projectile.playerId].god && !closestPlayers[p].dead && closestPlayers[p]){
+						if (closestPlayers[p].id !== projectile.playerId && cirToCirCollision(projectile, closestPlayers[p]) && !closestPlayers[p].god && !closestPlayers[p].dead && closestPlayers[p]){
 							closestPlayers[p].health -= 10;
 							closestPlayers[p].health = Math.round(closestPlayers[p].health);
 							emit("bullet-destroy", {
