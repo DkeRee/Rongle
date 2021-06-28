@@ -902,14 +902,15 @@
 			const winner = document.createElement("bdi");
 			winner.innerText = info.winner.username;
 
-			if (!players[info.winner.id].isDev){
-				winner.style.color = info.winner.color;
-			} else {
-				winner.setAttribute("class", "dev-text")
-			}
-
 			if (info.type == "bot"){
 				winner.style.textDecoration = "underline";
+				winner.style.color = info.winner.color;
+			} else {
+				if (!players[info.winner.id].isDev){
+					winner.style.color = info.winner.color;
+				} else {
+					winner.setAttribute("class", "dev-text")
+				}
 			}
 
 			msg.prepend(loser);
