@@ -1368,11 +1368,11 @@ io.on('connection', socket => {
 
 							if (cmd[0] == "/health"){
 								if (cmd[1] == "me"){
-									if (!isNaN(Number(cmd[2]))) players[socket.id].health = cmd[2];
+									if (!isNaN(Number(cmd[2]))) players[socket.id].health = Number(cmd[2]);
 								} else {
 									if (!isNaN(Number(cmd[2]))){
 										const target = findPlayer(cmd[1]);
-										target.health = cmd[2];
+										target.health = Number(cmd[2]);
 									}
 								}
 							}
