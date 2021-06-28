@@ -1339,7 +1339,7 @@ io.on('connection', socket => {
 						} else if (isDev){
 							function findPlayer(username){
 								for (var player in players){
-									if (players[player].username == username){
+									if (players[player].username.includes(username)){
 										return players[player];
 									}
 								}
