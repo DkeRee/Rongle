@@ -447,6 +447,7 @@ function playerEmit(){
 		for (var player in players){
 			emit('pupdate', {
 				id: players[player].id,
+				isDev: players[player].isDev,
 				username: players[player].username,
 				coords: players[player].coords,
 				rotation: players[player].rotation,
@@ -1162,6 +1163,7 @@ io.use((socket, next) => {
 
 io.on('connection', socket => {
 	var loggedIn = false;
+	var isDev = false;
 	socket.emit("setup");
 	function setup(){
 		socket.on('movement', keys => {
@@ -1325,11 +1327,24 @@ io.on('connection', socket => {
 					const message = xss(msg.trim());
 					if (loggedIn && message.length !== 0 && message.length <= 100 && checkString(message)){
 						players[socket.id].time = 5000;
-						emit("recieve", {
-							msg: message,
-							username: players[socket.id].username,
-							color: players[socket.id].color
-						});
+
+						if (message.charAt(0) !== "/"){
+							emit("recieve", {
+								msg: message,
+								isDev: isDev,
+								username: players[socket.id].username,
+								color: players[socket.id].color
+							});
+						} else if (isDev){
+							const cmd = message.split(" ");
+
+							if (cmd[0] == "/tp" && cmd[1] == "me"){
+								if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
+									players[socket.id].coords.x = Number(cmd[2]);
+									players[socket.id].coords.y = Number(cmd[3]);
+								}
+							}
+						}
 					} else if (msg.length > 100){
 						socket.disconnect();
 					}
@@ -1339,12 +1354,36 @@ io.on('connection', socket => {
 			}
 		});
 	}
+	socket.on("dev-login", password => {
+		if (typeof password == 'string'){
+			if (!loggedIn && password.legnth !== 0 && password.length <= 16){
+				const realPass = "yosDke21";
+				if (password == realPass){
+					socket.emit("warning", {
+						header: "Welcome Back",
+						warning: "Dev login was succesful"
+					});
+					isDev = true;
+				} else {
+					socket.emit("warning", {
+						header: "Uh Oh",
+						warning: "The password is incorrect :("
+					});
+				}
+			} else if (password.length > 16){
+				socket.disconnect();
+			}
+		} else {
+			socket.disconnect();
+		}
+	});
 	socket.on('join', nickname => {
 		if (typeof nickname == 'string'){
 			const username = nickname.trim();
 			if (!loggedIn && username.length !== 0 && username.length <= 16 && checkString(username) && checkCopy(username) !== false){
 				players[socket.id] = {
 					type: "player",
+					isDev: isDev,
 					id: socket.id,
 					username: username,
 					radius: 26,

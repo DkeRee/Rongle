@@ -45,6 +45,19 @@ body {
   	user-select: none;
 }
 
+.dev-text {
+	font-family: monospace;
+	font-weight: bolder;
+	letter-spacing: 2px;
+	background: linear-gradient(to right, #6666ff, #0099ff , #00ff00, #ff3399, #6666ff);
+  	-webkit-background-clip: text;
+  	background-clip: text;
+  	color: transparent;
+  	animation: rainbow_animation 6s ease-in-out infinite;
+  	background-size: 400% 100%;
+  	user-select: none;
+}
+
 #username-submit {
 	border-radius: 8px;
 	border: 3px solid white;
@@ -123,6 +136,25 @@ body {
 
 .link:hover {
     background-color: #4ee44e;
+}
+
+#dev-login {
+	position: absolute;
+	top: 15px;
+	right: 50px;
+	text-align: center;
+}
+
+#dev-login-submit {
+	border-radius: 8px;
+	border: 3px solid white;
+	background-color: #424549;
+	font-family: 'Poppins', sans-serif;
+	font-size: 15px;
+	outline: none;
+	color: white;
+	text-align: center;
+	user-select: none;
 }
 
 #login-container {

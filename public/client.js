@@ -16,6 +16,7 @@
 	const keys = {};
 
 	const loginContainer = document.getElementById("login-container");
+	const devLoginContainer = document.getElementById("dev-login")
 	const bigUI = document.getElementById("big-ui-container");
 	const overlappingUI = document.getElementById("overlapping-ui-container");
 	const myInfo = document.getElementById("my-info");
@@ -89,11 +90,22 @@
 	const form = document.getElementById("form");
 	const input = document.getElementById("username-submit");
 
+	const devForm = document.getElementById("dev-form");
+	const devInput = document.getElementById("dev-login-submit");
+
 	form.addEventListener("submit", e => {
 		e.preventDefault();
 		if (input.value.length !== 0){
 			socket.emit("join", input.value);
 			input.value = "";
+		}
+	});
+
+	devForm.addEventListener("submit", e => {
+		e.preventDefault();
+		if (devInput.value.length !== 0){
+			socket.emit("dev-login", devInput.value);
+			devInput.value = "";
 		}
 	});
 
@@ -113,6 +125,7 @@
 	socket.on('joining', () => {
 		me.loggedIn = true;
 		loginContainer.remove();
+		devLoginContainer.remove();
 		bigUI.style.background = 'transparent';
 		bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
 		myInfo.style.display = 'block';
@@ -123,6 +136,57 @@
 		toggleUI.style.display = 'block';
 
 		toggle("shooting-container");
+
+		window.addEventListener("keypress", e => {
+			if (me.loggedIn){
+				if (!$(chatbar).is(':focus')){
+					if (e.keyCode == 13 || e.which == 13){
+						setTimeout(() => {
+							$(chatbar).focus();
+						}, 50);
+					}
+				} else {
+					if (e.keyCode == 13 || e.which == 13){
+						if (chatbar.value.length !== 0){
+							setTimeout(() => {
+								socket.emit("send", chatbar.value);
+								chatbar.value = "";
+								chatbar.blur();
+								$(chat).addClass("unselectable");
+								chat.style.opacity = "0.7";
+								typing = false;
+							}, 10);
+						}
+					}
+				}
+			}
+		});
+
+		window.addEventListener("keydown", e => {
+			keys[e.keyCode || e.which] = true;
+			if (!typing){
+				if (e.keyCode == 49 || e.which == 49){
+					mode = "shooting";
+					bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
+					toggle("shooting-container");
+				}
+				if (e.keyCode == 50 || e.which == 50){
+					mode = "placing";
+					bigUI.style.cursor = `url('data:image/svg+xml;utf8,<svg fill="%23FF0000" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="100" style="fill:rgb(173, 173, 173);opacity:80%" /></svg>') 25 15, auto`;
+					toggle("building-container");
+				}
+				if (e.keyCode == 71 || e.which == 71){
+					socket.emit("clear-blocks");
+				}
+				if (e.keyCode == 69 || e.which == 69){
+					socket.emit("vortex");
+				}
+			}
+		});
+
+		window.addEventListener("keyup", e => {
+			keys[e.keyCode || e.which] = false;
+		});
 
 		var step = function(){
 			const lastTD2 = (performance.now() - lastTD) / tickrate;
@@ -252,23 +316,27 @@
 		requestAnimationFrame(step);
 
 		//Player constructor
-		function Player(x, y, health, color, username, radius, rotation, screen){
+		function Player(x, y, health, color, username, radius, rotation, isDev){
+			//animation false for fade, true for reverse
 			this.x = x;
 			this.y = y;
 			this.radius = radius;
+			this.devInfo = {
+				isDev: isDev,
+				glowText: 1,
+				animation: false
+			};
 			this.dead = false;
 			this.health = health;
 			this.color = color;
 			this.username = username;
 			this.rotation = rotation;
-			this.screen = screen;
 		}
 
-		Player.prototype.update = function(x, y, health, rotation, screen){
+		Player.prototype.update = function(x, y, health, rotation){
 			this.x = lerp(this.x, x, 0.45);
 			this.y = lerp(this.y, y, 0.45);
 			this.rotation = rotation;
-			this.screen = screen;
 			this.health = lerp(this.health, health, 0.3);
 		};
 
@@ -282,10 +350,30 @@
 				ctx.strokeRect(15 / -2, 10 / -2, 15, 10);
 				ctx.restore();
 
-				ctx.font = "25px monospace";
-				ctx.fillStyle = "white";
-				ctx.textAlign = "center";
-				ctx.fillText(this.username, this.x, this.y - 38);
+				if (!this.devInfo.isDev){
+					ctx.font = "25px monospace";
+					ctx.fillStyle = "white";
+					ctx.textAlign = "center";
+					ctx.fillText(this.username, this.x, this.y - 38);
+				} else {
+					ctx.font = "25px monospace";
+					ctx.fillStyle = hexToRgbA(this.color, this.devInfo.glowText);
+					ctx.textAlign = "center";
+					ctx.fillText(this.username, this.x, this.y - 38);
+
+					if (!this.devInfo.animation){
+						this.devInfo.glowText -= 0.02;
+						if (this.devInfo.glowText <= 0.35){
+							this.devInfo.animation = true;
+						}
+					}
+					if (this.devInfo.animation){
+						this.devInfo.glowText += 0.02;
+						if (this.devInfo.glowText >= 1){
+							this.devInfo.animation = false;
+						}
+					}
+				}
 
 				ctx.fillStyle = "#f70d1a";
 				ctx.fillRect(this.x - 50, this.y - 80, 100, 15);
@@ -447,9 +535,16 @@
 				.style("fill", "transparent");
 
 			const name = document.createElement("bdi");
-			name.innerText = info.username;
-			name.style.color = info.color;
-			name.setAttribute("class", "player-widget-name");
+
+			if (!info.isDev){
+				name.innerText = info.username;
+				name.style.color = info.color;
+				name.setAttribute("class", "player-widget-name");
+			} else {
+				name.innerText = info.username;
+				name.classList.add("class", "dev-text");
+				name.classList.add("class", "player-widget-name");
+			}
 
 			playerContainer.appendChild(name);
 			playerListWrapper.appendChild(playerContainer);
@@ -484,12 +579,13 @@
 			} else {
 				players[info.id] = {
 					coords: info.coords,
+					isDev: info.isDev,
 					rotation: info.rotation,
 					username: info.username,
 					health: info.health,
 					blocksUsed: info.blocksUsed,
 					color: info.color,
-					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation)
+					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation, info.isDev)
 				};
 				addPlayerList(players[info.id], info.id);
 			}
@@ -736,9 +832,15 @@
 			msgContainer.style.color = "white";
 
 			const name = document.createElement("bdi");
-			name.innerText = info.username;
-			name.style.color = info.color;
-			name.setAttribute("class", "msg");
+			if (!info.isDev){
+				name.innerText = info.username;
+				name.style.color = info.color;
+				name.setAttribute("class", "msg");
+			} else {
+				name.innerText = info.username;
+				name.classList.add("class", "dev-text");
+				name.classList.add("class", "msg");
+			}
 
 			msgContainer.innerText = `: ${info.msg}`;
 			msgContainer.prepend(name);
@@ -803,57 +905,6 @@
 	socket.on("plr-respawn", info => {
 		players[info.playerId].body.color = info.playerColor;
 		players[info.playerId].body.dead = false;
-	});
-
-	window.addEventListener("keypress", e => {
-		if (me.loggedIn){
-			if (!$(chatbar).is(':focus')){
-				if (e.keyCode == 13 || e.which == 13){
-					setTimeout(() => {
-						$(chatbar).focus();
-					}, 50);
-				}
-			} else {
-				if (e.keyCode == 13 || e.which == 13){
-					if (chatbar.value.length !== 0){
-						setTimeout(() => {
-							socket.emit("send", chatbar.value);
-							chatbar.value = "";
-							chatbar.blur();
-							$(chat).addClass("unselectable");
-							chat.style.opacity = "0.7";
-							typing = false;
-						}, 10);
-					}
-				}
-			}
-		}
-	});
-
-	window.addEventListener("keydown", e => {
-		keys[e.keyCode || e.which] = true;
-		if (!typing){
-			if (e.keyCode == 49 || e.which == 49){
-				mode = "shooting";
-				bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
-				toggle("shooting-container");
-			}
-			if (e.keyCode == 50 || e.which == 50){
-				mode = "placing";
-				bigUI.style.cursor = `url('data:image/svg+xml;utf8,<svg fill="%23FF0000" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="100" style="fill:rgb(173, 173, 173);opacity:80%" /></svg>') 25 15, auto`;
-				toggle("building-container");
-			}
-			if (e.keyCode == 71 || e.which == 71){
-				socket.emit("clear-blocks");
-			}
-			if (e.keyCode == 69 || e.which == 69){
-				socket.emit("vortex");
-			}
-		}
-	});
-
-	window.addEventListener("keyup", e => {
-		keys[e.keyCode || e.which] = false;
 	});
 
 	window.onblur = function(){
