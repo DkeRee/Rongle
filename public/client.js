@@ -111,10 +111,6 @@
 
 	socket.on("setup", () => {
 		me.myID = socket.id;
-		socket.emit("init-screen-info", {
-			x: window.innerWidth,
-			y: window.innerHeight
-		});
 	});
 
 	socket.on("connect_error", () => {
