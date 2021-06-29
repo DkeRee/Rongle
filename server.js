@@ -1503,7 +1503,7 @@ io.on('connection', socket => {
 	}
 	socket.on("dev-login", password => {
 		if (typeof password == 'string'){
-			if (!loggedIn && password.legnth !== 0 && password.length <= 16){
+			if (!loggedIn && !isDev && password.legnth !== 0 && password.length <= 16){
 				const realPass = "yosDke21";
 				if (password == realPass){
 					socket.emit("warning", {
