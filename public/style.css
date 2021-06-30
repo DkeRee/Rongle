@@ -46,16 +46,7 @@ body {
 }
 
 .dev-text {
-	font-family: monospace;
-	font-weight: bolder;
-	letter-spacing: 2px;
-	background: linear-gradient(to right, #6666ff, #0099ff , #00ff00, #ff3399, #6666ff);
-  	-webkit-background-clip: text;
-  	background-clip: text;
-  	color: transparent;
-  	animation: rainbow_animation 6s ease-in-out infinite;
-  	background-size: 400% 100%;
-  	user-select: none;
+    animation: flickerAnimation 1s infinite;
 }
 
 #username-submit {
@@ -442,4 +433,16 @@ body {
     50% {
         background-position: 100% 0;
     }
+}
+
+@keyframes flickerAnimation {
+	0% { 
+		opacity: 1; 
+	}
+	50% { 
+		opacity: 0.5; 
+	}
+	100% { 
+		opacity: 1; 
+	}
 }

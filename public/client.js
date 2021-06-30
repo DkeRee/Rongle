@@ -536,13 +536,12 @@
 				.style("fill", "transparent");
 
 			const name = document.createElement("bdi");
+			name.innerText = info.username;
+			name.style.color = info.color;
 
 			if (!info.isDev){
-				name.innerText = info.username;
-				name.style.color = info.color;
 				name.setAttribute("class", "player-widget-name");
 			} else {
-				name.innerText = info.username;
 				name.classList.add("dev-text", "player-widget-name");
 			}
 
@@ -812,9 +811,9 @@
 
 			const name = document.createElement("bdi");
 			name.innerText = info.username;
+			name.style.color = info.color;
 
 			if (!info.isDev){
-				name.style.color = info.color;
 				name.setAttribute("class", "msg");
 			} else {
 				name.classList.add("dev-text", "msg");
@@ -837,12 +836,12 @@
 			msgContainer.style.color = "white";
 
 			const name = document.createElement("bdi");
+			name.innerText = info.username;
+			name.style.color = info.color;
+
 			if (!info.isDev){
-				name.innerText = info.username;
-				name.style.color = info.color;
 				name.setAttribute("class", "msg");
 			} else {
-				name.innerText = info.username;
 				name.classList.add("dev-text", "msg");
 			}
 
@@ -885,10 +884,9 @@
 
 			const loser = document.createElement("bdi");
 			loser.innerText = info.loser.username;
+			loser.style.color = info.loser.color;
 
-			if (!players[info.loser.id].isDev){
-				loser.style.color = info.loser.color;
-			} else {
+			if (players[info.loser.id].isDev){
 				loser.setAttribute("class", "dev-text");
 			}
 
@@ -899,9 +897,8 @@
 				winner.style.textDecoration = "underline";
 				winner.style.color = info.winner.color;
 			} else {
-				if (!players[info.winner.id].isDev){
-					winner.style.color = info.winner.color;
-				} else {
+				winner.style.color = info.winner.color;
+				if (players[info.winner.id].isDev){
 					winner.setAttribute("class", "dev-text")
 				}
 			}
