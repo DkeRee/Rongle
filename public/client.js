@@ -357,7 +357,7 @@
 					ctx.textAlign = "center";
 					ctx.fillText(this.username, this.x, this.y - 38);
 				} else {
-					ctx.font = "25px monospace";
+					ctx.font = "bold 25px monospace";
 					ctx.fillStyle = hexToRgbA(this.color, this.devInfo.glowText);
 					ctx.textAlign = "center";
 					ctx.fillText(this.username, this.x, this.y - 38);

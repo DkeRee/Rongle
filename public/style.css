@@ -46,6 +46,9 @@ body {
 }
 
 .dev-text {
+	font-family: monospace;
+	letter-spacing: 1px;
+	font-weight: bolder;
     animation: flickerAnimation 1s infinite;
 }
 
