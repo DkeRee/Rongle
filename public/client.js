@@ -9,7 +9,7 @@
 	const bulletStorage = [];
 	const bullets = {};
 	const blocks = {};
-	const healthDrops = {};
+	const drops = {};
 	const ramBots = {};
 	const vortexes = {};
 
@@ -289,8 +289,8 @@
 				}
 			}
 
-			for (var healthDrop in healthDrops){
-				healthDrops[healthDrop].body.render();
+			for (var drop in drops){
+				drops[drop].body.render();
 			}
 
 			for (var player in blocks){
@@ -750,8 +750,8 @@
 
 		//health drop update
 		socket.on("hdupdate", info => {
-			if (healthDrops[info.dropId] == undefined){
-				healthDrops[info.dropId] = {
+			if (drops[info.dropId] == undefined){
+				drops[info.dropId] = {
 					dropId: info.dropId,
 					body: new HealthDrop(info.coords.x, info.coords.y, info.width, info.height, info.color),
 				};
@@ -759,7 +759,7 @@
 		});
 
 		socket.on("healthDrop-destroy", id => {
-			delete healthDrops[id];
+			delete drops[id];
 		});
 
 		//rambot update

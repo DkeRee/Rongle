@@ -61,7 +61,7 @@ const playerDeletionQueue = [];
 var players = {};
 var bullets = [];
 var blocks = [];
-var healthDrops = [];
+var drops = [];
 var ramBots = [];
 var vortexes = [];
 var colors = ["#7289da", "#FFA500", "#FFCD58", "#00FFFF", "#EB459E", "#57F287", "#ED4245"];
@@ -496,7 +496,7 @@ function playerEmit(){
 					if (cirToRectCollision(players[player], closestHealthDrops[h])){
 						emit("healthDrop-destroy", closestHealthDrops[h].dropId);
 						tree.remove(closestHealthDrops[h]);
-						healthDrops.splice(closestHealthDrops[h].index, 1); //healthDrops destroy
+						drops.splice(closestHealthDrops[h].index, 1); //healthDrops destroy
 						if (players[player].health + 10 > 100){
 							const subtractedAmount = players[player].health + 10 - 100;
 							const newAmount = 10 - subtractedAmount;
@@ -912,7 +912,7 @@ function checkPlayers(){
 		arePlayers = true;
 	} else {
 		arePlayers = false;
-		healthDrops = [];
+		drops = [];
 		blocks = [];
 		ramBots = [];
 		bullets = [];
@@ -924,16 +924,24 @@ function checkPlayers(){
 function spawn(){
 	if (arePlayers){
 		if (serverInfo.spawn){
-			if (healthDrops.length < 10){
+
+			var healthDropAmount = 0;
+			for (var drop in drops){
+				if (drops[drop].type == "healthDrop"){
+					healthDropAmount++;
+				}
+			}
+
+			if (healthDropAmount < 10){
 				var index;
 
-				if (healthDrops.length == 0){
+				if (drops.length == 0){
 					index = 0;
 				} else {
-					index = healthDrops.length;
+					index = drops.length;
 				}	
 
-				healthDrops.push({
+				drops.push({
 					type: "healthDrop",
 					dropId: randomstring.generate(),
 					width: 30,
@@ -945,16 +953,16 @@ function spawn(){
 					},
 					color: "#4ee44e"
 				});
-				tree.insert(healthDrops[index]);
+				tree.insert(drops[index]);
 				emit('hdupdate', {
-					dropId: healthDrops[index].dropId,
-					width: healthDrops[index].width,
-					height: healthDrops[index].height,
+					dropId: drops[index].dropId,
+					width: drops[index].width,
+					height: drops[index].height,
 					coords: {
-						x: healthDrops[index].coords.x,
-						y: healthDrops[index].coords.y
+						x: drops[index].coords.x,
+						y: drops[index].coords.y
 					},
-					color: healthDrops[index].color
+					color: drops[index].color
 				});
 			}
 			if (ramBots.length < 6){
@@ -1585,9 +1593,9 @@ io.on('connection', socket => {
 						});
 					}
 				}
-				for (var i = 0; i < healthDrops.length; i++){
-					if (healthDrops[i]){
-						const healthDrop = healthDrops[i];
+				for (var i = 0; i < drops.length; i++){
+					if (drops[i] && drops.type == "healthDrop"){
+						const healthDrop = drops[i];
 						socket.emit('hdupdate', {
 							dropId: healthDrop.dropId,
 							width: healthDrop.width,
