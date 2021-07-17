@@ -993,31 +993,6 @@ function spawn(){
 
 				const chance = getChance();
 
-					drops.push({
-						type: "speedDrop",
-						dropId: randomstring.generate(),
-						width: 30,
-						height: 30,
-						index: index,
-						coords: {
-							x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-							y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-						},
-						color: "#7EC8E3"
-					});
-					tree.insert(drops[index]);
-					emit('dupdate', {
-						dropId: drops[index].dropId,
-						width: drops[index].width,
-						height: drops[index].height,
-						coords: {
-							x: drops[index].coords.x,
-							y: drops[index].coords.y
-						},
-						color: drops[index].color
-					});
-
-				/*
 				if (chance > 40){
 					drops.push({
 						type: "healthDrop",
@@ -1067,7 +1042,6 @@ function spawn(){
 						color: drops[index].color
 					});
 				}
-				*/
 			}
 			if (ramBots.length < 6){
 				var index;
