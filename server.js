@@ -1459,31 +1459,35 @@ io.on('connection', socket => {
 							}
 
 							if (cmd[0] == "/tp"){
-								if (cmd[1] == "me"){
-									if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
-										//tp me to coords
-										players[socket.id].coords.x = Number(cmd[2]);
-										players[socket.id].coords.y = Number(cmd[3]);
-									} else {
-										//tp me to player
-										const target = findPlayer(cmd[2]);
-										if (target){
-											players[socket.id].coords.x = target.coords.x;
-											players[socket.id].coords.y = target.coords.y;
-										}
-									}
-								} else {
-									const target = findPlayer(cmd[1]);
-									if (target){
-										if (cmd[2] == "me"){
-											//tp player to me
-											target.coords.x = players[socket.id].coords.x;
-											target.coords.y = players[socket.id].coords.y;
-										} else {
-											//tp player to coords
+								if (cmd[1] && cmd[2]){
+									if (cmd[1] == "me"){
+										if (cmd[3]){
 											if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
-												target.coords.x = Number(cmd[2]);
-												target.coords.y = Number(cmd[3]);
+												//tp me to coords
+												players[socket.id].coords.x = Number(cmd[2]);
+												players[socket.id].coords.y = Number(cmd[3]);
+											} else {
+												//tp me to player
+												const target = findPlayer(cmd[2]);
+												if (target){
+													players[socket.id].coords.x = target.coords.x;
+													players[socket.id].coords.y = target.coords.y;
+												}
+											}
+										}
+									} else {
+										const target = findPlayer(cmd[1]);
+										if (target){
+											if (cmd[2] == "me"){
+												//tp player to me
+												target.coords.x = players[socket.id].coords.x;
+												target.coords.y = players[socket.id].coords.y;
+											} else {
+												//tp player to coords
+												if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
+													target.coords.x = Number(cmd[2]);
+													target.coords.y = Number(cmd[3]);
+												}
 											}
 										}
 									}
