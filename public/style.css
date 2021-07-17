@@ -343,6 +343,18 @@ body {
 	text-align: left;
 }
 
+#announcement-container {
+	position: absolute;
+	width: 100%;
+	top: 30px;
+}
+
+#announcement-wrapper {
+	margin: auto;
+	text-align: center;
+	width: 600px;
+}
+
 #vortex-container {
 	position: absolute;
 	width: 100%;

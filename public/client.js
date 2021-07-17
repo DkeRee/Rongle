@@ -16,18 +16,10 @@
 	const keys = {};
 
 	const loginContainer = document.getElementById("login-container");
-	const devLoginContainer = document.getElementById("dev-login")
+	const devLoginContainer = document.getElementById("dev-login");
 	const bigUI = document.getElementById("big-ui-container");
 	const overlappingUI = document.getElementById("overlapping-ui-container");
-	const myInfo = document.getElementById("my-info");
-	const chat = document.getElementById("chat-container");
-	const playerList = document.getElementById("player-list-container");
-	const staminaContainer = document.getElementById("stamina-container");
-	const staminaBar = document.getElementById("stamina-bar");
-	const vortexContainer = document.getElementById("vortex-container");
-	const vortexBar = document.getElementById("vortex-bar");
 	const warningContainer = document.getElementById("warning-container");
-	const toggleUI = document.getElementById("toggle-container");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
@@ -63,6 +55,12 @@
 		}
 
 		document.getElementById(id).style.borderColor = "#72bcd4";
+	}
+
+	function disconnect(){
+		bigUI.style.display = 'none';
+		overlappingUI.style.display = 'block';
+		socket.disconnect();
 	}
 
 	$("#html").bind('contextmenu', () => {
@@ -114,11 +112,20 @@
 	});
 
 	socket.on("connect_error", () => {
-		bigUI.style.display = 'none';
-		overlappingUI.style.display = 'block';
-	})
+		disconnect();
+	});
 
 	socket.on('joining', () => {
+		const myInfo = document.getElementById("my-info");
+		const chat = document.getElementById("chat-container");
+		const playerList = document.getElementById("player-list-container");
+		const staminaContainer = document.getElementById("stamina-container");
+		const staminaBar = document.getElementById("stamina-bar");
+		const vortexContainer = document.getElementById("vortex-container");
+		const vortexBar = document.getElementById("vortex-bar");
+		const toggleUI = document.getElementById("toggle-container");
+		const blockCounter = document.getElementById("block-counter");
+		
 		me.loggedIn = true;
 		loginContainer.remove();
 		devLoginContainer.remove();
@@ -198,8 +205,7 @@
 			lastTD = performance.now();
 
 			if (!socket.connected){
-				bigUI.style.display = 'none';
-				overlappingUI.style.display = 'block';
+				disconnect();
 			}
 
 			if (!typing){
@@ -266,7 +272,6 @@
 		var render = function(){			
 			const borderX = -1800;
 			const borderY = -1800;
-			const blockCounter = document.getElementById("block-counter");
 			ctx.lineWidth = 5;
 			ctx.strokeStyle = "white";
 			ctx.strokeRect(borderX, borderY, -borderX * 2, -borderY * 2);
@@ -548,6 +553,31 @@
 			playerContainer.appendChild(name);
 			playerListWrapper.appendChild(playerContainer);
 		}
+
+		//announcement emit
+		socket.on("announcement", info => {
+			const announcementWrapper = document.getElementById("announcement-wrapper");
+
+			const message = document.createElement("h1");
+			message.setAttribute("class", "info");
+			message.innerText = info.message;
+			message.style.margin = "0px";
+			message.style.color = info.color;
+			announcementWrapper.appendChild(message);
+
+			setTimeout(() => {
+				message.style.opacity = "1";
+				function fadeOut(){
+					if (Number(message.style.opacity) > 0){
+						message.style.opacity = (Number(message.style.opacity) - 0.04).toString();
+						requestAnimationFrame(fadeOut);
+					} else {
+						message.remove();
+					}
+				}
+				requestAnimationFrame(fadeOut);
+			}, 3000);
+		});
 
 		//updates
 

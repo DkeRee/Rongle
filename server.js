@@ -494,6 +494,10 @@ function playerEmit(){
 
 				for (var h = 0; h < closestHealthDrops.length; h++){
 					if (cirToRectCollision(players[player], closestHealthDrops[h])){
+						io.to(players[player].id).emit("announcement", {
+							message: "+10 health: Used Healthdrop",
+							color: "#4ee44e"
+						});
 						emit("healthDrop-destroy", closestHealthDrops[h].dropId);
 						tree.remove(closestHealthDrops[h]);
 						drops.splice(closestHealthDrops[h].index, 1); //healthDrops destroy
@@ -1370,6 +1374,15 @@ io.on('connection', socket => {
 							}
 
 							const cmd = message.split(" ");
+
+							if (cmd[0] == "/server"){
+								cmd.shift();
+								const msg = cmd.join(" ");
+								emit("announcement", {
+									message: `[SERVER]: ${msg}`,
+									color: players[socket.id].color
+								});
+							}
 
 							if (cmd[0] == "/tp"){
 								if (cmd[1] == "me"){
