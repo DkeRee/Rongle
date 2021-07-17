@@ -576,7 +576,7 @@
 					}
 				}
 				requestAnimationFrame(fadeOut);
-			}, 3000);
+			}, 2000);
 		});
 
 		//updates
