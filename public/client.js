@@ -263,10 +263,10 @@
 			}
 
 			for (var player in players){
-				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health, players[player].rotation);
+				players[player].body.update(players[player].coords.x, players[player].coords.y, players[player].health, players[player].rotation, players[player].powerUps);
 			}
 
-			coordText.innerText = `Coords: ${me.myX}, ${me.myY}`;
+			coordText.innerText = `Coords: ${Math.round(me.myX)}, ${Math.round(me.myY)}`;
 		};
 
 		var render = function(){			
@@ -322,7 +322,7 @@
 		requestAnimationFrame(step);
 
 		//Player constructor
-		function Player(x, y, health, color, username, radius, rotation, isDev){
+		function Player(x, y, health, color, username, radius, rotation, powerUps, isDev){
 			//animation false for fade, true for reverse
 			this.x = x;
 			this.y = y;
@@ -337,12 +337,15 @@
 			this.color = color;
 			this.username = username;
 			this.rotation = rotation;
+			this.powerUps = powerUps;
+			this.trail = [];
 		}
 
-		Player.prototype.update = function(x, y, health, rotation){
+		Player.prototype.update = function(x, y, health, rotation, powerUps){
 			this.x = lerp(this.x, x, 0.45);
 			this.y = lerp(this.y, y, 0.45);
 			this.rotation = rotation;
+			this.powerUps = powerUps;
 			this.health = lerp(this.health, health, 0.3);
 		};
 
@@ -388,6 +391,25 @@
 				ctx.fillRect(this.x - 50, this.y - 80, this.health, 15);
 			}
 
+			if (this.powerUps.speedDrop.using && this.color !== "transparent"){
+				if (this.trail.length > 9) this.trail.shift();
+				this.trail.push({
+					x: this.x,
+					y: this.y
+				});
+				for (var i = 0; i < this.trail.length; i++){
+					const ratio = (i + 1) / this.trail.length;
+
+					ctx.beginPath();
+					ctx.arc(this.trail[i].x, this.trail[i].y, this.radius, 2 * Math.PI, false);
+					ctx.lineWidth = 2;
+					ctx.strokeStyle = hexToRgbA(this.color, ratio / 2);
+					ctx.stroke();
+				}
+			} else {
+				this.trail = [];
+			}
+			
 			ctx.beginPath();
 			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
 			ctx.lineWidth = 2;
@@ -444,7 +466,7 @@
 		}
 
 		//health drop constructor
-		function HealthDrop(x, y, width, height, color){
+		function Drop(x, y, width, height, color){
 			this.x = x;
 			this.y = y;
 			this.color = color;
@@ -452,7 +474,7 @@
 			this.height = height;
 		}
 
-		HealthDrop.prototype.render = function(){
+		Drop.prototype.render = function(){
 			ctx.beginPath();
 			ctx.fillStyle = this.color;
 			ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -604,6 +626,7 @@
 				}
 				players[info.id].coords = info.coords;
 				players[info.id].rotation = info.rotation;
+				players[info.id].powerUps = info.powerUps;
 				players[info.id].health = info.health;
 			} else {
 				players[info.id] = {
@@ -614,7 +637,8 @@
 					health: info.health,
 					blocksUsed: info.blocksUsed,
 					color: info.color,
-					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation, info.isDev)
+					powerUps: info.powerUps,
+					body: new Player(info.coords.x, info.coords.y, info.health, info.color, info.username, info.radius, info.rotation, info.powerUps, info.isDev)
 				};
 				addPlayerList(players[info.id], info.id);
 			}
@@ -779,16 +803,16 @@
 		});
 
 		//health drop update
-		socket.on("hdupdate", info => {
+		socket.on("dupdate", info => {
 			if (drops[info.dropId] == undefined){
 				drops[info.dropId] = {
 					dropId: info.dropId,
-					body: new HealthDrop(info.coords.x, info.coords.y, info.width, info.height, info.color),
+					body: new Drop(info.coords.x, info.coords.y, info.width, info.height, info.color),
 				};
 			}
 		});
 
-		socket.on("healthDrop-destroy", id => {
+		socket.on("drop-destroy", id => {
 			delete drops[id];
 		});
 
@@ -830,61 +854,57 @@
 	const serverInnerWrapper = document.getElementById("server-msg-inner-wrapper");
 
 	function serverMsg(info){
-		if (me.loggedIn){
-			const msgContainer = document.createElement("div");
-			msgContainer.setAttribute("class", "msg-container");
+		const msgContainer = document.createElement("div");
+		msgContainer.setAttribute("class", "msg-container");
 
-			const msg = document.createElement("p");
-			msg.innerText = info.message;
-			msg.setAttribute("class", "msg");
-			msg.style.color = "white";
+		const msg = document.createElement("p");
+		msg.innerText = info.message;
+		msg.setAttribute("class", "msg");
+		msg.style.color = "white";
 
-			const name = document.createElement("bdi");
-			name.innerText = info.username;
-			name.style.color = info.color;
+		const name = document.createElement("bdi");
+		name.innerText = info.username;
+		name.style.color = info.color;
 
-			if (!info.isDev){
-				name.setAttribute("class", "msg");
-			} else {
-				name.classList.add("dev-text", "msg");
-			}
-
-			msg.prepend(name);
-			msgContainer.appendChild(msg);
-			serverInnerWrapper.appendChild(msgContainer);
-
-			setTimeout(() => {
-				msgContainer.remove();
-			}, 3000);
+		if (!info.isDev){
+			name.setAttribute("class", "msg");
+		} else {
+			name.classList.add("dev-text", "msg");
 		}
+
+		msg.prepend(name);
+		msgContainer.appendChild(msg);
+		serverInnerWrapper.appendChild(msgContainer);
+
+		setTimeout(() => {
+			msgContainer.remove();
+		}, 3000);
 	}
 
 	socket.on("recieve", info => {
-		if (me.loggedIn){
-			const msgContainer = document.createElement("p");
-			msgContainer.setAttribute("class", "msg");
-			msgContainer.style.color = "white";
+		const msgContainer = document.createElement("p");
+		msgContainer.setAttribute("class", "msg");
+		msgContainer.style.color = "white";
 
-			const name = document.createElement("bdi");
-			name.innerText = info.username;
-			name.style.color = info.color;
+		const name = document.createElement("bdi");
+		name.innerText = info.username;
+		name.style.color = info.color;
 
-			if (!info.isDev){
-				name.setAttribute("class", "msg");
-			} else {
-				name.classList.add("dev-text", "msg");
-			}
+		if (!info.isDev){
+			name.setAttribute("class", "msg");
+		} else {
+			name.classList.add("dev-text", "msg");
+		}
 
-			msgContainer.innerText = `: ${info.msg}`;
-			msgContainer.prepend(name);
+		msgContainer.innerText = `: ${info.msg}`;
+		msgContainer.prepend(name);
 
-			chatInnerWrapper.appendChild(msgContainer);
-			messages.push(msgContainer);
+		chatInnerWrapper.appendChild(msgContainer);
+		messages.push(msgContainer);
 
-			if (messages.length > 30){
-				messages[0].remove();
-				messages.shift();
-			}
+		if (messages.length > 30){
+			messages[0].remove();
+			messages.shift();
 		}
 	});
 
@@ -903,45 +923,43 @@
 	socket.on("plr-death", info => {
 		players[info.loser.id].body.color = "transparent";
 		players[info.loser.id].body.dead = true;
-		if (me.loggedIn){
-			const msgContainer = document.createElement("div");
-			msgContainer.setAttribute("class", "msg-container");
+		const msgContainer = document.createElement("div");
+		msgContainer.setAttribute("class", "msg-container");
 
-			const msg = document.createElement("p");
-			msg.innerText = " was killed by ";
-			msg.setAttribute("class", "msg");
-			msg.style.color = "white";
+		const msg = document.createElement("p");
+		msg.innerText = " was killed by ";
+		msg.setAttribute("class", "msg");
+		msg.style.color = "white";
 
-			const loser = document.createElement("bdi");
-			loser.innerText = info.loser.username;
-			loser.style.color = info.loser.color;
+		const loser = document.createElement("bdi");
+		loser.innerText = info.loser.username;
+		loser.style.color = info.loser.color;
 
-			if (players[info.loser.id].isDev){
-				loser.setAttribute("class", "dev-text");
-			}
-
-			const winner = document.createElement("bdi");
-			winner.innerText = info.winner.username;
-
-			if (info.type == "bot"){
-				winner.style.textDecoration = "underline";
-				winner.style.color = info.winner.color;
-			} else {
-				winner.style.color = info.winner.color;
-				if (players[info.winner.id].isDev){
-					winner.setAttribute("class", "dev-text")
-				}
-			}
-
-			msg.prepend(loser);
-			msg.appendChild(winner);
-			msgContainer.appendChild(msg);
-			serverInnerWrapper.appendChild(msgContainer);
-
-			setTimeout(() => {
-				msgContainer.remove();
-			}, 3000);
+		if (players[info.loser.id].isDev){
+			loser.setAttribute("class", "dev-text");
 		}
+
+		const winner = document.createElement("bdi");
+		winner.innerText = info.winner.username;
+
+		if (info.type == "bot"){
+			winner.style.textDecoration = "underline";
+			winner.style.color = info.winner.color;
+		} else {
+			winner.style.color = info.winner.color;
+			if (players[info.winner.id].isDev){
+				winner.setAttribute("class", "dev-text")
+			}
+		}
+
+		msg.prepend(loser);
+		msg.appendChild(winner);
+		msgContainer.appendChild(msg);
+		serverInnerWrapper.appendChild(msgContainer);
+
+		setTimeout(() => {
+			msgContainer.remove();
+		}, 3000);
 	});
 
 	socket.on("plr-respawn", info => {

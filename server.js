@@ -68,6 +68,10 @@ var colors = ["#7289da", "#FFA500", "#FFCD58", "#00FFFF", "#EB459E", "#57F287", 
 
 var arePlayers = false;
 
+function getChance(){
+	return Math.floor(Math.random() * 100);
+}
+
 function checkString(string){
 	for (var i = 0; i < string.length; i++){
 		if (string[i] !== " "){
@@ -457,13 +461,30 @@ function playerEmit(){
 				burntOut: players[player].burntOut,
 				blocksUsed: players[player].blocksPlaced,
 				radius: players[player].radius,
-				color: players[player].color
+				color: players[player].color,
+				powerUps: {
+					speedDrop: {
+						using: players[player].powerUps.speedDrop.using
+					}
+				}
 			});
 			if (players[player]){
 
 				players[player].time -= 1;
 				players[player].bTime -= 1;
 				players[player].pTime -= 1;
+
+				if (players[player].powerUps.speedDrop.using){
+					players[player].powerUps.speedDrop.time -= 1;
+					if (players[player].powerUps.speedDrop.time == 0){
+						io.to(players[player].id).emit("announcement", {
+							message: "SpeedDrop Wore Off",
+							color: "#7EC8E3"
+						});
+						players[player].powerUps.speedDrop.using = false;
+						players[player].powerUps.speedDrop.time = 600;
+					}
+				}
 
 				if (!players[player].usingVortex && players[player].vTime < 600){
 					players[player].vTime++;
@@ -491,16 +512,19 @@ function playerEmit(){
 				const closestHealthDrops = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit, item => {
 					return item.type == "healthDrop";
 				});
+				const closestSpeedDrops = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit, item => {
+					return item.type == "speedDrop";
+				});
 
-				for (var h = 0; h < closestHealthDrops.length; h++){
-					if (cirToRectCollision(players[player], closestHealthDrops[h])){
+				for (var i = 0; i < closestHealthDrops.length; i++){
+					if (cirToRectCollision(players[player], closestHealthDrops[i])){
 						io.to(players[player].id).emit("announcement", {
-							message: "+10 health: Used Healthdrop",
-							color: "#4ee44e"
+							message: "+10 health: Used HealthDrop",
+							color: closestHealthDrops[i].color
 						});
-						emit("healthDrop-destroy", closestHealthDrops[h].dropId);
-						tree.remove(closestHealthDrops[h]);
-						drops.splice(closestHealthDrops[h].index, 1); //healthDrops destroy
+						emit("drop-destroy", closestHealthDrops[i].dropId);
+						tree.remove(closestHealthDrops[i]);
+						drops.splice(closestHealthDrops[i].index, 1); //healthDrops destroy
 						if (players[player].health + 10 > 100){
 							const subtractedAmount = players[player].health + 10 - 100;
 							const newAmount = 10 - subtractedAmount;
@@ -509,6 +533,19 @@ function playerEmit(){
 							players[player].health += 10;
 						}
 						break;
+					}
+				}
+
+				for (var i = 0; i < closestSpeedDrops.length; i++){
+					if (cirToRectCollision(players[player], closestSpeedDrops[i]) && !players[player].powerUps.speedDrop.using){
+						io.to(players[player].id).emit("announcement", {
+							message: "+35% Speed: Used SpeedDrop (Not Stackable)",
+							color: closestSpeedDrops[i].color
+						});
+						emit("drop-destroy", closestSpeedDrops[i].dropId);
+						tree.remove(closestSpeedDrops[i]);
+						drops.splice(closestSpeedDrops[i].index, 1);
+						players[player].powerUps.speedDrop.using = true;
 					}
 				}
 
@@ -558,6 +595,15 @@ function playerEmit(){
 					}
 				}
 
+				var boost = 1;
+				if (players[player].powerUps.speedDrop.using){
+					boost = 1.35;
+				}
+
+				//movement
+				const walkingSpeed = 3 * boost;
+				const runningSpeed = 5 * boost;
+
 				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
 					players[player].running = false;
 				}
@@ -567,75 +613,75 @@ function playerEmit(){
 				if (!players[player].burntOut){
 					//running up
 					if (borderY !== "top border" && keys[87] && keys[16]){
-						players[player].coords.y -= 5;
+						players[player].coords.y -= runningSpeed;
 						players[player].running = true;
 						players[player].time = 5000;
 					}
 					//running down
 					if (borderY !== "bottom border" && keys[83] && keys[16]){
-						players[player].coords.y += 5;
+						players[player].coords.y += runningSpeed;
 						players[player].running = true;
 						players[player].time = 5000;
 					}
 					//running right
 					if (borderX !== "right border" && keys[68] && keys[16]){
-						players[player].coords.x += 5;
+						players[player].coords.x += runningSpeed;
 						players[player].running = true;
 						players[player].time = 5000;
 					}
 					//running left
 					if (borderX !== "left border" && keys[65] && keys[16]){
-						players[player].coords.x -= 5;
+						players[player].coords.x -= runningSpeed;
 						players[player].running = true;
 						players[player].time = 5000;
 					}
 			
 					//with stamina up
 					if (borderY !== "top border" && keys[87] && !keys[16]){
-						players[player].coords.y -= 3;
+						players[player].coords.y -= walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 					//with stamina down
 					if (borderY !== "bottom border" && keys[83] && !keys[16]){
-						players[player].coords.y += 3;
+						players[player].coords.y += walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 					//with stamina right
 					if (borderX !== "right border" && keys[68] && !keys[16]){
-						players[player].coords.x += 3;
+						players[player].coords.x += walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 					//with stamina down
 					if (borderX !== "left border" && keys[65] && !keys[16]){
-						players[player].coords.x -= 3;
+						players[player].coords.x -= walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 				} else {
 					//without stamina up
 					if (borderY !== "top border" && keys[87]){
-						players[player].coords.y -= 3;
+						players[player].coords.y -= walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 					//without stamina down
 					if (borderY !== "bottom border" && keys[83]){
-						players[player].coords.y += 3;
+						players[player].coords.y += walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 					//without stamina right
 					if (borderX !== "right border" && keys[68]){
-						players[player].coords.x += 3;
+						players[player].coords.x += walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}
 					//without stamina down
 					if (borderX !== "left border" && keys[65]){
-						players[player].coords.x -= 3;
+						players[player].coords.x -= walkingSpeed;
 						players[player].running = false;
 						players[player].time = 5000;
 					}				
@@ -929,45 +975,99 @@ function spawn(){
 	if (arePlayers){
 		if (serverInfo.spawn){
 
-			var healthDropAmount = 0;
+			var dropAmount = 0;
 			for (var drop in drops){
 				if (drops[drop].type == "healthDrop"){
-					healthDropAmount++;
+					dropAmount++;
 				}
 			}
 
-			if (healthDropAmount < 10){
+			if (dropAmount < 10){
 				var index;
 
 				if (drops.length == 0){
 					index = 0;
 				} else {
 					index = drops.length;
-				}	
+				}
 
-				drops.push({
-					type: "healthDrop",
-					dropId: randomstring.generate(),
-					width: 30,
-					height: 30,
-					index: index,
-					coords: {
-						x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
-						y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
-					},
-					color: "#4ee44e"
-				});
-				tree.insert(drops[index]);
-				emit('hdupdate', {
-					dropId: drops[index].dropId,
-					width: drops[index].width,
-					height: drops[index].height,
-					coords: {
-						x: drops[index].coords.x,
-						y: drops[index].coords.y
-					},
-					color: drops[index].color
-				});
+				const chance = getChance();
+
+					drops.push({
+						type: "speedDrop",
+						dropId: randomstring.generate(),
+						width: 30,
+						height: 30,
+						index: index,
+						coords: {
+							x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+							y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+						},
+						color: "#7EC8E3"
+					});
+					tree.insert(drops[index]);
+					emit('dupdate', {
+						dropId: drops[index].dropId,
+						width: drops[index].width,
+						height: drops[index].height,
+						coords: {
+							x: drops[index].coords.x,
+							y: drops[index].coords.y
+						},
+						color: drops[index].color
+					});
+
+				/*
+				if (chance > 40){
+					drops.push({
+						type: "healthDrop",
+						dropId: randomstring.generate(),
+						width: 30,
+						height: 30,
+						index: index,
+						coords: {
+							x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+							y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+						},
+						color: "#4ee44e"
+					});
+					tree.insert(drops[index]);
+					emit('dupdate', {
+						dropId: drops[index].dropId,
+						width: drops[index].width,
+						height: drops[index].height,
+						coords: {
+							x: drops[index].coords.x,
+							y: drops[index].coords.y
+						},
+						color: drops[index].color
+					});
+				} else {
+					drops.push({
+						type: "speedDrop",
+						dropId: randomstring.generate(),
+						width: 30,
+						height: 30,
+						index: index,
+						coords: {
+							x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
+							y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
+						},
+						color: "#7EC8E3"
+					});
+					tree.insert(drops[index]);
+					emit('dupdate', {
+						dropId: drops[index].dropId,
+						width: drops[index].width,
+						height: drops[index].height,
+						coords: {
+							x: drops[index].coords.x,
+							y: drops[index].coords.y
+						},
+						color: drops[index].color
+					});
+				}
+				*/
 			}
 			if (ramBots.length < 6){
 				var index;
@@ -1578,7 +1678,13 @@ io.on('connection', socket => {
 					bulletsShot: 0,
 					canShoot: true,
 					canVortex: true,
-					canPlace: true
+					canPlace: true,
+					powerUps: {
+						speedDrop: {
+							time: 600,
+							using: false
+						}
+					}
 				};
 				tree.insert(players[socket.id]);
 				setup();
