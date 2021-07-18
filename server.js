@@ -539,7 +539,7 @@ function playerEmit(){
 				for (var i = 0; i < closestSpeedDrops.length; i++){
 					if (cirToRectCollision(players[player], closestSpeedDrops[i]) && !players[player].powerUps.speedDrop.using){
 						io.to(players[player].id).emit("announcement", {
-							message: "+35% Speed: Used SpeedDrop (Not Stackable)",
+							message: "+50% Speed: Used SpeedDrop (Not Stackable)",
 							color: closestSpeedDrops[i].color
 						});
 						emit("drop-destroy", closestSpeedDrops[i].dropId);
@@ -597,7 +597,7 @@ function playerEmit(){
 
 				var boost = 1;
 				if (players[player].powerUps.speedDrop.using){
-					boost = 1.35;
+					boost = 1.5;
 				}
 
 				//movement
