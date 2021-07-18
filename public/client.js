@@ -407,7 +407,18 @@
 					ctx.stroke();
 				}
 			} else {
-				this.trail = [];
+				if (this.trail.length > 0){
+					this.trail.shift();
+					for (var i = 0; i < this.trail.length; i++){
+						const ratio = (i + 1) / this.trail.length;
+
+						ctx.beginPath();
+						ctx.arc(this.trail[i].x, this.trail[i].y, this.radius, 2 * Math.PI, false);
+						ctx.lineWidth = 2;
+						ctx.strokeStyle = hexToRgbA(this.color, ratio / 2);
+						ctx.stroke();
+					}
+				}
 			}
 			
 			ctx.beginPath();
