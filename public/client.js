@@ -412,7 +412,6 @@
 				}
 			}
 
-
 			if (this.powerUps.berserkerDrop.using && this.color !== "transparent"){
 				if (this.menacing.length > 3) this.menacing.shift();
 				this.menacing.push({
