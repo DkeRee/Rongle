@@ -439,6 +439,39 @@ function ramBotEmit(){
 			ramBots[i].coords.y += ramBotY;
 			if (ramBots[i].health <= 0){
 				emit("rambot-destroy", ramBots[i].botId);
+				if (getChance() <= 35){
+					var index;
+
+					if (drops.length == 0){
+						index = 0;
+					} else {
+						index = drops.length;
+					}
+						
+					drops.push({
+						type: "berserkerDrop",
+						dropId: randomstring.generate(),
+						width: 30,
+						height: 30,
+						index: index,
+						coords: {
+							x: ramBots[i].coords.x,
+							y: ramBots[i].coords.y
+						},
+						color: "#DF362D"
+					});
+					tree.insert(drops[index]);
+					emit('dupdate', {
+						dropId: drops[index].dropId,
+						width: drops[index].width,
+						height: drops[index].height,
+						coords: {
+							x: drops[index].coords.x,
+							y: drops[index].coords.y
+						},
+						color: drops[index].color
+					});
+				}
 				tree.remove(ramBots[i]);
 				ramBots.splice(i, 1);
 			}
@@ -465,6 +498,9 @@ function playerEmit(){
 				powerUps: {
 					speedDrop: {
 						using: players[player].powerUps.speedDrop.using
+					},
+					berserkerDrop: {
+						using: players[player].powerUps.berserkerDrop.using
 					}
 				}
 			});
@@ -478,11 +514,23 @@ function playerEmit(){
 					players[player].powerUps.speedDrop.time -= 1;
 					if (players[player].powerUps.speedDrop.time == 0){
 						io.to(players[player].id).emit("announcement", {
-							message: "SpeedDrop Wore Off",
+							message: "Speed Drop Wore Off",
 							color: "#7EC8E3"
 						});
 						players[player].powerUps.speedDrop.using = false;
 						players[player].powerUps.speedDrop.time = 600;
+					}
+				}
+
+				if (players[player].powerUps.berserkerDrop.using){
+					players[player].powerUps.berserkerDrop.time -= 1;
+					if (players[player].powerUps.berserkerDrop.time == 0){
+						io.to(players[player].id).emit("announcement", {
+							message:"Berserker Wore Off",
+							color: "#DF362D"
+						});
+						players[player].powerUps.berserkerDrop.using = false;
+						players[player].powerUps.berserkerDrop.time = 600;
 					}
 				}
 
@@ -515,11 +563,14 @@ function playerEmit(){
 				const closestSpeedDrops = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit, item => {
 					return item.type == "speedDrop";
 				});
+				const closestBerserkerDrops = knn(tree, players[player].coords.x, players[player].coords.y, loopLimit, item => {
+					return item.type == "berserkerDrop";
+				});
 
 				for (var i = 0; i < closestHealthDrops.length; i++){
 					if (cirToRectCollision(players[player], closestHealthDrops[i])){
 						io.to(players[player].id).emit("announcement", {
-							message: "+10 health: Used HealthDrop",
+							message: "+10 health: Used Health Drop",
 							color: closestHealthDrops[i].color
 						});
 						emit("drop-destroy", closestHealthDrops[i].dropId);
@@ -539,13 +590,26 @@ function playerEmit(){
 				for (var i = 0; i < closestSpeedDrops.length; i++){
 					if (cirToRectCollision(players[player], closestSpeedDrops[i]) && !players[player].powerUps.speedDrop.using){
 						io.to(players[player].id).emit("announcement", {
-							message: "+50% Speed: Used SpeedDrop (Not Stackable)",
+							message: "+50% Speed: Used Speed Drop (Not Stackable)",
 							color: closestSpeedDrops[i].color
 						});
 						emit("drop-destroy", closestSpeedDrops[i].dropId);
 						tree.remove(closestSpeedDrops[i]);
 						drops.splice(closestSpeedDrops[i].index, 1);
 						players[player].powerUps.speedDrop.using = true;
+					}
+				}
+
+				for (var i = 0; i < closestBerserkerDrops.length; i++){
+					if (cirToRectCollision(players[player], closestBerserkerDrops[i]) && !players[player].powerUps.berserkerDrop.using){
+						io.to(players[player].id).emit("announcement", {
+							message: "+50% Damage: Used Berserker (Not Stackable)",
+							color: closestBerserkerDrops[i].color
+						});
+						emit("drop-destroy", closestBerserkerDrops[i].dropId);
+						tree.remove(closestBerserkerDrops[i]);
+						drops.splice(closestBerserkerDrops[i].index, 1);
+						players[player].powerUps.berserkerDrop.using = true;
 					}
 				}
 
@@ -596,9 +660,7 @@ function playerEmit(){
 				}
 
 				var boost = 1;
-				if (players[player].powerUps.speedDrop.using){
-					boost = 1.5;
-				}
+				if (players[player].powerUps.speedDrop.using) boost = 1.5;
 
 				//movement
 				const walkingSpeed = 3 * boost;
@@ -754,9 +816,34 @@ function bulletEmit(){
 						return item.type == "ramBot";
 					});
 
+					var boost = 1;
+					if (players[projectile.playerId].powerUps.berserkerDrop.using) boost = 1.5;
+
 					for (var o = 0; o < closestBlocks.length; o++){
 						if (closestBlocks[o]){
 							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && players[projectile.playerId]){
+								closestBlocks[o].health -= 10 * boost;
+								closestBlocks[o].health = Math.round(closestBlocks[o].health);
+								emit("bullet-destroy", {
+									playerId: projectile.playerId,
+									bulletId: projectile.bulletId
+								});
+								tree.remove(bullets[i]);
+								bullets.splice(i, 1);
+								players[projectile.playerId].bulletsShot--;
+
+								emit('blo-update', {
+									playerId: closestBlocks[o].playerId,
+									blockId: closestBlocks[o].blockId,
+									width: closestBlocks[o].width,
+									height: closestBlocks[o].height,
+									health: closestBlocks[o].health,
+									color: closestBlocks[o].color,
+									coords: {
+										x: closestBlocks[o].coords.x,
+										y: closestBlocks[o].coords.y
+									}
+								});
 								if (closestBlocks[o].health <= 0){
 									emit('blo-update', {
 										playerId: closestBlocks[o].playerId,
@@ -790,28 +877,6 @@ function bulletEmit(){
 									}
 									break;
 								} else {
-									closestBlocks[o].health -= 10;
-									closestBlocks[o].health = Math.round(closestBlocks[o].health);
-									emit("bullet-destroy", {
-										playerId: projectile.playerId,
-										bulletId: projectile.bulletId
-									});
-									tree.remove(bullets[i]);
-									bullets.splice(i, 1);
-									players[projectile.playerId].bulletsShot--;
-
-									emit('blo-update', {
-										playerId: closestBlocks[o].playerId,
-										blockId: closestBlocks[o].blockId,
-										width: closestBlocks[o].width,
-										height: closestBlocks[o].height,
-										health: closestBlocks[o].health,
-										color: closestBlocks[o].color,
-										coords: {
-											x: closestBlocks[o].coords.x,
-											y: closestBlocks[o].coords.y
-										}
-									});
 									break;
 								}
 							}
@@ -819,7 +884,7 @@ function bulletEmit(){
 					}
 					for (var p = 0; p < closestPlayers.length; p++){
 						if (closestPlayers[p].id !== projectile.playerId && cirToCirCollision(projectile, closestPlayers[p]) && !closestPlayers[p].god && !closestPlayers[p].dead && closestPlayers[p]){
-							closestPlayers[p].health -= 10;
+							closestPlayers[p].health -= 10 * boost;
 							closestPlayers[p].health = Math.round(closestPlayers[p].health);
 							emit("bullet-destroy", {
 								playerId: projectile.playerId,
@@ -843,14 +908,47 @@ function bulletEmit(){
 									},
 									type: "player"
 								});
+								if (getChance() <= 50){
+									var index;
+
+									if (drops.length == 0){
+										index = 0;
+									} else {
+										index = drops.length;
+									}
+						
+									drops.push({
+										type: "healthDrop",
+										dropId: randomstring.generate(),
+										width: 30,
+										height: 30,
+										index: index,
+										coords: {
+											x: closestPlayers[p].coords.x,
+											y: closestPlayers[p].coords.y
+										},
+										color: "#4ee44e"
+									});
+									tree.insert(drops[index]);
+									emit('dupdate', {
+										dropId: drops[index].dropId,
+										width: drops[index].width,
+										height: drops[index].height,
+										coords: {
+											x: drops[index].coords.x,
+											y: drops[index].coords.y
+										},
+										color: drops[index].color
+									});
+								}
 							}
 							break;
 						}					
 					}
 					for (var u = 0; u < closestRamBots.length; u++){
-						if (cirToCirCollision(projectile, ramBots[u]) && ramBots[u]){
-							ramBots[u].health -= 10;
-							ramBots[u].health = Math.round(ramBots[u].health);
+						if (cirToCirCollision(projectile, closestRamBots[u]) && closestRamBots[u]){
+							closestRamBots[u].health -= 10 * boost;
+							closestRamBots[u].health = Math.round(closestRamBots[u].health);
 							emit("bullet-destroy", {
 								playerId: projectile.playerId,
 								bulletId: projectile.bulletId
@@ -898,16 +996,18 @@ function vortexEmit(){
 				return item.type == "ramBot";
 			});
 
+			var boost = 1;
+			if (players[vortex.playerId].powerUps.berserkerDrop.using) boost = 1.5;
+
 			for (var o = 0; o < closestPlayers.length; o++){
 				if (vortex.playerId !== closestPlayers[o].id && cirToCirCollision(vortex, closestPlayers[o]) && !closestPlayers[o].god && !closestPlayers[o].dead){
 					const player = closestPlayers[o];
 					player.coords.x = vortex.coords.x;
 					player.coords.y = vortex.coords.y;
-					player.health -= 0.5;
+					player.health -= 0.5 * boost;
 
 					if (player.health <= 0){
 						player.dead = true;
-
 						emit("plr-death", {
 							loser: {
 								username: player.username,
@@ -921,6 +1021,39 @@ function vortexEmit(){
 							},
 							type: "player"
 						});
+						if (getChance() <= 40){
+							var index;
+
+							if (drops.length == 0){
+								index = 0;
+							} else {
+								index = drops.length;
+							}
+						
+							drops.push({
+								type: "healthDrop",
+								dropId: randomstring.generate(),
+								width: 30,
+								height: 30,
+								index: index,
+								coords: {
+									x: closestPlayers[p].coords.x,
+									y: closestPlayers[p].coords.y
+								},
+								color: "#4ee44e"
+							});
+							tree.insert(drops[index]);
+							emit('dupdate', {
+								dropId: drops[index].dropId,
+								width: drops[index].width,
+								height: drops[index].height,
+								coords: {
+									x: drops[index].coords.x,
+									y: drops[index].coords.y
+								},
+								color: drops[index].color
+							});
+						}
 					}
 				}
 			}
@@ -930,7 +1063,7 @@ function vortexEmit(){
 					const ramBot = closestRamBots[o];
 					ramBot.coords.x = vortex.coords.x;
 					ramBot.coords.y = vortex.coords.y;
-					ramBot.health -= 0.5;
+					ramBot.health -= 0.5 * boost;
 				}
 			}
 			
@@ -1369,7 +1502,7 @@ io.on('connection', socket => {
 								x: players[socket.id].coords.x,
 								y: players[socket.id].coords.y
 							},
-							color: "#72bcd4"
+							color: players[socket.id].powerUps.berserkerDrop.using ? "#DF362D" : "#72bcd4"
 						});
 						tree.insert(bullets[index]);
 						players[socket.id].rotation = Math.atan2(info.coords.y - info.screen.height / 2, info.coords.x - info.screen.width / 2);
@@ -1659,6 +1792,10 @@ io.on('connection', socket => {
 					canPlace: true,
 					powerUps: {
 						speedDrop: {
+							time: 600,
+							using: false
+						},
+						berserkerDrop: {
 							time: 600,
 							using: false
 						}
