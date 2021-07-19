@@ -824,26 +824,6 @@ function bulletEmit(){
 							if (cirToRectCollision(projectile, closestBlocks[o]) && closestBlocks[o] && players[projectile.playerId]){
 								closestBlocks[o].health -= 10 * boost;
 								closestBlocks[o].health = Math.round(closestBlocks[o].health);
-								emit("bullet-destroy", {
-									playerId: projectile.playerId,
-									bulletId: projectile.bulletId
-								});
-								tree.remove(bullets[i]);
-								bullets.splice(i, 1);
-								players[projectile.playerId].bulletsShot--;
-
-								emit('blo-update', {
-									playerId: closestBlocks[o].playerId,
-									blockId: closestBlocks[o].blockId,
-									width: closestBlocks[o].width,
-									height: closestBlocks[o].height,
-									health: closestBlocks[o].health,
-									color: closestBlocks[o].color,
-									coords: {
-										x: closestBlocks[o].coords.x,
-										y: closestBlocks[o].coords.y
-									}
-								});
 								if (closestBlocks[o].health <= 0){
 									emit('blo-update', {
 										playerId: closestBlocks[o].playerId,
@@ -877,6 +857,26 @@ function bulletEmit(){
 									}
 									break;
 								} else {
+									emit("bullet-destroy", {
+										playerId: projectile.playerId,
+										bulletId: projectile.bulletId
+									});
+									tree.remove(bullets[i]);
+									bullets.splice(i, 1);
+									players[projectile.playerId].bulletsShot--;
+
+									emit('blo-update', {
+										playerId: closestBlocks[o].playerId,
+										blockId: closestBlocks[o].blockId,
+										width: closestBlocks[o].width,
+										height: closestBlocks[o].height,
+										health: closestBlocks[o].health,
+										color: closestBlocks[o].color,
+										coords: {
+											x: closestBlocks[o].coords.x,
+											y: closestBlocks[o].coords.y
+										}
+									});
 									break;
 								}
 							}
