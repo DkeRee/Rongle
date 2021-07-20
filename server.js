@@ -1594,18 +1594,16 @@ io.on('connection', socket => {
 							if (cmd[0] == "/tp"){
 								if (cmd[1] && cmd[2]){
 									if (cmd[1] == "me"){
-										if (cmd[3]){
-											if (!isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
-												//tp me to coords
-												players[socket.id].coords.x = Number(cmd[2]);
-												players[socket.id].coords.y = Number(cmd[3]);
-											} else {
-												//tp me to player
-												const target = findPlayer(cmd[2]);
-												if (target){
-													players[socket.id].coords.x = target.coords.x;
-													players[socket.id].coords.y = target.coords.y;
-												}
+										if (cmd[3] && !isNaN(Number(cmd[2])) && !isNaN(Number(cmd[3]))){
+											//tp me to coords
+											players[socket.id].coords.x = Number(cmd[2]);
+											players[socket.id].coords.y = Number(cmd[3]);
+										} else {
+											//tp me to player
+											const target = findPlayer(cmd[2]);
+											if (target){
+												players[socket.id].coords.x = target.coords.x;
+												players[socket.id].coords.y = target.coords.y;
 											}
 										}
 									} else {
