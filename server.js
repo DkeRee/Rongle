@@ -1828,9 +1828,9 @@ io.on('connection', socket => {
 					}
 				}
 				for (var i = 0; i < drops.length; i++){
-					if (drops[i] && drops.type == "healthDrop"){
+					if (drops[i]){
 						const healthDrop = drops[i];
-						socket.emit('hdupdate', {
+						socket.emit('dupdate', {
 							dropId: healthDrop.dropId,
 							width: healthDrop.width,
 							height: healthDrop.height,

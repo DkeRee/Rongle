@@ -378,95 +378,95 @@
 					}
 				}
 
+				if (this.powerUps.speedDrop.using){
+					if (this.trail.length > 9) this.trail.shift();
+					this.trail.push({
+						x: this.x,
+						y: this.y
+					});
+					for (var i = 0; i < this.trail.length; i++){
+						const ratio = (i + 1) / this.trail.length;
+
+						ctx.beginPath();
+						ctx.arc(this.trail[i].x, this.trail[i].y, this.radius, 2 * Math.PI, false);
+						ctx.lineWidth = 2;
+						ctx.strokeStyle = hexToRgbA(this.color, ratio / 2);
+						ctx.stroke();
+					}
+				} else if (this.trail.length > 0){
+					this.trail.shift();
+					for (var i = 0; i < this.trail.length; i++){
+						const ratio = (i + 1) / this.trail.length;
+
+						ctx.beginPath();
+						ctx.arc(this.trail[i].x, this.trail[i].y, this.radius, 2 * Math.PI, false);
+						ctx.lineWidth = 2;
+						ctx.strokeStyle = hexToRgbA(this.color, ratio / 2);
+						ctx.stroke();
+					}
+				}
+
+				if (this.powerUps.berserkerDrop.using){
+					if (this.menacingTick > 3) this.menacingTick = 0;
+					this.menacingTick++;
+					if (this.menacingTick == 3 && this.menacing.length < 3){
+						this.menacingTick = 0;
+						this.menacing.push({
+							x: this.x,
+							y: this.y
+						});
+					}
+					for (var i = 0; i < this.menacing.length; i++){
+						const ratio = (i + 1) / this.menacing.length;
+
+						this.menacing[i].x = this.x;
+						this.menacing[i].y = this.y;
+
+						ctx.beginPath();
+						ctx.arc(this.menacing[i].x, this.menacing[i].y, this.radius + this.radius * ratio, 2 * Math.PI, false);
+						ctx.fillStyle = hexToRgbA(this.color, 0.2);
+						ctx.fill();
+					}
+				} else if (this.menacing.length > 0){
+					if (this.menacingTick > 3) this.menacingTick = 0;
+					this.menacingTick++;
+					if (this.menacingTick == 3){
+						this.menacingTick = 0;
+						this.menacing.shift();
+					}
+					for (var i = 0; i < this.menacing.length; i++){
+						const ratio = (i + 1) / this.menacing.length;
+
+						this.menacing[i].x = this.x;
+						this.menacing[i].y = this.y;
+
+						ctx.beginPath();
+						ctx.arc(this.menacing[i].x, this.menacing[i].y, this.radius + this.radius * ratio, 2 * Math.PI, false);
+						ctx.fillStyle = hexToRgbA(this.color, 0.1);
+						ctx.fill();
+					}
+				}
+
 				ctx.fillStyle = "#f70d1a";
 				ctx.fillRect(this.x - 50, this.y - 80, 100, 15);
 
 				ctx.fillStyle = "#4ee44e";
 				ctx.fillRect(this.x - 50, this.y - 80, this.health, 15);
+
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = this.color;
+				ctx.save();
+				ctx.translate(this.x, this.y);
+				ctx.rotate(this.rotation);
+				ctx.strokeRect(15 / -2, 10 / -2, 15, 10);
+				ctx.restore();
+
+				ctx.beginPath();
+				ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = this.color;
+				ctx.stroke();
 			}
-
-			if (this.powerUps.speedDrop.using && this.color !== "transparent"){
-				if (this.trail.length > 9) this.trail.shift();
-				this.trail.push({
-					x: this.x,
-					y: this.y
-				});
-				for (var i = 0; i < this.trail.length; i++){
-					const ratio = (i + 1) / this.trail.length;
-
-					ctx.beginPath();
-					ctx.arc(this.trail[i].x, this.trail[i].y, this.radius, 2 * Math.PI, false);
-					ctx.lineWidth = 2;
-					ctx.strokeStyle = hexToRgbA(this.color, ratio / 2);
-					ctx.stroke();
-				}
-			} else if (this.trail.length > 0){
-				this.trail.shift();
-				for (var i = 0; i < this.trail.length; i++){
-					const ratio = (i + 1) / this.trail.length;
-
-					ctx.beginPath();
-					ctx.arc(this.trail[i].x, this.trail[i].y, this.radius, 2 * Math.PI, false);
-					ctx.lineWidth = 2;
-					ctx.strokeStyle = hexToRgbA(this.color, ratio / 2);
-					ctx.stroke();
-				}
-			}
-
-			if (this.powerUps.berserkerDrop.using && this.color !== "transparent"){
-				if (this.menacingTick > 3) this.menacingTick = 0;
-				this.menacingTick++;
-				if (this.menacingTick == 3 && this.menacing.length < 3){
-					this.menacingTick = 0;
-					this.menacing.push({
-						x: this.x,
-						y: this.y
-					});
-				}
-				for (var i = 0; i < this.menacing.length; i++){
-					const ratio = (i + 1) / this.menacing.length;
-
-					this.menacing[i].x = this.x;
-					this.menacing[i].y = this.y;
-
-					ctx.beginPath();
-					ctx.arc(this.menacing[i].x, this.menacing[i].y, this.radius + this.radius * ratio, 2 * Math.PI, false);
-					ctx.fillStyle = hexToRgbA(this.color, 0.2);
-					ctx.fill();
-				}
-			} else if (this.menacing.length > 0){
-				if (this.menacingTick > 3) this.menacingTick = 0;
-				this.menacingTick++;
-				if (this.menacingTick == 3){
-					this.menacingTick = 0;
-					this.menacing.shift();
-				}
-				for (var i = 0; i < this.menacing.length; i++){
-					const ratio = (i + 1) / this.menacing.length;
-
-					this.menacing[i].x = this.x;
-					this.menacing[i].y = this.y;
-
-					ctx.beginPath();
-					ctx.arc(this.menacing[i].x, this.menacing[i].y, this.radius + this.radius * ratio, 2 * Math.PI, false);
-					ctx.fillStyle = hexToRgbA(this.color, 0.1);
-					ctx.fill();
-				}
-			}
-
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = this.color;
-			ctx.save();
-			ctx.translate(this.x, this.y);
-			ctx.rotate(this.rotation);
-			ctx.strokeRect(15 / -2, 10 / -2, 15, 10);
-			ctx.restore();
-
-			ctx.beginPath();
-			ctx.arc(this.x, this.y, this.radius, 2 * Math.PI, false);
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = this.color;
-			ctx.stroke();
 		};
 
 		//Bullet constructor
@@ -973,7 +973,6 @@
 	});
 
 	socket.on("plr-death", info => {
-		players[info.loser.id].body.color = "transparent";
 		players[info.loser.id].body.dead = true;
 		const msgContainer = document.createElement("div");
 		msgContainer.setAttribute("class", "msg-container");
@@ -1015,7 +1014,6 @@
 	});
 
 	socket.on("plr-respawn", info => {
-		players[info.playerId].body.color = info.playerColor;
 		players[info.playerId].body.dead = false;
 	});
 
