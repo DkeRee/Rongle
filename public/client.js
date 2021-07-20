@@ -340,6 +340,7 @@
 			this.powerUps = powerUps;
 			this.trail = [];
 			this.menacing = [];
+			this.menacingTick = 0;
 		}
 
 		Player.prototype.update = function(x, y, health, rotation, powerUps){
@@ -413,11 +414,15 @@
 			}
 
 			if (this.powerUps.berserkerDrop.using && this.color !== "transparent"){
-				if (this.menacing.length > 3) this.menacing.shift();
-				this.menacing.push({
-					x: this.x,
-					y: this.y
-				});
+				if (this.menacingTick > 3) this.menacingTick = 0;
+				this.menacingTick++;
+				if (this.menacingTick == 3 && this.menacing.length < 3){
+					this.menacingTick = 0;
+					this.menacing.push({
+						x: this.x,
+						y: this.y
+					});
+				}
 				for (var i = 0; i < this.menacing.length; i++){
 					const ratio = (i + 1) / this.menacing.length;
 
@@ -430,7 +435,12 @@
 					ctx.fill();
 				}
 			} else if (this.menacing.length > 0){
-				this.menacing.shift();
+				if (this.menacingTick > 3) this.menacingTick = 0;
+				this.menacingTick++;
+				if (this.menacingTick == 3){
+					this.menacingTick = 0;
+					this.menacing.shift();
+				}
 				for (var i = 0; i < this.menacing.length; i++){
 					const ratio = (i + 1) / this.menacing.length;
 

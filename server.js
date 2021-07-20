@@ -439,7 +439,7 @@ function ramBotEmit(){
 			ramBots[i].coords.y += ramBotY;
 			if (ramBots[i].health <= 0){
 				emit("rambot-destroy", ramBots[i].botId);
-				if (getChance() <= 25){
+				if (getChance() <= 30){
 					var index;
 
 					if (drops.length == 0){
@@ -568,7 +568,7 @@ function playerEmit(){
 				});
 
 				for (var i = 0; i < closestHealthDrops.length; i++){
-					if (cirToRectCollision(players[player], closestHealthDrops[i])){
+					if (cirToRectCollision(players[player], closestHealthDrops[i]) && !players[player].dead){
 						io.to(players[player].id).emit("announcement", {
 							message: "+10 health: Used Health Drop",
 							color: closestHealthDrops[i].color
@@ -588,7 +588,7 @@ function playerEmit(){
 				}
 
 				for (var i = 0; i < closestSpeedDrops.length; i++){
-					if (cirToRectCollision(players[player], closestSpeedDrops[i]) && !players[player].powerUps.speedDrop.using){
+					if (cirToRectCollision(players[player], closestSpeedDrops[i]) && !players[player].powerUps.speedDrop.using && !players[player].dead){
 						io.to(players[player].id).emit("announcement", {
 							message: "+50% Speed: Used Speed Drop (Not Stackable)",
 							color: closestSpeedDrops[i].color
@@ -601,7 +601,7 @@ function playerEmit(){
 				}
 
 				for (var i = 0; i < closestBerserkerDrops.length; i++){
-					if (cirToRectCollision(players[player], closestBerserkerDrops[i]) && !players[player].powerUps.berserkerDrop.using){
+					if (cirToRectCollision(players[player], closestBerserkerDrops[i]) && !players[player].powerUps.berserkerDrop.using && !players[player].dead){
 						io.to(players[player].id).emit("announcement", {
 							message: "+50% Damage: Used Berserker (Not Stackable)",
 							color: closestBerserkerDrops[i].color
