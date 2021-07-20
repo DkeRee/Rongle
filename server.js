@@ -439,7 +439,7 @@ function ramBotEmit(){
 			ramBots[i].coords.y += ramBotY;
 			if (ramBots[i].health <= 0){
 				emit("rambot-destroy", ramBots[i].botId);
-				if (getChance() <= 35){
+				if (getChance() <= 25){
 					var index;
 
 					if (drops.length == 0){
