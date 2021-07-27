@@ -666,88 +666,22 @@ function playerEmit(){
 				const walkingSpeed = 3 * boost;
 				const runningSpeed = 5 * boost;
 
-				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
-					players[player].running = false;
-				}
-				if (!keys[16]){
-					players[player].running = false;
-				}
-				if (!players[player].burntOut){
-					//running up
-					if (borderY !== "top border" && keys[87] && keys[16]){
-						players[player].coords.y -= runningSpeed;
-						players[player].running = true;
-						players[player].time = 5000;
-					}
-					//running down
-					if (borderY !== "bottom border" && keys[83] && keys[16]){
-						players[player].coords.y += runningSpeed;
-						players[player].running = true;
-						players[player].time = 5000;
-					}
-					//running right
-					if (borderX !== "right border" && keys[68] && keys[16]){
-						players[player].coords.x += runningSpeed;
-						players[player].running = true;
-						players[player].time = 5000;
-					}
-					//running left
-					if (borderX !== "left border" && keys[65] && keys[16]){
-						players[player].coords.x -= runningSpeed;
-						players[player].running = true;
-						players[player].time = 5000;
-					}
-			
-					//with stamina up
-					if (borderY !== "top border" && keys[87] && !keys[16]){
-						players[player].coords.y -= walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-					//with stamina down
-					if (borderY !== "bottom border" && keys[83] && !keys[16]){
-						players[player].coords.y += walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-					//with stamina right
-					if (borderX !== "right border" && keys[68] && !keys[16]){
-						players[player].coords.x += walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-					//with stamina down
-					if (borderX !== "left border" && keys[65] && !keys[16]){
-						players[player].coords.x -= walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-				} else {
-					//without stamina up
-					if (borderY !== "top border" && keys[87]){
-						players[player].coords.y -= walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-					//without stamina down
-					if (borderY !== "bottom border" && keys[83]){
-						players[player].coords.y += walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-					//without stamina right
-					if (borderX !== "right border" && keys[68]){
-						players[player].coords.x += walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}
-					//without stamina down
-					if (borderX !== "left border" && keys[65]){
-						players[player].coords.x -= walkingSpeed;
-						players[player].running = false;
-						players[player].time = 5000;
-					}				
-				}
+				//afk timer reset and checking if running while not holding wasd keys
+				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]) players[player].running = false;
+				if (keys[87] || keys[63] || keys[68] || keys[65]) players[player].time = 5000;
+
+				//check if running
+				keys[16] && !players[player].burntOut ? players[player].running = true : players[player].running = false;
+
+				//up
+				if (keys[87] && borderY !== "top border") keys[16] && !players[player].burntOut ? players[player].coords.y -= runningSpeed : players[player].coords.y -= walkingSpeed;
+				//down
+				if (keys[83] && borderY !== "bottom border") keys[16] && !players[player].burntOut ? players[player].coords.y += runningSpeed : players[player].coords.y += walkingSpeed;
+				//right
+				if (keys[68] && borderX !== "right border") keys[16] && !players[player].burntOut ? players[player].coords.x += runningSpeed : players[player].coords.x += walkingSpeed;
+				//left
+				if (keys[65] && borderX !== "left border") keys[16] && !players[player].burntOut ? players[player].coords.x -= runningSpeed : players[player].coords.x -= walkingSpeed;
+
 				//stamina update
 				if (players[player].running){
 					players[player].stamina -= 1;
