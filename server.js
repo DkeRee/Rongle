@@ -666,25 +666,24 @@ function playerEmit(){
 				const walkingSpeed = 3 * boost;
 				const runningSpeed = 5 * boost;
 
-				//afk timer reset
-				if (keys[87] || keys[63] || keys[68] || keys[65]) players[player].time = 5000;
+				//check if moving
+				if (keys[87] || keys[83] || keys[68] || keys[65]){
+					players[player].time = 5000;
 
-				//checking if running while not holding wasd keys
-				if (!keys[87] && !keys[83] && !keys[68] && !keys[65]){
-					players[player].running = false;	
-				} else {
 					//check if running
 					keys[16] && !players[player].burntOut ? players[player].running = true : players[player].running = false;
-				}
 
-				//up
-				if (keys[87] && borderY !== "top border") keys[16] && !players[player].burntOut ? players[player].coords.y -= runningSpeed : players[player].coords.y -= walkingSpeed;
-				//down
-				if (keys[83] && borderY !== "bottom border") keys[16] && !players[player].burntOut ? players[player].coords.y += runningSpeed : players[player].coords.y += walkingSpeed;
-				//right
-				if (keys[68] && borderX !== "right border") keys[16] && !players[player].burntOut ? players[player].coords.x += runningSpeed : players[player].coords.x += walkingSpeed;
-				//left
-				if (keys[65] && borderX !== "left border") keys[16] && !players[player].burntOut ? players[player].coords.x -= runningSpeed : players[player].coords.x -= walkingSpeed;
+					//up
+					if (keys[87] && borderY !== "top border") keys[16] && !players[player].burntOut ? players[player].coords.y -= runningSpeed : players[player].coords.y -= walkingSpeed;
+					//down
+					if (keys[83] && borderY !== "bottom border") keys[16] && !players[player].burntOut ? players[player].coords.y += runningSpeed : players[player].coords.y += walkingSpeed;
+					//right
+					if (keys[68] && borderX !== "right border") keys[16] && !players[player].burntOut ? players[player].coords.x += runningSpeed : players[player].coords.x += walkingSpeed;
+					//left
+					if (keys[65] && borderX !== "left border") keys[16] && !players[player].burntOut ? players[player].coords.x -= runningSpeed : players[player].coords.x -= walkingSpeed;
+				} else {
+					players[player].running = false;
+				}
 
 				//stamina update
 				if (players[player].running){
