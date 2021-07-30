@@ -116,14 +116,10 @@
 	});
 
 	socket.on('joining', () => {
-		const myInfo = document.getElementById("my-info");
 		const chat = document.getElementById("chat-container");
 		const playerList = document.getElementById("player-list-container");
-		const staminaContainer = document.getElementById("stamina-container");
 		const staminaBar = document.getElementById("stamina-bar");
-		const vortexContainer = document.getElementById("vortex-container");
 		const vortexBar = document.getElementById("vortex-bar");
-		const toggleUI = document.getElementById("toggle-container");
 		const blockCounter = document.getElementById("block-counter");
 		
 		me.loggedIn = true;
@@ -131,12 +127,13 @@
 		devLoginContainer.remove();
 		bigUI.style.background = 'transparent';
 		bigUI.style.cursor = "url('img/cursor.png') 25 15, auto";
-		myInfo.style.display = 'block';
-		chat.style.display = 'block';
-		staminaContainer.style.display = 'block';
-		vortexContainer.style.display = 'block';
 		warningContainer.style.display = 'none';
-		toggleUI.style.display = 'block';
+
+		const gameElements = document.getElementsByClassName("game-element");
+
+		for (var i = 0; i < gameElements.length; i++){
+			gameElements[i].style.display = 'block';
+		}
 
 		toggle("shooting-container");
 
