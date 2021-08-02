@@ -226,6 +226,76 @@ function ramBotEmit(){
 				const distX = ramBots[i].coords.x - player.coords.x;
 				const distY = ramBots[i].coords.y - player.coords.y;
 				const dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+
+				//hitting blocks
+
+				for (var u = 0; u < closestBlocks.length; u++){
+					if (closestBlocks[u]){
+						const block = closestBlocks[u];
+						if (cirToRectCollision(ramBots[i], block)){
+							var kbX = 80;
+							var kbY = 80;
+							const dir = Math.atan2((ramBots[i].coords.x - 80) - block.coords.x, (ramBots[i].coords.y - 80) - block.coords.y);
+							if (Math.sign(ramBotX) == 1){
+								kbX = kbX;
+							}
+							if (Math.sign(ramBotX) == -1){
+								kbX = -kbX;
+							}
+							if (Math.sign(ramBotY) == 1){
+								kbY = kbY;
+							}
+							if (Math.sign(ramBotY) == -1){
+								kbY = -kbY;
+							}
+							ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
+							ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
+
+							if (block.health > 0){
+								block.health -= 10;
+								block.health = Math.round(block.health);
+
+								emit('blo-update', {
+									playerId: block.playerId,
+									blockId: block.blockId,
+									width: block.width,
+									height: block.height,
+									health: block.health,
+									color: block.color,
+									coords: {
+										x: block.coords.x,
+										y: block.coords.y
+									}
+								});
+								break;
+							} else {
+								if (players[block.playerId]){
+									emit('blo-update', {
+										playerId: block.playerId,
+										blockId: block.blockId,
+										width: block.width,
+										height: block.height,
+										health: block.health,
+										color: block.color,
+										coords: {
+											x: block.coords.x,
+											y: block.coords.y
+										}
+									});
+									emit("block-destroy", {
+										playerId: block.playerId,
+										blockId: block.blockId
+									});
+									players[block.playerId].blocksPlaced--;
+									tree.remove(block);
+									blocks.splice(block.index, 1);
+									break;
+								}
+							}
+						}								
+					}
+				}
+
 				if (!player.dead){
 					playerInfo.push({
 						playerId: player.id,
@@ -249,72 +319,6 @@ function ramBotEmit(){
 							if (targetPlayer.coords.y > ramBots[i].coords.y){
 								ramBotY = 3.5;
 							}
-						}
-					}
-					for (var u = 0; u < closestBlocks.length; u++){
-						if (closestBlocks[u]){
-							const block = closestBlocks[u];
-							if (cirToRectCollision(ramBots[i], block)){
-								var kbX = 80;
-								var kbY = 80;
-								const dir = Math.atan2((ramBots[i].coords.x - 80) - block.coords.x, (ramBots[i].coords.y - 80) - block.coords.y);
-								if (Math.sign(ramBotX) == 1){
-									kbX = kbX;
-								}
-								if (Math.sign(ramBotX) == -1){
-									kbX = -kbX;
-								}
-								if (Math.sign(ramBotY) == 1){
-									kbY = kbY;
-								}
-								if (Math.sign(ramBotY) == -1){
-									kbY = -kbY;
-								}
-								ramBots[i].coords.x += Math.round(kbX * Math.cos(dir));
-								ramBots[i].coords.y += Math.round(kbY * Math.sign(dir));
-
-								if (block.health > 0){
-									block.health -= 10;
-									block.health = Math.round(block.health);
-
-									emit('blo-update', {
-										playerId: block.playerId,
-										blockId: block.blockId,
-										width: block.width,
-										height: block.height,
-										health: block.health,
-										color: block.color,
-										coords: {
-											x: block.coords.x,
-											y: block.coords.y
-										}
-									});
-									break;
-								} else {
-									if (players[block.playerId]){
-										emit('blo-update', {
-											playerId: block.playerId,
-											blockId: block.blockId,
-											width: block.width,
-											height: block.height,
-											health: block.health,
-											color: block.color,
-											coords: {
-												x: block.coords.x,
-												y: block.coords.y
-											}
-										});
-										emit("block-destroy", {
-											playerId: block.playerId,
-											blockId: block.blockId
-										});
-										players[block.playerId].blocksPlaced--;
-										tree.remove(block);
-										blocks.splice(block.index, 1);
-										break;
-									}
-								}
-							}								
 						}
 					}
 					if (cirToCirCollision(ramBots[i], player) && !player.god){
@@ -435,6 +439,7 @@ function ramBotEmit(){
 					}
 				}
 			}
+
 			ramBots[i].coords.x += ramBotX;
 			ramBots[i].coords.y += ramBotY;
 			if (ramBots[i].health <= 0){
