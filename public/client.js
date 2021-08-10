@@ -42,8 +42,20 @@
 
 	var mode = "shooting";
 
+	function volume(x, y){
+		const volume = Math.round((1 - (Math.sqrt(Math.pow(x - me.myX, 2) + Math.pow(y - me.myY, 2)) / 1800)) * 10) / 10;
+		if (volume < 0){
+			return 0;
+		} else {
+			return volume;
+		}
+	}
+
 	function toggle(id){
 		const blockCounter = document.getElementById("block-counter");
+		const toggle = new Audio("audio/toggle.mp3");
+		toggle.play();
+
 		if (id == "shooting-container"){
 			document.getElementById("building-container").style.borderColor = "#7f7f7f";
 			blockCounter.style.display = 'none';
@@ -706,6 +718,10 @@
 					coords: info.coords,
 					body: getBullet(info.coords, info.color),
 				};
+
+				const shoot = new Audio("audio/rongleShoot.wav");
+				shoot.volume = volume(info.coords.x, info.coords.y);
+				shoot.play();
 			}
 		});
 
@@ -735,10 +751,18 @@
 					health: info.health,
 					body: new Block(info.coords.x, info.coords.y, info.width, info.height, info.health, info.color)
 				};
+
+				const build = new Audio("audio/rongleBuild.wav");
+				build.volume = volume(info.coords.x, info.coords.y);
+				build.play();
 			}
 		});
 
 		socket.on("block-destroy", info => {
+			const death = new Audio("audio/death.wav");
+			death.volume = volume(blocks[info.playerId][info.blockId].coords.x, blocks[info.playerId][info.blockId].coords.y);
+			death.play();
+
 			if (info.leave){
 				delete blocks[info.playerId];
 			} else {
@@ -800,6 +824,10 @@
 					radius: info.radius,
 					body: new Vortex(info.coords.x, info.coords.y, info.radius, info.color)
 				};
+
+				const vortex = new Audio("audio/vortex.wav");
+				vortex.volume = volume(info.coords.x, info.coords.y);
+				vortex.play();
 			}
 		});
 
@@ -862,6 +890,10 @@
 		});
 
 		socket.on("drop-destroy", id => {
+			const drop = new Audio("audio/drop.wav");
+			drop.volume = volume(drops[id].body.x, drops[id].body.y);
+			drop.play();
+
 			delete drops[id];
 		});
 
@@ -880,6 +912,9 @@
 		});
 
 		socket.on("rambot-destroy", botId => {
+			const death = new Audio("audio/death.wav");
+			death.volume = volume(ramBots[botId].coords.x, ramBots[botId].coords.y);
+			death.play();
 			delete ramBots[botId];
 		});
 	});
@@ -971,6 +1006,11 @@
 
 	socket.on("plr-death", info => {
 		players[info.loser.id].body.dead = true;
+
+		const death = new Audio("audio/death.wav");
+		death.volume = volume(players[info.loser.id].coords.x, players[info.loser.id].coords.y);
+		death.play();
+
 		const msgContainer = document.createElement("div");
 		msgContainer.setAttribute("class", "msg-container");
 
