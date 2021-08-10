@@ -442,44 +442,6 @@ function ramBotEmit(){
 
 			ramBots[i].coords.x += ramBotX;
 			ramBots[i].coords.y += ramBotY;
-			if (ramBots[i].health <= 0){
-				emit("rambot-destroy", ramBots[i].botId);
-				if (getChance() <= 30){
-					var index;
-
-					if (drops.length == 0){
-						index = 0;
-					} else {
-						index = drops.length;
-					}
-						
-					drops.push({
-						type: "berserkerDrop",
-						dropId: randomstring.generate(),
-						width: 30,
-						height: 30,
-						index: index,
-						coords: {
-							x: ramBots[i].coords.x,
-							y: ramBots[i].coords.y
-						},
-						color: "#DF362D"
-					});
-					tree.insert(drops[index]);
-					emit('dupdate', {
-						dropId: drops[index].dropId,
-						width: drops[index].width,
-						height: drops[index].height,
-						coords: {
-							x: drops[index].coords.x,
-							y: drops[index].coords.y
-						},
-						color: drops[index].color
-					});
-				}
-				tree.remove(ramBots[i]);
-				ramBots.splice(i, 1);
-			}
 		}
 	}
 }
@@ -897,6 +859,47 @@ function bulletEmit(){
 							tree.remove(bullets[i]);
 							bullets.splice(i, 1);
 							players[projectile.playerId].bulletsShot--;
+							if (closestRamBots[u].health <= 0){
+								emit("rambot-destroy", closestRamBots[u].botId);
+								if (getChance() <= 30){
+									var index;	
+
+									if (drops.length == 0){
+										index = 0;
+									} else {
+										index = drops.length;
+									}
+							
+									drops.push({
+										type: "berserkerDrop",
+										dropId: randomstring.generate(),
+										width: 30,
+										height: 30,
+										index: index,
+										coords: {
+											x: closestRamBots[u].coords.x,
+											y: closestRamBots[u].coords.y
+										},
+										color: "#DF362D"
+									});
+									tree.insert(drops[index]);
+									emit('dupdate', {
+										dropId: drops[index].dropId,
+										width: drops[index].width,
+										height: drops[index].height,
+										coords: {
+											x: drops[index].coords.x,
+											y: drops[index].coords.y
+										},
+										color: drops[index].color
+									});
+								}
+								tree.remove(closestRamBots[u]);
+								ramBots.splice(closestRamBots[u].index, 1);
+								for (var r = closestRamBots[u].index; r < ramBots.length; r++){
+									ramBots[r].index -= 1;
+								}
+							}
 							break;
 						}		
 					}
@@ -1005,6 +1008,47 @@ function vortexEmit(){
 					ramBot.coords.x = vortex.coords.x;
 					ramBot.coords.y = vortex.coords.y;
 					ramBot.health -= 0.5 * boost;
+					if (ramBot.health <= 0){
+						emit("rambot-destroy", ramBot.botId);
+						if (getChance() <= 30){
+							var index;	
+
+							if (drops.length == 0){
+								index = 0;
+							} else {
+								index = drops.length;
+							}
+						
+							drops.push({
+								type: "berserkerDrop",
+								dropId: randomstring.generate(),
+								width: 30,
+								height: 30,
+								index: index,
+								coords: {
+									x: ramBot.coords.x,
+									y: ramBot.coords.y
+								},
+								color: "#DF362D"
+							});
+							tree.insert(drops[index]);
+							emit('dupdate', {
+								dropId: drops[index].dropId,
+								width: drops[index].width,
+								height: drops[index].height,
+								coords: {
+									x: drops[index].coords.x,
+									y: drops[index].coords.y
+								},
+								color: drops[index].color
+							});
+						}
+						tree.remove(ramBot);
+						ramBots.splice(ramBot.index, 1);
+						for (var r = ramBot.index; r < ramBots.length; r++){
+							ramBots[r].index -= 1;
+						}
+					}
 				}
 			}
 			
@@ -1125,11 +1169,13 @@ function spawn(){
  				} else {
  					index = ramBots.length;
  				}
+
 				ramBots.push({
 					type: "ramBot",
 					botId: randomstring.generate(),
 					health: 30,
 					radius: 15,
+					index: index,
 					coords: {
 						x: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1),
 						y: Math.ceil(Math.random() * 1300) * (Math.round(Math.random()) ? 1 : -1)
