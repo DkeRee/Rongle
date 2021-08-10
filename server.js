@@ -978,8 +978,8 @@ function vortexEmit(){
 								height: 30,
 								index: index,
 								coords: {
-									x: closestPlayers[p].coords.x,
-									y: closestPlayers[p].coords.y
+									x: player.coords.x,
+									y: player.coords.y
 								},
 								color: "#4ee44e"
 							});
